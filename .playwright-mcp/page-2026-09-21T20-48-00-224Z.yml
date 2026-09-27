@@ -1,0 +1,602 @@
+- generic [ref=f15e2]:
+  - link "Перейти к содержанию" [ref=f15e3] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=f15e4]:
+    - generic [ref=f15e5]:
+      - link "ASOFT — на главную" [ref=f15e6] [cursor=pointer]:
+        - /url: /website1
+        - img "ASOFT" [ref=f15e7]
+        - generic [ref=f15e8]: Автоматизация торговли
+      - navigation "Основная навигация" [ref=f15e9]:
+        - link "Решения" [ref=f15e10] [cursor=pointer]:
+          - /url: /website1#solutions
+        - link "Продукты" [ref=f15e11] [cursor=pointer]:
+          - /url: /website1#products
+        - link "Услуги" [ref=f15e12] [cursor=pointer]:
+          - /url: /website1#services
+        - link "О компании" [ref=f15e13] [cursor=pointer]:
+          - /url: /website1#about
+        - link "Поддержка" [ref=f15e14] [cursor=pointer]:
+          - /url: /website1#support
+      - link "Связаться" [ref=f15e16] [cursor=pointer]:
+        - /url: /website1#contact
+  - main [ref=f15e17]:
+    - region "Продукты ASOFT" [ref=f15e18]:
+      - generic [ref=f15e19]:
+        - paragraph [ref=f15e20]: Оборудование · ПО · Внедрение · Поддержка
+        - heading "Касса — это система, а не коробка." [level=1] [ref=f15e21]: Касса — это система,а не коробка.
+        - paragraph [ref=f15e22]: Оборудование, программное обеспечение и сопровождение собираются в одно решение — и отвечают за результат вместе, а не по отдельности.
+        - generic [ref=f15e23]:
+          - paragraph [ref=f15e24]: "Интерактивная сцена с трёхмерным оборудованием выключена: браузер сообщил, что анимацию показывать не нужно. Такое включает не только системная настройка — в Яндекс Браузере это делает режим энергосбережения."
+          - button "Включить полную версию" [ref=f15e25] [cursor=pointer]
+      - article [ref=f15e26]:
+        - generic [ref=f15e27]:
+          - paragraph [ref=f15e28]: Продукт 01
+          - heading "POS-терминал" [level=2] [ref=f15e29]
+          - paragraph [ref=f15e30]: "Рабочее место кассира: сенсорный моноблок, кассовое ПО и обмен с учётной системой."
+          - link "Подробнее" [ref=f15e31] [cursor=pointer]:
+            - /url: /website1/products/pos
+            - text: Подробнее ↗
+        - img "POS-терминал ASOFT" [ref=f15e32]
+        - list [ref=f15e33]:
+          - listitem [ref=f15e34]:
+            - generic [ref=f15e35]: "01"
+            - heading "Быстрее обслуживание" [level=3] [ref=f15e36]
+            - paragraph [ref=f15e37]: "Сенсорный моноблок и кассовое ПО, собранные под один сценарий работы: меньше действий кассира на каждую покупку."
+          - listitem [ref=f15e38]:
+            - generic [ref=f15e39]: "02"
+            - heading "Понятный интерфейс" [level=3] [ref=f15e40]
+            - paragraph [ref=f15e41]: Крупные зоны нажатия, предсказуемая логика экранов, горячие клавиши. Новый сотрудник начинает работать в первый день.
+          - listitem [ref=f15e42]:
+            - generic [ref=f15e43]: "03"
+            - heading "Одна система вместо набора" [level=3] [ref=f15e44]
+            - paragraph [ref=f15e45]: Оборудование, программное обеспечение и обмен данными настраиваются вместе и обновляются вместе.
+          - listitem [ref=f15e46]:
+            - generic [ref=f15e47]: "04"
+            - heading "Масштабируется под формат" [level=3] [ref=f15e48]
+            - paragraph [ref=f15e49]: Одна касса или сеть точек — конфигурация, права доступа и номенклатура разворачиваются по единому шаблону.
+          - listitem [ref=f15e50]:
+            - generic [ref=f15e51]: "05"
+            - heading "Сопровождение после запуска" [level=3] [ref=f15e52]
+            - paragraph [ref=f15e53]: "Мы не заканчиваем работу на установке: обновления, регламентные работы и обращения остаются на нас."
+      - article [ref=f15e54]:
+        - generic [ref=f15e55]:
+          - paragraph [ref=f15e56]: Продукт 02
+          - heading "Касса самообслуживания" [level=2] [ref=f15e57]
+          - paragraph [ref=f15e58]: "Киоск, который покупатель проходит сам: сканирование, оплата, чек — без участия кассира."
+          - link "Подробнее" [ref=f15e59] [cursor=pointer]:
+            - /url: /website1/products/self-checkout
+            - text: Подробнее ↗
+        - img "Касса самообслуживания ASOFT"
+        - list [ref=f15e60]:
+          - listitem [ref=f15e61]:
+            - generic [ref=f15e62]: "01"
+            - heading "Покупатель проходит сам" [level=3] [ref=f15e63]
+            - paragraph [ref=f15e64]: Сканирование, оплата и чек — за один подход. Сотрудник подключается только там, где это действительно нужно.
+          - listitem [ref=f15e65]:
+            - generic [ref=f15e66]: "02"
+            - heading "Меньше нагрузки на персонал" [level=3] [ref=f15e67]
+            - paragraph [ref=f15e68]: Часть потока уходит на самообслуживание, кассиры остаются на сложных операциях и зале.
+          - listitem [ref=f15e69]:
+            - generic [ref=f15e70]: "03"
+            - heading "Очередь распределяется" [level=3] [ref=f15e71]
+            - paragraph [ref=f15e72]: Несколько киосков занимают место одной кассовой зоны и работают параллельно в час пик.
+          - listitem [ref=f15e73]:
+            - generic [ref=f15e74]: "04"
+            - heading "Интерфейс, понятный сразу" [level=3] [ref=f15e75]
+            - paragraph [ref=f15e76]: Крупные элементы, один шаг на экране, подсказки на каждом этапе — покупателю не нужно объяснять, что делать.
+          - listitem [ref=f15e77]:
+            - generic [ref=f15e78]: "05"
+            - heading "Единая система управления" [level=3] [ref=f15e79]
+            - paragraph [ref=f15e80]: Киоски и кассиры работают с одной номенклатурой, одними правилами и одной отчётностью.
+          - listitem [ref=f15e81]:
+            - generic [ref=f15e82]: "06"
+            - heading "Обслуживание и поддержка" [level=3] [ref=f15e83]
+            - paragraph [ref=f15e84]: Регламентные работы, обновления и разбор обращений — по согласованному регламенту.
+    - generic [ref=f15e86]:
+      - generic [ref=f15e87]:
+        - generic [ref=f15e88]:
+          - paragraph [ref=f15e89]:
+            - generic [ref=f15e90]: "01"
+            - text: О компании
+          - heading [level=2] [ref=f15e91]:
+            - generic [ref=f15e92]: ASOFT собирает
+            - generic [ref=f15e93]: автоматизацию торговли
+            - text: в одну систему
+        - paragraph [ref=f15e94]: Оборудование, программное обеспечение и сопровождение обычно покупают у разных подрядчиков. Мы делаем это одной поставкой и отвечаем за результат целиком.
+      - generic [ref=f15e95]:
+        - article [ref=f15e96]:
+          - paragraph [ref=f15e97]: "01"
+          - heading "Оборудование" [level=3] [ref=f15e98]
+          - paragraph [ref=f15e99]: POS-терминалы и кассы самообслуживания в матовом корпусе для торгового зала.
+        - article [ref=f15e100]:
+          - paragraph [ref=f15e101]: "02"
+          - heading "Программное обеспечение" [level=3] [ref=f15e102]
+          - paragraph [ref=f15e103]: Кассовое ПО и ПО самообслуживания, которые работают с одной номенклатурой.
+        - article [ref=f15e104]:
+          - paragraph [ref=f15e105]: "03"
+          - heading "Внедрение" [level=3] [ref=f15e106]
+          - paragraph [ref=f15e107]: Настройка, интеграция с учётной системой, перенос данных, обучение персонала.
+        - article [ref=f15e108]:
+          - paragraph [ref=f15e109]: "04"
+          - heading "Поддержка" [level=3] [ref=f15e110]
+          - paragraph [ref=f15e111]: Обновления, регламентные работы и разбор обращений после запуска.
+    - generic [ref=f15e113]:
+      - generic [ref=f15e114]:
+        - generic [ref=f15e115]:
+          - paragraph [ref=f15e116]:
+            - generic [ref=f15e117]: "02"
+            - text: Решения
+          - heading [level=2] [ref=f15e118]:
+            - generic [ref=f15e119]: Два продукта,
+            - text: одна система
+        - paragraph [ref=f15e120]: Кассовая зона и зона самообслуживания работают с одной номенклатурой, одними правилами и одной отчётностью.
+      - generic [ref=f15e121]:
+        - link [ref=f15e122] [cursor=pointer]:
+          - /url: /website1/products/pos
+          - img "POS-терминал ASOFT" [ref=f15e124]
+          - generic [ref=f15e125]:
+            - paragraph [ref=f15e126]: Продукт 01
+            - heading "POS-терминал" [level=3] [ref=f15e127]
+            - paragraph [ref=f15e128]: "Рабочее место кассира: сенсорный моноблок, кассовое ПО и обмен с учётной системой."
+            - generic [ref=f15e129]:
+              - text: Подробнее
+              - generic [aria-hidden] [ref=f15e130]: ↗
+        - link [ref=f15e131] [cursor=pointer]:
+          - /url: /website1/products/self-checkout
+          - generic [ref=f15e132]:
+            - img "Касса самообслуживания ASOFT"
+          - generic [ref=f15e133]:
+            - paragraph [ref=f15e134]: Продукт 02
+            - heading "Касса самообслуживания" [level=3] [ref=f15e135]
+            - paragraph [ref=f15e136]: "Киоск, который покупатель проходит сам: сканирование, оплата, чек — без участия кассира."
+            - generic [ref=f15e137]:
+              - text: Подробнее
+              - generic [aria-hidden] [ref=f15e138]: ↗
+    - generic [ref=f15e140]:
+      - generic [ref=f15e141]:
+        - generic [ref=f15e142]:
+          - paragraph [ref=f15e143]:
+            - generic [ref=f15e144]: "03"
+            - text: Программное обеспечение
+          - heading [level=2] [ref=f15e145]:
+            - generic [ref=f15e146]: ПО, ради которого
+            - text: и покупают железо
+        - paragraph [ref=f15e147]: "Кассовое приложение и интерфейс самообслуживания построены на одной модели данных: каталог, цены и правила приходят из одного места."
+      - generic [ref=f15e148]:
+        - article [ref=f15e149]:
+          - generic [ref=f15e150]:
+            - img "Макет интерфейса кассового приложения ASOFT POS" [ref=f15e151]:
+              - generic [ref=f15e152]:
+                - generic [ref=f15e154]: ASOFT POS — Смена 42 · Касса 13
+                - generic [ref=f15e155]: Кассир · PIN 1234
+              - generic [ref=f15e156]:
+                - complementary [ref=f15e157]:
+                  - generic [ref=f15e158]: Горячее
+                  - generic [ref=f15e159]: Салаты
+                  - generic [ref=f15e160]: Выпечка
+                  - generic [ref=f15e161]: Напитки
+                  - generic [ref=f15e162]: Десерты
+                - generic [ref=f15e163]:
+                  - generic [ref=f15e164]:
+                    - generic [ref=f15e165]: Борщ
+                    - generic [ref=f15e166]: 180 ₽ · порция
+                  - generic [ref=f15e167]:
+                    - generic [ref=f15e168]: Плов
+                    - generic [ref=f15e169]: 240 ₽ · порция
+                  - generic [ref=f15e170]:
+                    - generic [ref=f15e171]: Салат овощной
+                    - generic [ref=f15e172]: 120 ₽ · порция
+                  - generic [ref=f15e173]:
+                    - generic [ref=f15e174]: Котлета куриная
+                    - generic [ref=f15e175]: 160 ₽ · шт
+                  - generic [ref=f15e176]:
+                    - generic [ref=f15e177]: Компот
+                    - generic [ref=f15e178]: 60 ₽ · 0,3 л
+                  - generic [ref=f15e179]:
+                    - generic [ref=f15e180]: Хлеб
+                    - generic [ref=f15e181]: 15 ₽ · шт
+                  - generic [ref=f15e182]:
+                    - generic [ref=f15e183]: Сырники
+                    - generic [ref=f15e184]: 190 ₽ · порция
+                  - generic [ref=f15e185]:
+                    - generic [ref=f15e186]: Чай
+                    - generic [ref=f15e187]: 45 ₽ · 0,2 л
+                - complementary [ref=f15e188]:
+                  - generic [ref=f15e189]: Чек № 118
+                  - list [ref=f15e190]:
+                    - listitem [ref=f15e191]:
+                      - generic [ref=f15e192]: Борщ
+                      - generic [ref=f15e193]: ×1
+                      - generic [ref=f15e194]: 180,00
+                    - listitem [ref=f15e195]:
+                      - generic [ref=f15e196]: Плов
+                      - generic [ref=f15e197]: ×2
+                      - generic [ref=f15e198]: 480,00
+                    - listitem [ref=f15e199]:
+                      - generic [ref=f15e200]: Компот
+                      - generic [ref=f15e201]: ×1
+                      - generic [ref=f15e202]: 60,00
+                  - generic [ref=f15e203]:
+                    - generic [ref=f15e204]: Итого
+                    - generic [ref=f15e205]: 720,00 ₽
+                  - generic [ref=f15e206]: Оплата
+            - paragraph [ref=f15e207]: Макет интерфейса
+          - generic [ref=f15e208]:
+            - paragraph [ref=f15e209]: Рабочее место кассира
+            - heading "ASOFT POS" [level=3] [ref=f15e210]
+            - paragraph [ref=f15e211]: Продажа, смена, скидки, отчёты и обмен данными. Управление с сенсорного экрана и с клавиатуры.
+            - link "Подробнее о POS" [ref=f15e212] [cursor=pointer]:
+              - /url: /website1/products/pos
+              - generic [aria-hidden] [ref=f15e214]: ↗
+        - article [ref=f15e215]:
+          - generic [ref=f15e216]:
+            - img "Макет интерфейса кассы самообслуживания ASOFT Self-Checkout" [ref=f15e217]:
+              - generic [ref=f15e218]: Отсканируйте товар
+              - list [ref=f15e220]:
+                - listitem [ref=f15e221]:
+                  - generic [ref=f15e222]: Хлеб бездрожжевой
+                  - generic [ref=f15e223]: 62,00
+                - listitem [ref=f15e224]:
+                  - generic [ref=f15e225]: Молоко 3,2% 1 л
+                  - generic [ref=f15e226]: 94,00
+                - listitem [ref=f15e227]:
+                  - generic [ref=f15e228]: Яблоки, 0,74 кг
+                  - generic [ref=f15e229]: 133,20
+              - generic [ref=f15e230]:
+                - generic [ref=f15e231]: К оплате
+                - generic [ref=f15e232]: 289,20 ₽
+              - generic [ref=f15e233]:
+                - generic [ref=f15e234]: Оплатить
+                - generic [ref=f15e235]: Позвать сотрудника
+            - paragraph [ref=f15e236]: Макет интерфейса
+          - generic [ref=f15e237]:
+            - paragraph [ref=f15e238]: Интерфейс покупателя
+            - heading "ASOFT Self-Checkout" [level=3] [ref=f15e239]
+            - paragraph [ref=f15e240]: Сканирование, корзина, оплата и чек. Один шаг на экране, подсказки и вызов сотрудника.
+            - link "Подробнее о Self-Checkout" [ref=f15e241] [cursor=pointer]:
+              - /url: /website1/products/self-checkout
+              - generic [aria-hidden] [ref=f15e243]: ↗
+    - generic [ref=f15e245]:
+      - generic [ref=f15e246]:
+        - generic [ref=f15e247]:
+          - paragraph [ref=f15e248]:
+            - generic [ref=f15e249]: "04"
+            - text: Услуги
+          - heading [level=2] [ref=f15e250]:
+            - generic [ref=f15e251]: От поставки
+            - text: до сопровождения
+        - paragraph [ref=f15e252]: "Семь направлений, которые закрывают весь путь: подобрать, настроить, запустить и поддерживать."
+      - generic [ref=f15e253]:
+        - article [ref=f15e254]:
+          - paragraph [ref=f15e255]: "01"
+          - heading "POS-оборудование" [level=3] [ref=f15e256]
+          - paragraph [ref=f15e257]: "Сенсорные моноблоки и периферия для кассовой зоны: сканер, фискальный регистратор, денежный ящик, эквайринг."
+          - generic [ref=f15e258]:
+            - generic [ref=f15e259]: Кассовая зона
+            - generic [ref=f15e260]: Периферия
+            - generic [ref=f15e261]: Монтаж
+        - article [ref=f15e262]:
+          - paragraph [ref=f15e263]: "02"
+          - heading "Кассы самообслуживания" [level=3] [ref=f15e264]
+          - paragraph [ref=f15e265]: "Киоски для самостоятельной оплаты: подбор конфигурации, размещение в зале, пусконаладка."
+          - generic [ref=f15e266]:
+            - generic [ref=f15e267]: Киоски
+            - generic [ref=f15e268]: Зона самообслуживания
+        - article [ref=f15e269]:
+          - paragraph [ref=f15e270]: "03"
+          - heading "ПО для POS" [level=3] [ref=f15e271]
+          - paragraph [ref=f15e272]: "Кассовое приложение: продажа, смена, скидки, отчёты, права доступа, работа при потере связи."
+          - generic [ref=f15e273]:
+            - generic [ref=f15e274]: Касса
+            - generic [ref=f15e275]: Отчётность
+            - generic [ref=f15e276]: Доступы
+        - article [ref=f15e277]:
+          - paragraph [ref=f15e278]: "04"
+          - heading "ПО для self-checkout" [level=3] [ref=f15e279]
+          - paragraph [ref=f15e280]: "Интерфейс покупателя: сканирование, корзина, оплата, вызов сотрудника, сценарии контроля."
+          - generic [ref=f15e281]:
+            - generic [ref=f15e282]: Интерфейс покупателя
+            - generic [ref=f15e283]: Оплата
+        - article [ref=f15e284]:
+          - paragraph [ref=f15e285]: "05"
+          - heading "Внедрение и интеграция" [level=3] [ref=f15e286]
+          - paragraph [ref=f15e287]: Обмен с учётной системой, перенос номенклатуры, настройка правил, запуск на точке и обучение.
+          - generic [ref=f15e288]:
+            - generic [ref=f15e289]: Интеграция
+            - generic [ref=f15e290]: Обучение
+            - generic [ref=f15e291]: Запуск
+        - article [ref=f15e292]:
+          - paragraph [ref=f15e293]: "06"
+          - heading "Обслуживание" [level=3] [ref=f15e294]
+          - paragraph [ref=f15e295]: Регламентные работы, замена расходных материалов, диагностика и ремонт оборудования.
+          - generic [ref=f15e296]:
+            - generic [ref=f15e297]: Регламент
+            - generic [ref=f15e298]: Диагностика
+        - article [ref=f15e299]:
+          - paragraph [ref=f15e300]: "07"
+          - heading "Поддержка" [level=3] [ref=f15e301]
+          - paragraph [ref=f15e302]: Обращения пользователей, обновления, изменения в настройках и сопровождение системы.
+          - generic [ref=f15e303]:
+            - generic [ref=f15e304]: Обращения
+            - generic [ref=f15e305]: Обновления
+    - generic [ref=f15e307]:
+      - generic [ref=f15e308]:
+        - generic [ref=f15e309]:
+          - paragraph [ref=f15e310]:
+            - generic [ref=f15e311]: "05"
+            - text: Сервис и поддержка
+          - heading [level=2] [ref=f15e312]:
+            - generic [ref=f15e313]: Система живёт
+            - text: после внедрения
+        - paragraph [ref=f15e314]: Запуск — это начало эксплуатации, а не финал проекта. Дальше начинается то, что определяет, будет ли автоматизация работать через год.
+      - list [ref=f15e315]:
+        - listitem [ref=f15e316]:
+          - generic [ref=f15e317]: "01"
+          - heading "Регламентные работы" [level=3] [ref=f15e318]
+          - paragraph [ref=f15e319]: Плановая диагностика оборудования и профилактика по согласованному графику.
+        - listitem [ref=f15e320]:
+          - generic [ref=f15e321]: "02"
+          - heading "Обновления" [level=3] [ref=f15e322]
+          - paragraph [ref=f15e323]: Новые версии ПО, изменения в правилах и настройках без остановки точки.
+        - listitem [ref=f15e324]:
+          - generic [ref=f15e325]: "03"
+          - heading "Обращения" [level=3] [ref=f15e326]
+          - paragraph [ref=f15e327]: Приём и разбор обращений по оборудованию и программному обеспечению.
+        - listitem [ref=f15e328]:
+          - generic [ref=f15e329]: "04"
+          - heading "Изменения" [level=3] [ref=f15e330]
+          - paragraph [ref=f15e331]: Доработки под процессы, которые появились уже в ходе эксплуатации.
+    - region "Связаться с ASOFT" [ref=f15e332]:
+      - generic [ref=f15e333]:
+        - heading "Посчитаем вашу точку и покажем, как это работает" [level=2] [ref=f15e334]: Посчитаем вашу точкуи покажем, как это работает
+        - generic [ref=f15e335]:
+          - link "Оставить заявку" [ref=f15e336] [cursor=pointer]:
+            - /url: /website1#contact
+            - generic [aria-hidden] [ref=f15e338]: ↗
+          - link "Позвонить" [ref=f15e339] [cursor=pointer]:
+            - /url: tel:+70000000000
+            - generic [aria-hidden] [ref=f15e341]: ↗
+    - generic [ref=f15e343]:
+      - generic [ref=f15e344]:
+        - generic [ref=f15e345]:
+          - paragraph [ref=f15e346]:
+            - generic [ref=f15e347]: "06"
+            - text: Преимущества
+          - heading [level=2] [ref=f15e348]:
+            - generic [ref=f15e349]: Почему это
+            - text: работает вместе
+        - paragraph [ref=f15e350]: Ценность появляется не в отдельном устройстве, а в том, что оборудование, ПО и сервис собраны в одну систему.
+      - list [ref=f15e351]:
+        - listitem [ref=f15e352]:
+          - heading "Единая экосистема" [level=3] [ref=f15e353]
+          - paragraph [ref=f15e354]: Кассы, киоски и учётная система работают с одной номенклатурой и одними правилами.
+        - listitem [ref=f15e355]:
+          - heading "Современный интерфейс" [level=3] [ref=f15e356]
+          - paragraph [ref=f15e357]: Крупные элементы, предсказуемая логика, минимум обучения для персонала и покупателей.
+        - listitem [ref=f15e358]:
+          - heading "Масштабируемость" [level=3] [ref=f15e359]
+          - paragraph [ref=f15e360]: Конфигурация разворачивается на новую точку по готовому шаблону.
+        - listitem [ref=f15e361]:
+          - heading "Интеграция" [level=3] [ref=f15e362]
+          - paragraph [ref=f15e363]: Обмен данными с системой, которая уже используется в компании.
+        - listitem [ref=f15e364]:
+          - heading "Сопровождение" [level=3] [ref=f15e365]
+          - paragraph [ref=f15e366]: Работы после запуска описаны регламентом, а не разовыми договорённостями.
+        - listitem [ref=f15e367]:
+          - heading "Ответственность" [level=3] [ref=f15e368]
+          - paragraph [ref=f15e369]: Оборудование, ПО и сервис — в одних руках, без переадресации между подрядчиками.
+    - generic [ref=f15e371]:
+      - generic [ref=f15e372]:
+        - generic [ref=f15e373]:
+          - paragraph [ref=f15e374]:
+            - generic [ref=f15e375]: "07"
+            - text: Стоимость
+          - heading [level=2] [ref=f15e376]:
+            - generic [ref=f15e377]: Ориентиры
+            - text: по бюджету
+        - paragraph [ref=f15e378]: Ориентировочные суммы для оценки порядка бюджета. Итоговая стоимость зависит от конфигурации, количества точек и объёма работ.
+      - list [ref=f15e379]:
+        - listitem [ref=f15e380]:
+          - generic [ref=f15e381]:
+            - heading "POS-терминал" [level=3] [ref=f15e382]
+            - paragraph [ref=f15e383]: Рабочее место кассира
+          - generic [ref=f15e384]:
+            - generic [ref=f15e385]: от
+            - generic [ref=f15e386]: 74 000 ₽
+            - generic [ref=f15e387]: за рабочее место
+        - listitem [ref=f15e388]:
+          - generic [ref=f15e389]:
+            - heading "Касса самообслуживания" [level=3] [ref=f15e390]
+            - paragraph [ref=f15e391]: Киоск в сборе
+          - generic [ref=f15e392]:
+            - generic [ref=f15e393]: от
+            - generic [ref=f15e394]: 390 000 ₽
+            - generic [ref=f15e395]: за киоск
+        - listitem [ref=f15e396]:
+          - generic [ref=f15e397]:
+            - heading "ПО для POS" [level=3] [ref=f15e398]
+            - paragraph [ref=f15e399]: Лицензия на рабочее место
+          - generic [ref=f15e400]:
+            - generic [ref=f15e401]: от
+            - generic [ref=f15e402]: 12 000 ₽
+            - generic [ref=f15e403]: за рабочее место
+        - listitem [ref=f15e404]:
+          - generic [ref=f15e405]:
+            - heading "ПО для self-checkout" [level=3] [ref=f15e406]
+            - paragraph [ref=f15e407]: Лицензия на киоск
+          - generic [ref=f15e408]:
+            - generic [ref=f15e409]: от
+            - generic [ref=f15e410]: 29 000 ₽
+            - generic [ref=f15e411]: за киоск
+        - listitem [ref=f15e412]:
+          - generic [ref=f15e413]:
+            - heading "Внедрение и интеграция" [level=3] [ref=f15e414]
+            - paragraph [ref=f15e415]: Настройка, обмен с учётной системой, обучение
+          - generic [ref=f15e416]:
+            - generic [ref=f15e417]: от
+            - generic [ref=f15e418]: 18 000 ₽
+            - generic [ref=f15e419]: за точку
+        - listitem [ref=f15e420]:
+          - generic [ref=f15e421]:
+            - heading "Обслуживание и поддержка" [level=3] [ref=f15e422]
+            - paragraph [ref=f15e423]: Регламентные работы и обращения
+          - generic [ref=f15e424]:
+            - generic [ref=f15e425]: от
+            - generic [ref=f15e426]: 4 500 ₽
+            - generic [ref=f15e427]: в месяц
+      - generic [ref=f15e428]:
+        - paragraph [ref=f15e429]: "Точная стоимость рассчитывается по конфигурации: количество рабочих мест, состав периферии, объём интеграции и выбранный уровень обслуживания."
+        - link "Запросить расчёт" [ref=f15e430] [cursor=pointer]:
+          - /url: /website1#contact
+          - generic [aria-hidden] [ref=f15e432]: ↗
+    - generic [ref=f15e434]:
+      - generic [ref=f15e435]:
+        - generic [ref=f15e436]:
+          - paragraph [ref=f15e437]:
+            - generic [ref=f15e438]: "08"
+            - text: Вопросы
+          - heading [level=2] [ref=f15e439]:
+            - generic [ref=f15e440]: Что обычно
+            - text: спрашивают
+        - paragraph [ref=f15e441]: Короткие ответы на вопросы, которые возникают до начала проекта.
+      - generic [ref=f15e442]:
+        - generic [ref=f15e443]:
+          - heading [level=3] [ref=f15e444]:
+            - button "01 Можно ли интегрировать систему с существующей инфраструктурой?" [expanded] [ref=f15e445] [cursor=pointer]:
+              - generic [ref=f15e446]: "01"
+              - generic [ref=f15e447]: Можно ли интегрировать систему с существующей инфраструктурой?
+          - region "01 Можно ли интегрировать систему с существующей инфраструктурой?" [ref=f15e449]:
+            - paragraph [ref=f15e451]: "Да. Обмен данными настраивается с учётной системой, которая уже используется: номенклатура, цены и продажи синхронизируются по расписанию или по событию. Состав обмена определяется на этапе обследования."
+        - generic [ref=f15e452]:
+          - heading [level=3] [ref=f15e453]:
+            - button "02 Можно ли установить POS и кассы самообслуживания одновременно?" [ref=f15e454] [cursor=pointer]:
+              - generic [ref=f15e455]: "02"
+              - generic [ref=f15e456]: Можно ли установить POS и кассы самообслуживания одновременно?
+          - region "02 Можно ли установить POS и кассы самообслуживания одновременно?":
+            - paragraph [ref=f15e458]: Да, это основной сценарий. Кассиры и киоски работают с одной номенклатурой и одними правилами, отчётность по точке остаётся общей.
+        - generic [ref=f15e459]:
+          - heading [level=3] [ref=f15e460]:
+            - button "03 Как происходит внедрение?" [ref=f15e461] [cursor=pointer]:
+              - generic [ref=f15e462]: "03"
+              - generic [ref=f15e463]: Как происходит внедрение?
+          - region "03 Как происходит внедрение?":
+            - paragraph [ref=f15e465]: Обследование точки и процессов, подбор конфигурации, настройка ПО и обмена данными, монтаж оборудования, перенос номенклатуры, обучение персонала, сопровождение первых смен.
+        - generic [ref=f15e466]:
+          - heading [level=3] [ref=f15e467]:
+            - button "04 Есть ли техническая поддержка после запуска?" [ref=f15e468] [cursor=pointer]:
+              - generic [ref=f15e469]: "04"
+              - generic [ref=f15e470]: Есть ли техническая поддержка после запуска?
+          - region "04 Есть ли техническая поддержка после запуска?":
+            - paragraph [ref=f15e472]: "Да. Поддержка и обслуживание оформляются отдельным регламентом: плановые работы, обновления, приём обращений и сроки реакции фиксируются в договоре."
+        - generic [ref=f15e473]:
+          - heading [level=3] [ref=f15e474]:
+            - button "05 Можно ли доработать программное обеспечение?" [ref=f15e475] [cursor=pointer]:
+              - generic [ref=f15e476]: "05"
+              - generic [ref=f15e477]: Можно ли доработать программное обеспечение?
+          - region "05 Можно ли доработать программное обеспечение?":
+            - paragraph [ref=f15e479]: Да. Интерфейс, сценарии продажи и состав обмена данными адаптируются под процессы компании. Объём доработок оценивается отдельно.
+        - generic [ref=f15e480]:
+          - heading [level=3] [ref=f15e481]:
+            - button "06 Как рассчитывается стоимость?" [ref=f15e482] [cursor=pointer]:
+              - generic [ref=f15e483]: "06"
+              - generic [ref=f15e484]: Как рассчитывается стоимость?
+          - region "06 Как рассчитывается стоимость?":
+            - paragraph [ref=f15e486]: Стоимость складывается из оборудования, лицензий на ПО, работ по внедрению и выбранного уровня обслуживания. Суммы в разделе «Стоимость» — ориентировочные, итог считается под конкретный проект.
+    - generic [ref=f15e488]:
+      - generic [ref=f15e489]:
+        - paragraph [ref=f15e490]:
+          - generic [ref=f15e491]: "09"
+          - text: Обсудить проект
+        - heading "Расскажите о точке — предложим конфигурацию" [level=2] [ref=f15e492]: Расскажите о точке —предложим конфигурацию
+        - paragraph [ref=f15e493]: Формат бизнеса, количество касс и учётная система — этого достаточно, чтобы собрать первое предложение.
+        - list [ref=f15e494]:
+          - listitem [ref=f15e495]:
+            - generic [ref=f15e496]: Телефон
+            - link "+7 (000) 000-00-00" [ref=f15e497] [cursor=pointer]:
+              - /url: tel:+70000000000
+          - listitem [ref=f15e498]:
+            - generic [ref=f15e499]: Почта
+            - link "hello@asoft.example" [ref=f15e500] [cursor=pointer]:
+              - /url: mailto:hello@asoft.example
+          - listitem [ref=f15e501]:
+            - generic [ref=f15e502]: Telegram
+            - link "@asoft" [ref=f15e503] [cursor=pointer]:
+              - /url: https://t.me/asoft
+          - listitem [ref=f15e504]:
+            - generic [ref=f15e505]: Время работы
+            - generic [ref=f15e506]: Пн–Пт, 9:00–19:00
+      - generic [ref=f15e507]:
+        - generic [ref=f15e508]:
+          - generic [ref=f15e509]: Имя
+          - textbox "Имя" [ref=f15e510]:
+            - /placeholder: Как к вам обращаться
+        - generic [ref=f15e511]:
+          - generic [ref=f15e512]: Телефон
+          - textbox "Телефон" [ref=f15e513]:
+            - /placeholder: +7 ___ ___-__-__
+        - generic [ref=f15e514]:
+          - generic [ref=f15e515]: Комментарий
+          - textbox "Комментарий" [ref=f15e516]:
+            - /placeholder: Формат точки, количество касс, учётная система
+        - generic [ref=f15e517]:
+          - button "Обсудить проект" [ref=f15e518] [cursor=pointer]:
+            - generic [aria-hidden] [ref=f15e520]: ↗
+          - paragraph [ref=f15e521]: Нажимая кнопку, вы соглашаетесь на обработку указанных контактных данных.
+        - status [ref=f15e522]
+  - contentinfo [ref=f15e523]:
+    - generic [ref=f15e524]:
+      - generic [ref=f15e525]:
+        - img "ASOFT" [ref=f15e526]
+        - paragraph [ref=f15e527]: Оборудование, программное обеспечение,внедрение и поддержка в одной системе.
+      - navigation "Навигация в подвале" [ref=f15e528]:
+        - generic [ref=f15e529]:
+          - paragraph [ref=f15e530]: Продукты
+          - list [ref=f15e531]:
+            - listitem [ref=f15e532]:
+              - link "POS-терминал" [ref=f15e533] [cursor=pointer]:
+                - /url: /website1/products/pos
+            - listitem [ref=f15e534]:
+              - link "Касса самообслуживания" [ref=f15e535] [cursor=pointer]:
+                - /url: /website1/products/self-checkout
+            - listitem [ref=f15e536]:
+              - link "ПО для POS" [ref=f15e537] [cursor=pointer]:
+                - /url: /website1/products/pos#software
+            - listitem [ref=f15e538]:
+              - link "ПО для self-checkout" [ref=f15e539] [cursor=pointer]:
+                - /url: /website1/products/self-checkout#software
+        - generic [ref=f15e540]:
+          - paragraph [ref=f15e541]: Компания
+          - list [ref=f15e542]:
+            - listitem [ref=f15e543]:
+              - link "О компании" [ref=f15e544] [cursor=pointer]:
+                - /url: /website1#about
+            - listitem [ref=f15e545]:
+              - link "Решения" [ref=f15e546] [cursor=pointer]:
+                - /url: /website1#solutions
+            - listitem [ref=f15e547]:
+              - link "Услуги" [ref=f15e548] [cursor=pointer]:
+                - /url: /website1#services
+            - listitem [ref=f15e549]:
+              - link "Стоимость" [ref=f15e550] [cursor=pointer]:
+                - /url: /website1#pricing
+            - listitem [ref=f15e551]:
+              - link "Вопросы" [ref=f15e552] [cursor=pointer]:
+                - /url: /website1#faq
+        - generic [ref=f15e553]:
+          - paragraph [ref=f15e554]: Контакты
+          - list [ref=f15e555]:
+            - listitem [ref=f15e556]:
+              - link "+7 (000) 000-00-00" [ref=f15e557] [cursor=pointer]:
+                - /url: tel:+70000000000
+            - listitem [ref=f15e558]:
+              - link "hello@asoft.example" [ref=f15e559] [cursor=pointer]:
+                - /url: mailto:hello@asoft.example
+            - listitem [ref=f15e560]:
+              - link "Telegram @asoft" [ref=f15e561] [cursor=pointer]:
+                - /url: https://t.me/asoft
+            - listitem [ref=f15e562]: Пн–Пт, 9:00–19:00
+    - generic [ref=f15e563]:
+      - paragraph [ref=f15e564]: © 2026 ASOFT
+      - button "Включить анимацию" [ref=f15e565] [cursor=pointer]
+      - paragraph [ref=f15e566]: Контакты указаны как примерные и заменяются в src/data/site.js

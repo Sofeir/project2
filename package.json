@@ -1,0 +1,19 @@
+{
+  "name": "asoft-pos-kassa",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ASOFT POS — касса столовой. Серверная часть: подключение к PostgreSQL.",
+  "main": "db.js",
+  "scripts": {
+    "start": "node --env-file=.env server.js",
+    "db:init": "node --env-file=.env scripts/db-init.js",
+    "db:check": "node --env-file=.env scripts/db-check.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "pg": "^8.23.0"
+  },
+  "engines": {
+    "node": ">=20.6"
+  }
+}

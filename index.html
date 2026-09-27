@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ASOFT POS — касса столовой</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800;900&display=swap">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ============================ ИКОНКИ ============================ -->
+<svg style="display:none" aria-hidden="true">
+  <defs>
+    <g id="s" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"></g>
+  </defs>
+  <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.2l2.4 11.4a1.8 1.8 0 0 0 1.8 1.4h8a1.8 1.8 0 0 0 1.8-1.4L21 8H6.3"/><circle cx="10" cy="20" r="1.2"/><circle cx="18" cy="20" r="1.2"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M12 3v8"/><path d="M7.5 6.3a7 7 0 1 0 9 0"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10l5 5 5-5"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h11a5 5 0 1 1 0 10h-4"/><path d="M8 5L4 9l4 4"/></symbol>
+  <symbol id="i-return" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 15H9a5 5 0 1 1 0-10h4"/><path d="M16 11l4-4-4-4" transform="translate(0,2)"/></symbol>
+  <symbol id="i-park" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12v16l-6-4-6 4z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></symbol>
+  <symbol id="i-shift" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="3.5" width="15" height="17" rx="2.5"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></symbol>
+  <symbol id="i-minus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 12h12"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15M9.5 7V5.5A1.5 1.5 0 0 1 11 4h2a1.5 1.5 0 0 1 1.5 1.5V7"/><path d="M6.5 7l.9 12a1.6 1.6 0 0 0 1.6 1.5h6a1.6 1.6 0 0 0 1.6-1.5l.9-12"/></symbol>
+  <symbol id="i-percent" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M18 6L6 18"/><circle cx="8" cy="8" r="2.2"/><circle cx="16" cy="16" r="2.2"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16"/><path d="M6 20h12"/><path d="M4 9h16l-2.5 5.5a3 3 0 0 1-5.5 0"/><path d="M4 9l2.5 5.5a3 3 0 0 0 5.5 0"/></symbol>
+  <symbol id="i-cash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.6"/><path d="M6 10v4M18 10v4"/></symbol>
+  <symbol id="i-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/><path d="M6 15h4"/></symbol>
+  <symbol id="i-qr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><path d="M14 14h2.5v2.5H14zM19 14h1.5M14 19h2.5M19 18.5v2M19.5 19h1"/></symbol>
+  <symbol id="i-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="11" r="2.2"/><path d="M5.6 16.4a3.8 3.8 0 0 1 6.8 0M14.5 10h4M14.5 13.5h4"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18" cy="12" r="1.7"/></symbol>
+  <symbol id="i-print" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V4h10v5"/><rect x="3.5" y="9" width="17" height="7" rx="2"/><path d="M7 14h10v6H7z"/></symbol>
+  <symbol id="i-box" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="12" rx="2"/><path d="M3 11h18M10 15h4"/></symbol>
+  <symbol id="i-in" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M8 11l4 4 4-4"/><path d="M4 19h16"/></symbol>
+  <symbol id="i-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4"/><path d="M8 8l4-4 4 4"/><path d="M4 19h16"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10" width="15" height="10" rx="2.5"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H7"/><path d="M11 7l-5 5 5 5"/></symbol>
+  <symbol id="i-barcode" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 6v12M7.5 6v12M11 6v8M14.5 6v12M18 6v12M20.5 6v8"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 14.5a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1v.3a2 2 0 1 1-4 0v-.2a1.6 1.6 0 0 0-2.8-1.1l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3.5 14H3a2 2 0 1 1 0-4h.2a1.6 1.6 0 0 0 1-2.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 10 3.5V3a2 2 0 1 1 4 0v.2a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7h.3a2 2 0 1 1 0 4h-.2a1.6 1.6 0 0 0-1.3 1z"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5a2 2 0 0 1 2-2h3.2l2 2.4h7.8a2 2 0 0 1 2 2v7.6a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-folder-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5a2 2 0 0 1 2-2h3.2l2 2.4h7.8a2 2 0 0 1 2 2v7.6a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/></symbol>
+  <symbol id="i-grip" viewBox="0 0 24 24" fill="currentColor"><circle cx="9" cy="6" r="1.5"/><circle cx="15" cy="6" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="9" cy="18" r="1.5"/><circle cx="15" cy="18" r="1.5"/></symbol>
+  <symbol id="i-pencil" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10z"/><path d="M14.5 5.5l3 3"/></symbol>
+  <symbol id="i-move" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h13"/><path d="M13 7l5 5-5 5"/><path d="M21 5v14"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="12" height="12" rx="2.5"/><path d="M15.5 5.5h-9a3 3 0 0 0-3 3v9"/></symbol>
+  <symbol id="i-magic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19L16 8"/><path d="M14.5 4.5l1.2 2.4 2.4 1.2-2.4 1.2-1.2 2.4-1.2-2.4L10.9 8l2.4-1.2z"/><path d="M6 5.5l.6 1.2 1.2.6-1.2.6L6 9.1l-.6-1.2L4.2 7.3l1.2-.6z"/><path d="M19 15l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8v.2"/></symbol>
+  <symbol id="i-keyboard" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6 9.5v0M9.5 9.5v0M13 9.5v0M16.5 9.5v0M6 13v0M18 9.5v0M8 16h8"/><path d="M9.5 13h5M18 13v0"/></symbol>
+  <symbol id="i-kitchen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16a8 8 0 0 0-16 0z"/><path d="M2.5 16.5h19M12 5v0"/><path d="M12 5a1.5 1.5 0 1 1 1.5 1.5"/></symbol>
+</svg>
+
+<!-- ============================ ВХОД ============================ -->
+<section id="screen-login">
+  <div class="login">
+    <div class="brand brand-lg">
+      <img class="brand-emblem" src="img/asoft-emblem.png" alt="ASOFT POS" width="44" height="44">
+      <span class="brand-name">ASOFT <em>POS</em></span>
+    </div>
+
+    <h1 id="loginTitle">Смена закрыта</h1>
+    <p class="sub" id="loginSub">Введите PIN-код кассира, чтобы открыть смену</p>
+
+    <div class="reg-line">
+      <span class="chip" id="loginRegister">Касса №13</span>
+    </div>
+
+    <div class="pin-dots" id="pinDots"><i></i><i></i><i></i><i></i></div>
+
+    <div class="pad" id="pinPad">
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+      <button class="aux" data-k="clear">Сброс</button>
+      <button data-k="0">0</button>
+      <button class="aux" data-k="back">Стереть</button>
+    </div>
+
+    <div class="login-foot">
+      <span class="st"><span class="dot"></span>Касса на связи · ФН активен</span>
+      <span class="num" id="loginClock">--:--</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ ОСНОВНОЙ ЭКРАН ============================ -->
+<section id="screen-main" class="hidden">
+
+  <!-- ---------- Шапка: только статус и редкие операции ---------- -->
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="img/asoft-mark.png" alt="ASOFT POS" width="32" height="32">
+      <span class="brand-name">ASOFT <em>POS</em></span>
+    </div>
+    <div class="sep"></div>
+
+    <button class="tbtn" id="btnParked"><svg><use href="#i-park"/></svg>Отложенные<span class="badge hidden" id="parkedBadge">0</span></button>
+    <button class="tbtn" id="btnHistory"><svg><use href="#i-clock"/></svg>Чеки смены</button>
+    <button class="tbtn" id="btnReturn"><svg><use href="#i-return"/></svg>Возврат</button>
+
+    <div class="drop" id="dropShift">
+      <button class="tbtn" id="btnShift"><svg><use href="#i-shift"/></svg>Смена<svg class="chev"><use href="#i-chev"/></svg></button>
+      <div class="menu hidden" id="menuShift">
+        <button data-act="x"><svg><use href="#i-print"/></svg><span><span class="mt">X-отчёт</span><span class="mh">Промежуточный, смена не закрывается</span></span></button>
+        <button data-act="in"><svg><use href="#i-in"/></svg><span><span class="mt">Внести наличные</span><span class="mh">Размен, довнесение</span></span></button>
+        <button data-act="out"><svg><use href="#i-out"/></svg><span><span class="mt">Изъять наличные</span><span class="mh">Инкассация</span></span></button>
+        <button data-act="drawer"><svg><use href="#i-box"/></svg><span class="mt">Открыть денежный ящик</span></button>
+        <div class="menu-sep"></div>
+        <button data-act="z" class="danger"><svg><use href="#i-lock"/></svg><span><span class="mt">Закрыть смену</span><span class="mh">Z-отчёт с гашением</span></span></button>
+      </div>
+    </div>
+
+    <div class="spacer"></div>
+
+    <div class="drop" id="dropSetup">
+      <button class="ibtn" id="btnSetup" title="Настройки кассы"><svg><use href="#i-gear"/></svg></button>
+      <div class="menu right hidden" id="menuSetup">
+        <button data-act="hk"><svg><use href="#i-grip"/></svg><span><span class="mt">Настроить горячие клавиши</span><span class="mh">Группы и товары на витрине кассира</span></span></button>
+        <button data-act="keys"><svg><use href="#i-keyboard"/></svg><span><span class="mt">Сочетания клавиш</span><span class="mh">Быстрые действия с клавиатуры</span></span></button>
+      </div>
+    </div>
+
+    <div class="chip"><span class="dot"></span>ФН активен</div>
+    <div class="chip" id="topRegister">Касса №13</div>
+    <div class="clock">
+      <b class="num" id="clockTime">--:--:--</b>
+      <span id="clockMeta">Смена №33 · Чек №0001</span>
+    </div>
+    <button class="ibtn danger" id="btnLogout" title="Завершить сеанс"><svg><use href="#i-power"/></svg></button>
+  </header>
+
+  <div class="work">
+
+    <!-- ---------- ЧЕК ---------- -->
+    <aside class="check">
+      <div class="check-head">
+        <div>
+          <h2>Текущий чек</h2>
+          <div class="no num" id="checkNo">№ 0001</div>
+        </div>
+        <div class="check-tools">
+          <button class="ibtn" id="btnUndo" title="Отменить последнюю позицию"><svg><use href="#i-undo"/></svg></button>
+          <div class="drop">
+            <button class="ibtn" id="btnCheckMore" title="Ещё"><svg><use href="#i-dots"/></svg></button>
+            <div class="menu right hidden" id="menuCheck">
+              <button data-act="disc"><svg><use href="#i-percent"/></svg><span><span class="mt">Скидка на чек</span><span class="mh">Сотрудник, учащийся, льгота</span></span></button>
+              <button data-act="kitchen"><svg><use href="#i-kitchen"/></svg><span><span class="mt">Отправить на кухню</span><span class="mh">Марка заказа на раздачу</span></span></button>
+              <div class="menu-sep"></div>
+              <button data-act="void" class="danger"><svg><use href="#i-trash"/></svg><span class="mt">Аннулировать чек</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="check-list" id="checkList"></div>
+
+      <div class="check-foot">
+        <div class="fline"><span>Позиций</span><b class="num" id="fCount">0</b></div>
+        <div class="fline disc hidden" id="fDiscLine">
+          <span id="fDiscName">Скидка</span>
+          <span style="display:flex;align-items:center">
+            <b class="num" id="fDiscVal">0 ₽</b>
+            <button class="clr" id="btnDiscClear" title="Убрать скидку"><svg><use href="#i-close"/></svg></button>
+          </span>
+        </div>
+
+        <div class="total">
+          <span class="l">К оплате</span>
+          <span class="v num" id="fTotal">0 ₽</span>
+        </div>
+
+        <div class="pay-row">
+          <button class="btn btn-lg" id="btnPark" disabled title="Отложить чек">Отложить</button>
+          <button class="btn btn-lg btn-primary" id="btnPay" disabled>Оплатить<span class="amt num hidden" id="payAmt"></span></button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ---------- КАТАЛОГ ---------- -->
+    <main class="catalog" data-vk-host>
+      <div class="catalog-head">
+        <div class="search">
+          <div class="search-field">
+            <svg class="si"><use href="#i-search"/></svg>
+            <input type="text" id="searchInput" placeholder="Поиск блюда или сканирование штрих-кода" autocomplete="off" spellcheck="false">
+            <button class="ibtn sx hidden" id="btnSearchClear"><svg><use href="#i-close"/></svg></button>
+            <div class="search-res hidden" id="searchRes"></div>
+          </div>
+          <div class="search-hint"><svg><use href="#i-barcode"/></svg>Сканер подключён</div>
+        </div>
+
+        <div class="view-bar">
+          <div class="seg" id="viewSeg">
+            <button class="on" data-view="hk"><svg><use href="#i-grip"/></svg>Горячие клавиши</button>
+            <button data-view="cat"><svg><use href="#i-folder"/></svg>Весь каталог</button>
+          </div>
+          <div class="crumbs" id="crumbs"></div>
+        </div>
+
+        <nav class="cats hidden" id="cats"></nav>
+      </div>
+      <div class="grid" id="grid"></div>
+    </main>
+  </div>
+</section>
+
+<!-- ============================ ОПЛАТА (панель справа) ============================ -->
+<div class="veil right hidden" id="sheetPay">
+  <div class="sheet">
+    <div class="m-head">
+      <div>
+        <h3>Оплата чека</h3>
+        <div class="hsub num" id="payCheckNo">№ 0001</div>
+      </div>
+      <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
+    </div>
+
+    <div class="m-body">
+      <div class="paybox">
+        <div class="l" id="payBoxLabel">Итого к оплате</div>
+        <div class="v num" id="payTotal">0 ₽</div>
+      </div>
+
+      <div class="methods" id="methods">
+        <button class="method on" data-m="cash"><svg><use href="#i-cash"/></svg>Наличные</button>
+        <button class="method" data-m="card"><svg><use href="#i-card"/></svg>Банковская карта</button>
+        <button class="method" data-m="qr"><svg><use href="#i-qr"/></svg>СБП по QR</button>
+        <button class="method" data-m="staff"><svg><use href="#i-badge"/></svg>Карта сотрудника</button>
+      </div>
+
+      <!-- наличные -->
+      <div id="uiCash">
+        <div class="quick" id="quickSums"></div>
+        <div class="io"><span class="l">Получено</span><span class="v num" id="gotVal">0 ₽</span></div>
+        <div class="io change" id="changeBox"><span class="l" id="changeLabel">Сдача</span><span class="v num" id="changeVal">0 ₽</span></div>
+        <div class="keys" id="payKeys">
+          <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+          <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+          <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+          <button class="aux" data-k="clear">Сброс</button>
+          <button data-k="0">0</button>
+          <button class="aux" data-k="back"><svg><use href="#i-back"/></svg></button>
+        </div>
+      </div>
+
+      <!-- безнал -->
+      <div id="uiTerminal" class="hidden">
+        <div class="waiting">
+          <div class="pulse"><svg><use href="#i-card"/></svg></div>
+          <div id="terminalText">Передайте сумму на терминал и дождитесь подтверждения</div>
+        </div>
+      </div>
+
+      <div class="splits" id="splits"></div>
+      <button class="btn btn-ghost hidden" id="btnSplit" style="width:100%;margin-top:12px">Оплатить частично этим способом</button>
+    </div>
+
+    <div class="m-foot">
+      <button class="btn" id="btnDrawer" title="Открыть денежный ящик" style="width:64px"><svg><use href="#i-box"/></svg></button>
+      <button class="btn btn-lg btn-primary" id="btnPayConfirm" style="flex:1">Провести оплату</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ ОПЛАЧЕНО ============================ -->
+<div class="veil hidden" id="modalDone">
+  <div class="modal slim">
+    <div class="m-body">
+      <div class="done">
+        <div class="ic"><svg><use href="#i-check"/></svg></div>
+        <h3>Оплата проведена</h3>
+        <p class="p" id="doneSub">Чек № 0001 · 0 ₽</p>
+        <div class="changebox hidden" id="doneChange">
+          <div class="l">Сдача покупателю</div>
+          <div class="v num" id="doneChangeVal">0 ₽</div>
+        </div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn" id="btnPrintCopy" style="flex:1"><svg><use href="#i-print"/></svg>Копия чека</button>
+      <button class="btn btn-primary" id="btnNewCheck" style="flex:1.4">Новый чек</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ КОЛИЧЕСТВО / ВЕС ============================ -->
+<div class="veil hidden" id="modalQty">
+  <div class="modal slim">
+    <div class="m-head">
+      <div>
+        <h3 id="qtyTitle">Количество</h3>
+        <div class="hsub" id="qtyItem">—</div>
+      </div>
+      <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="m-body">
+      <div class="io ok"><span class="l" id="qtyLabel">Количество</span><span class="v num" id="qtyVal">1</span></div>
+      <div class="io"><span class="l">Сумма позиции</span><span class="v num" id="qtySum">0 ₽</span></div>
+      <div class="quick hidden" id="qtyPresets"></div>
+      <div class="keys" id="qtyKeys">
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+        <button class="aux" data-k="clear">Сброс</button>
+        <button data-k="0">0</button>
+        <button class="aux" data-k="back"><svg><use href="#i-back"/></svg></button>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn" data-close style="flex:1">Отмена</button>
+      <button class="btn btn-primary" id="btnQtyOk" style="flex:1.4">Применить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ СКИДКА ============================ -->
+<div class="veil hidden" id="modalDisc">
+  <div class="modal slim">
+    <div class="m-head">
+      <div><h3 id="discTitle">Скидка на чек</h3><div class="hsub" id="discSub">Применяется ко всем позициям</div></div>
+      <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="m-body"><div class="opts" id="discOpts"></div></div>
+  </div>
+</div>
+
+<!-- ============================ ОТЛОЖЕННЫЕ ============================ -->
+<div class="veil hidden" id="modalParked">
+  <div class="modal">
+    <div class="m-head"><h3>Отложенные чеки</h3><button class="ibtn" data-close><svg><use href="#i-close"/></svg></button></div>
+    <div class="m-body" id="parkedList"></div>
+  </div>
+</div>
+
+<!-- ============================ ЧЕКИ СМЕНЫ ============================ -->
+<div class="veil hidden" id="modalHistory">
+  <div class="modal wide">
+    <div class="m-head"><div><h3>Чеки смены</h3><div class="hsub" id="histSub">—</div></div><button class="ibtn" data-close><svg><use href="#i-close"/></svg></button></div>
+    <div class="m-body" id="historyList"></div>
+  </div>
+</div>
+
+<!-- ============================ ВОЗВРАТ ============================ -->
+<div class="veil hidden" id="modalReturn">
+  <div class="modal">
+    <div class="m-head"><div><h3>Возврат по чеку</h3><div class="hsub">Выберите чек текущей смены</div></div><button class="ibtn" data-close><svg><use href="#i-close"/></svg></button></div>
+    <div class="m-body" id="returnList"></div>
+  </div>
+</div>
+
+<!-- ============================ ДЕНЬГИ В КАССЕ ============================ -->
+<div class="veil hidden" id="modalCash">
+  <div class="modal slim">
+    <div class="m-head"><h3 id="cashTitle">Внести наличные</h3><button class="ibtn" data-close><svg><use href="#i-close"/></svg></button></div>
+    <div class="m-body">
+      <div class="io ok"><span class="l">Сумма</span><span class="v num" id="cashVal">0 ₽</span></div>
+      <div class="keys" id="cashKeys">
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+        <button class="aux" data-k="clear">Сброс</button>
+        <button data-k="0">0</button>
+        <button class="aux" data-k="back"><svg><use href="#i-back"/></svg></button>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn" data-close style="flex:1">Отмена</button>
+      <button class="btn btn-primary" id="btnCashOk" style="flex:1.4">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ ОТЧЁТ ============================ -->
+<div class="veil hidden" id="modalReport">
+  <div class="modal">
+    <div class="m-head"><div><h3 id="repTitle">X-отчёт</h3><div class="hsub" id="repSub">—</div></div><button class="ibtn" data-close><svg><use href="#i-close"/></svg></button></div>
+    <div class="m-body">
+      <div class="stats">
+        <div class="stat"><div class="k">Чеков продажи</div><div class="v num" id="repChecks">0</div></div>
+        <div class="stat acc"><div class="k">Выручка</div><div class="v num" id="repRevenue">0 ₽</div></div>
+        <div class="stat"><div class="k">Наличными</div><div class="v num" id="repCash">0 ₽</div></div>
+        <div class="stat"><div class="k">Безналичными</div><div class="v num" id="repCashless">0 ₽</div></div>
+        <div class="stat"><div class="k">Возвраты</div><div class="v num" id="repReturns">0 ₽</div></div>
+        <div class="stat"><div class="k">Наличных в ящике</div><div class="v num" id="repDrawer">0 ₽</div></div>
+      </div>
+      <div id="repCloseArea" class="hidden">
+        <div class="field">
+          <label>Пересчитано наличных в денежном ящике <em>— для сверки</em></label>
+          <input type="text" id="repRecount" class="num" placeholder="0" inputmode="numeric">
+        </div>
+        <div id="repVerdict"></div>
+      </div>
+    </div>
+    <div class="m-foot" id="repFoot"></div>
+  </div>
+</div>
+
+<!-- ============================ ПОДТВЕРЖДЕНИЕ ============================ -->
+<div class="veil hidden" id="modalAsk">
+  <div class="modal slim">
+    <div class="m-head"><h3 id="askTitle">Подтвердите действие</h3><button class="ibtn" data-close><svg><use href="#i-close"/></svg></button></div>
+    <div class="m-body"><p class="note" id="askText"></p></div>
+    <div class="m-foot">
+      <button class="btn" data-close style="flex:1">Отмена</button>
+      <button class="btn btn-danger" id="btnAskYes" style="flex:1.2">Подтвердить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ РЕЖИМ НАСТРОЙКИ ГОРЯЧИХ КЛАВИШ ============================ -->
+<section class="hk-editor hidden" id="hkEditor">
+  <header class="hk-top">
+    <div class="ti"><svg><use href="#i-grip"/></svg></div>
+    <div>
+      <h2>Горячие клавиши</h2>
+      <div class="sub">Витрина, которую видит кассир. Изменения применятся после сохранения</div>
+    </div>
+    <div class="mode-badge"><svg style="width:14px;height:14px"><use href="#i-pencil"/></svg>Режим настройки</div>
+    <div class="spacer"></div>
+    <button class="btn btn-ghost" id="hkUndo" disabled><svg><use href="#i-undo"/></svg>Отменить</button>
+    <button class="btn btn-ghost" id="hkExit">Выйти</button>
+    <button class="btn btn-primary" id="hkSave" style="padding:0 26px" disabled>Сохранить</button>
+  </header>
+
+  <div class="hk-body">
+    <aside class="hk-tree">
+      <div class="th">Структура витрины</div>
+      <div class="tl" id="hkTree"></div>
+      <div class="tf">
+        <button class="btn" id="hkAddRootGroup" style="width:100%"><svg><use href="#i-folder-plus"/></svg>Новая группа</button>
+      </div>
+    </aside>
+
+    <main class="hk-main">
+      <div class="hk-bar">
+        <div class="crumbs" id="hkCrumbs"></div>
+        <button class="btn" id="hkFromCat"><svg><use href="#i-magic"/></svg>Собрать из категорий</button>
+        <button class="btn" id="hkAddGroup"><svg><use href="#i-folder-plus"/></svg>Подгруппа</button>
+        <button class="btn btn-primary" id="hkAddItems" style="font-size:14px"><svg><use href="#i-plus"/></svg>Добавить товары</button>
+      </div>
+      <div class="hk-grid" id="hkGrid"></div>
+      <div class="hk-hint">
+        <svg><use href="#i-info"/></svg>
+        <span id="hkHintText">Порядок меняется перетаскиванием плитки — или через «···» → «Сдвинуть», если работаете пальцем. Бросьте плитку на группу, чтобы перенести её внутрь.</span>
+      </div>
+    </main>
+  </div>
+</section>
+
+<div class="menu hidden" id="menuTile" style="position:fixed; z-index:220"></div>
+
+<!-- ============================ ПОДБОР ТОВАРОВ ============================ -->
+<div class="veil hidden" id="modalPick">
+  <div class="modal tall">
+    <div class="m-head">
+      <div><h3>Добавить товары</h3><div class="hsub" id="pickDest">—</div></div>
+      <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="m-body pick">
+      <div class="pick-search">
+        <svg class="si"><use href="#i-search"/></svg>
+        <input type="text" id="pickInput" placeholder="Название блюда — например, «капучино»" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="pick-tabs" id="pickTabs"></div>
+      <div class="pick-list" id="pickList"></div>
+      <div class="pick-foot">
+        <span class="cnt">Выбрано: <b id="pickCount">0</b></span>
+        <div class="spacer"></div>
+        <button class="btn btn-ghost" id="pickAll" style="height:44px;padding:0 16px">Выбрать всё найденное</button>
+        <button class="btn btn-primary" id="pickAdd" style="height:44px;padding:0 22px" disabled>Добавить</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ ГРУППА ============================ -->
+<div class="veil hidden" id="modalGroup">
+  <div class="modal slim">
+    <div class="m-head"><h3 id="grpTitle">Новая группа</h3><button class="ibtn" data-close><svg><use href="#i-close"/></svg></button></div>
+    <div class="m-body">
+      <div class="field">
+        <label>Название группы</label>
+        <input type="text" id="grpName" placeholder="Например, «Обеды»" maxlength="28" autocomplete="off" data-vk-enter="submit">
+      </div>
+      <div class="field">
+        <label>Цвет метки <em>— помогает кассиру находить группу боковым зрением</em></label>
+        <div class="swatches" id="grpColors"></div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn" data-close style="flex:1">Отмена</button>
+      <button class="btn btn-primary" id="grpOk" style="flex:1.4">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ ПЕРЕМЕСТИТЬ ============================ -->
+<div class="veil hidden" id="modalMove">
+  <div class="modal">
+    <div class="m-head"><div><h3>Переместить</h3><div class="hsub" id="moveWhat">—</div></div><button class="ibtn" data-close><svg><use href="#i-close"/></svg></button></div>
+    <div class="m-body"><div class="glist" id="moveList"></div></div>
+  </div>
+</div>
+
+<!-- ============================ СБОРКА ИЗ КАТЕГОРИЙ ============================ -->
+<div class="veil hidden" id="modalFromCat">
+  <div class="modal">
+    <div class="m-head">
+      <div><h3>Собрать из категорий</h3><div class="hsub">Каждая отмеченная категория станет группой со всеми своими блюдами</div></div>
+      <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="m-body"><div class="pick-list" id="catPickList" style="max-height:46vh"></div></div>
+    <div class="m-foot">
+      <button class="btn" data-close style="flex:1">Отмена</button>
+      <button class="btn btn-primary" id="catPickAdd" style="flex:1.6" disabled>Создать группы</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ ДОСТУП АДМИНИСТРАТОРА ============================ -->
+<div class="veil hidden" id="modalPin">
+  <div class="modal slim">
+    <div class="m-head"><div><h3>Режим настройки</h3><div class="hsub">Введите PIN администратора</div></div><button class="ibtn" data-close><svg><use href="#i-close"/></svg></button></div>
+    <div class="m-body">
+      <div class="pin-dots" id="admDots"><i></i><i></i><i></i><i></i></div>
+      <div class="pad" id="admPad">
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+        <button class="aux" data-k="clear">Сброс</button>
+        <button data-k="0">0</button>
+        <button class="aux" data-k="back">Стереть</button>
+      </div>
+      <p class="note" style="margin-top:16px;text-align:center;color:var(--tx-3)">Демо-код: 1234</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ СОЧЕТАНИЯ КЛАВИШ ============================ -->
+<div class="veil hidden" id="modalKeys">
+  <div class="modal">
+    <div class="m-head"><div><h3>Сочетания клавиш</h3><div class="hsub">Работают на основном экране кассы</div></div><button class="ibtn" data-close><svg><use href="#i-close"/></svg></button></div>
+    <div class="m-body">
+      <div class="keylist">
+        <div class="keyrow"><kbd>F2</kbd><span>Перейти к оплате</span></div>
+        <div class="keyrow"><kbd>F3</kbd><span>Поиск блюда</span></div>
+        <div class="keyrow"><kbd>F4</kbd><span>Количество или вес выделенной позиции</span></div>
+        <div class="keyrow"><kbd>F6</kbd><span>Скидка на чек</span></div>
+        <div class="keyrow"><kbd>Ctrl + Z</kbd><span>Отменить последнюю позицию</span></div>
+        <div class="keyrow"><kbd>Delete</kbd><span>Удалить выделенную позицию</span></div>
+        <div class="keyrow"><kbd>Backspace</kbd><span>На уровень выше в горячих клавишах</span></div>
+        <div class="keyrow"><kbd>Esc</kbd><span>Снять выделение, закрыть окно</span></div>
+        <div class="keyrow"><kbd>0 – 9</kbd><span>В окне оплаты — сумма, полученная от покупателя</span></div>
+        <div class="keyrow"><kbd>Enter</kbd><span>Подтвердить действие в открытом окне</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+
+<script src="js/api.js"></script>
+<script src="js/data.js"></script>
+<script src="js/hotkeys.js"></script>
+<script src="js/app.js"></script>
+<script src="js/keyboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+# зависимости
+node_modules/
+
+# секреты: реальные пароли не попадают в репозиторий,
+# в git хранится только .env.example с пустыми значениями
+.env
+.env.local
+
+# служебное
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
