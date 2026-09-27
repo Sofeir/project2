@@ -3,10 +3,10 @@ param()
 $ErrorActionPreference = 'Stop'
 
 try {
-    $input = [Console]::In.ReadToEnd()
+    $stdinRaw = [Console]::In.ReadToEnd()
     $data = $null
-    if ($input) {
-        try { $data = $input | ConvertFrom-Json } catch { $data = $null }
+    if ($stdinRaw) {
+        try { $data = $stdinRaw | ConvertFrom-Json } catch { $data = $null }
     }
 
     if ($data -and $data.stop_hook_active) {
