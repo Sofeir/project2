@@ -101,13 +101,12 @@ const HK = (() => {
     const c = catOf(p.cat);
     const inCart = o.edit ? 0 : S.cart.filter(r => r.id === p.id).reduce((s, r) => s + r.qty, 0);
     const badge = inCart ? `<span class="qty num">${p.weight ? String(inCart).replace('.', ',') : fmtQty(inCart)}</span>` : '';
-    const cls = ['tile', p.cat === 'combo' ? 'combo' : '', inCart ? 'in' : '', o.edit ? 'edit' : ''].filter(Boolean).join(' ');
+    const cls = ['tile', 'dish', p.cat === 'combo' ? 'combo' : '', inCart ? 'in' : '', o.edit ? 'edit' : ''].filter(Boolean).join(' ');
     const at = o.edit ? `data-nid="${o.nid}" draggable="true"` : `data-pid="${p.id}"`;
     return `<button class="${cls}" ${at} style="--c:${c.color}">
-      ${badge}${o.extra || ''}
-      <span class="tag">${c.short}${p.weight ? '<span class="wt">ВЕС</span>' : ''}</span>
+      ${o.extra || ''}
       <span class="nm">${p.name}</span>
-      <span class="bot"><span class="pr num">${money(p.price)}</span><span class="un">/&nbsp;${p.unit}</span></span>
+      <span class="bot"><span class="pr num">${money(p.price)}</span><span class="un">/&nbsp;${p.unit}</span>${badge}</span>
     </button>`;
   }
   function tileGroup(g, o) {

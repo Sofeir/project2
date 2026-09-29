@@ -392,11 +392,9 @@ function renderGrid() {
     const inCart = S.cart.filter(r => r.id === p.id);
     const q = inCart.reduce((s, r) => s + r.qty, 0);
     const badge = q ? `<span class="qty num">${p.weight ? kg(q * 1000).replace(',000', '') : fmtQty(q)}</span>` : '';
-    return `<button class="tile ${p.cat === 'combo' ? 'combo' : ''} ${q ? 'in' : ''}" data-id="${p.id}" style="--c:${c.color}">
-      ${badge}
-      <span class="tag">${c.short}${p.weight ? `<span class="wt">ВЕС</span>` : ''}</span>
+    return `<button class="tile dish ${p.cat === 'combo' ? 'combo' : ''} ${q ? 'in' : ''}" data-id="${p.id}" style="--c:${c.color}">
       <span class="nm">${p.name}</span>
-      <span class="bot"><span class="pr num">${money(p.price)}</span><span class="un">/${nbsp}${p.unit}</span></span>
+      <span class="bot"><span class="pr num">${money(p.price)}</span><span class="un">/${nbsp}${p.unit}</span>${badge}</span>
     </button>`;
   }).join('');
 }

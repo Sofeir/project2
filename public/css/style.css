@@ -444,10 +444,6 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .tile:active{ transform:scale(.975); background:var(--card-act); }
 .tile.in{ border-color:var(--acc-line); background:var(--acc-soft); }
 
-.tile .tag{
-  font-size:10.5px; font-weight:800; letter-spacing:.09em; color:var(--c, var(--tx-3));
-  display:flex; align-items:center; gap:6px;
-}
 .tile .nm{
   margin-top:7px; font-size:14.5px; font-weight:700; line-height:1.28; letter-spacing:-.01em;
   display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
@@ -455,17 +451,24 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .tile .bot{ margin-top:auto; display:flex; align-items:baseline; gap:6px; }
 .tile .pr{ font-size:18px; font-weight:800; letter-spacing:-.02em; }
 .tile .un{ font-size:12px; color:var(--tx-3); font-weight:600; }
+/* сколько блюда уже в чеке — справа в строке цены, чтобы не закрывать название */
 .tile .qty{
-  position:absolute; top:9px; right:9px; min-width:26px; height:26px; padding:0 7px;
+  flex:none; margin-left:auto; min-width:26px; height:26px; padding:0 7px;
   border-radius:99px; background:var(--acc); color:var(--acc-ink);
   font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center;
 }
+
+/* плитка блюда: без строки категории, ниже групп. Высота по содержимому —
+   в ряду с группой тянется до её высоты, длинное название растит ряд, а не обрезается */
+.tile.dish{ height:auto; min-height:104px; }
+.tile.dish .nm{ margin-top:0; margin-bottom:6px; }
+/* в режиме настройки в правом верхнем углу стоит кнопка меню плитки */
+.tile.dish.edit .nm{ padding-right:30px; }
 .tile.combo{
   background:linear-gradient(155deg, rgba(216,166,75,.16), rgba(216,166,75,.05) 62%, var(--panel));
   border-color:rgba(216,166,75,.34);
 }
 .tile.combo:hover{ border-color:rgba(216,166,75,.55); }
-.tile .wt{ font-size:10.5px; font-weight:800; color:var(--tx-3); border:1px solid var(--line-hi); border-radius:4px; padding:0 4px; }
 
 .grid-none{ grid-column:1/-1; text-align:center; color:var(--tx-3); padding:60px 0; font-size:14px; }
 
@@ -846,6 +849,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   .btn-lg{ height:60px; }
   .grid{ grid-template-columns:repeat(auto-fill,minmax(168px,1fr)); }
   .tile{ height:108px; }
+  .tile.dish{ min-height:96px; }
   .btn-primary{ font-size:16px; }
   /* на узкой панели сумма на кнопке дублирует итог прямо над ней — убираем */
   .btn-primary .amt{ display:none; }
@@ -879,6 +883,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   :root{ --check-w:472px; }
   .grid{ grid-template-columns:repeat(auto-fill,minmax(206px,1fr)); }
   .tile{ height:128px; }
+  .tile.dish{ min-height:112px; }
 }
 
 /* =============================================================================
