@@ -4,7 +4,7 @@
    Принципы:
    1. Тёмная нейтральная база (графит), один акцент — зелёный «деньги/подтвердить».
    2. Цвет несёт смысл: акцент = деньги и главное действие, янтарь = внимание,
-      коралл = необратимое. Категории — приглушённые метки одной насыщенности.
+      коралл = необратимое. Группы блюд — приглушённые метки одной насыщенности.
    3. Единый радиус-ряд, единая шкала отступов (4px), единая шкала кегля.
    4. Минимальная зона нажатия — 44px, основные кнопки — от 56px.
    ============================================================================= */
@@ -62,7 +62,7 @@
 }
 
 /* ============================== БАЗА ==================================== */
-*,*::before,*::after{ box-sizing:border-box; }
+*,*::before,*::after{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 html,body{ height:100%; margin:0; }
 body{
   background:var(--bg);
@@ -169,6 +169,14 @@ svg{ width:20px; height:20px; display:block; flex:none; }
   padding:0 16px 0 18px; background:var(--panel); border-bottom:1px solid var(--line);
 }
 .topbar .brand{ margin-right:14px; }
+.brand-btn{ padding:4px 12px 4px 4px; margin-left:-4px; border-radius:var(--r-md); transition:background .1s; }
+.brand-btn:hover{ background:var(--card); }
+.brand-btn:active{ background:var(--card-act); }
+/* только значок, без фона и рамки — как «Отложенные» и «Операции» */
+.topbar .setup-btn{ background:transparent; border:1px solid var(--line-hi); border-radius:50%; color:var(--tx-2); margin-right:6px; }
+.topbar .setup-btn:hover{ background:var(--card); color:var(--tx); border-color:var(--acc-line); }
+.topbar .setup-btn:active{ background:var(--card-act); }
+.setup-btn svg{ width:18px; height:18px; }
 .sep{ width:1px; height:26px; background:var(--line); margin:0 10px; flex:none; }
 .spacer{ flex:1; }
 
@@ -184,9 +192,9 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .tbtn.on{ background:var(--card); color:var(--tx); }
 .tbtn .chev{ width:14px; height:14px; opacity:.6; margin-left:-2px; }
 .tbtn .badge{
-  position:absolute; top:3px; right:4px; min-width:18px; height:18px; padding:0 5px;
+  position:absolute; top:4px; right:-4px; min-width:16px; height:16px; padding:0 4px;
   border-radius:99px; background:var(--warn); color:#241B08;
-  font-size:11px; font-weight:800; display:flex; align-items:center; justify-content:center;
+  font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center;
 }
 
 .chip{
@@ -236,14 +244,29 @@ svg{ width:20px; height:20px; display:block; flex:none; }
   background:var(--panel); border-right:1px solid var(--line);
 }
 .check-head{
-  flex:none; display:flex; align-items:center; justify-content:space-between;
+  flex:none; display:flex; align-items:center;
   padding:16px 18px 14px;
 }
-.check-head h2{ font-size:18px; }
-.check-head .no{ font-size:13px; color:var(--tx-3); margin-top:2px; }
+/* какую операцию кассир пробивает прямо сейчас: продажа, возврат, коррекция */
+.op-badge{
+  flex:0 1 auto; min-width:0; height:28px; padding:0 8px 0 12px; border-radius:var(--r-pill);
+  display:flex; align-items:center; gap:4px; font-size:11.5px; font-weight:800;
+  letter-spacing:.06em; text-transform:uppercase; white-space:nowrap;
+  background:var(--acc-soft); border:1px solid var(--acc-line); color:var(--acc-hi);
+}
+.op-badge.bad{ background:var(--bad-soft); border-color:var(--bad-line); color:var(--bad); }
+.op-badge.warn{ background:var(--warn-soft); border-color:var(--warn-line); color:var(--warn); }
+.op-badge .chev{ width:14px; height:14px; opacity:.7; }
+.op-badge:hover{ filter:brightness(1.25); }
+/* меню режима шире панели чека — пусть раскрывается над витриной, не ужимаясь */
+#menuOps{ min-width:268px; }
 
-.check-tools{ display:flex; gap:4px; }
-.check-tools .ibtn{ width:36px; height:36px; }
+.op-badge > span{ overflow:hidden; text-overflow:ellipsis; }
+.check-tools{ display:flex; gap:12px; flex:none; }
+/* значок режима — по центру между левым краем и кнопками справа, которые стоят у края */
+#dropOps{ min-width:0; margin:0 auto; }
+.check-tools .ibtn{ width:36px; height:36px; color:var(--tx); }
+.check-tools .ibtn:disabled{ color:var(--tx-2); }
 
 /* строки чека */
 .check-list{ flex:1; overflow-y:auto; padding:0 10px 8px; }
@@ -256,45 +279,47 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .check-empty .h{ font-size:13px; line-height:1.5; }
 
 .row{
-  border-radius:var(--r-md); padding:11px 8px 11px 12px; margin-bottom:2px;
+  border-radius:var(--r-md); padding:8px 8px 8px 10px; margin-bottom:2px;
   border:1px solid transparent; transition:background .1s, border-color .1s;
+  display:flex; flex-direction:column; flex:none; height:auto; min-width:0;
 }
 .row:hover{ background:var(--card); }
-.row.sel{ background:var(--card); border-color:var(--line-hi); }
+.row.is-sel{ background:var(--card); border-color:var(--line-hi); }
 .row.new{ animation:rowIn .28s ease-out; }
 @keyframes rowIn{ from{ background:var(--acc-soft); } }
 
 .row-top{ display:flex; align-items:flex-start; gap:10px; }
-.row-name{ flex:1; font-size:14.5px; font-weight:600; line-height:1.35; }
+.row-name{ flex:1; min-width:0; overflow-wrap:anywhere; font-size:14.5px; font-weight:600; line-height:1.35; }
 .row-sum{ font-size:15px; font-weight:700; letter-spacing:-.01em; white-space:nowrap; }
 
-.row-bot{ display:flex; align-items:center; justify-content:space-between; margin-top:9px; }
+.row-bot{ display:flex; align-items:center; justify-content:space-between; margin-top:5px; }
 .row-price{ font-size:12.5px; color:var(--tx-3); }
 .row-price b{ color:var(--tx-2); font-weight:600; }
 
 .stepper{ display:flex; align-items:center; gap:2px; background:var(--bg); border-radius:var(--r-sm); padding:2px; }
 .stepper button{
-  width:34px; height:32px; border-radius:7px; color:var(--tx-2);
+  width:28px; height:28px; border-radius:7px; color:var(--tx-2);
   display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:600;
   transition:background .1s, color .1s;
 }
 .stepper button:hover{ background:var(--card-act); color:var(--tx); }
 .stepper button:active{ transform:scale(.94); }
 .stepper .q{
-  min-width:52px; text-align:center; font-size:14px; font-weight:700;
-  border-radius:7px; height:32px; line-height:32px; transition:background .1s;
+  width:auto; min-width:40px; padding:0 8px; white-space:nowrap; text-align:center; font-size:14px; font-weight:700;
+  border-radius:7px; height:28px; line-height:28px; transition:background .1s;
 }
 .stepper .q:hover{ background:var(--card-act); }
 
-.row-acts{ display:flex; gap:6px; margin-top:10px; }
+.row-acts{ display:flex; gap:5px; margin-top:7px; }
 .row-acts button{
-  flex:1; height:36px; border-radius:var(--r-xs); background:var(--bg);
-  border:1px solid var(--line); font-size:12.5px; font-weight:600; color:var(--tx-2);
-  display:flex; align-items:center; justify-content:center; gap:6px;
+  flex:1; min-width:0; height:30px; padding:0 8px; border-radius:var(--r-xs); background:var(--bg);
+  border:1px solid var(--line); font-size:12px; font-weight:600; color:var(--tx-2);
+  display:flex; align-items:center; justify-content:center; gap:5px; white-space:nowrap;
   transition:background .1s, color .1s, border-color .1s;
 }
 .row-acts button svg{ width:14px; height:14px; }
 .row-acts button:hover{ background:var(--card-act); color:var(--tx); }
+.row-acts button.half{ flex:0 0 44px; font-size:17px; font-weight:700; }
 .row-acts button.danger:hover{ background:var(--bad-soft); border-color:var(--bad-line); color:var(--bad); }
 
 .row-disc{
@@ -320,6 +345,7 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .total .v{ font-size:40px; font-weight:800; letter-spacing:-.03em; line-height:1; }
 
 .pay-row{ display:grid; grid-template-columns:1fr 1.9fr; gap:10px; }
+.pay-row.one{ grid-template-columns:1fr; }
 
 /* ------------------------------ КНОПКИ --------------------------------- */
 .btn{
@@ -350,61 +376,45 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .btn-danger:hover{ background:var(--bad); border-color:var(--bad); color:#2A0D0A; }
 
 /* --------------------------- КАТАЛОГ ----------------------------------- */
-.catalog{ flex:1; display:flex; flex-direction:column; min-width:0; }
-.catalog-head{ flex:none; padding:16px 20px 0; }
+.catalog{ flex:1; display:flex; flex-direction:column; min-width:0; position:relative; }
+/* пока открыта клавиатура поиска или список найденных блюд, витрина под ними затемнена — только в колонке каталога, чек не трогаем */
+.catalog.searching::before,
+body.vk-open:not(.vk-fixed) .catalog::before{
+  content:""; position:absolute; inset:0; z-index:30; background:rgba(4,7,7,.72);
+  animation:fade .14s ease-out;
+}
+.catalog.searching .search-field, body.vk-open:not(.vk-fixed) .search-field{ z-index:60; }
+.catalog.searching > .vk, body.vk-open:not(.vk-fixed) .catalog > .vk{ position:relative; z-index:60; }
+.catalog-head{ flex:none; padding:10px 20px 0; }
 
 .search{ position:relative; display:flex; gap:10px; }
 .search-field{ position:relative; flex:1; }
 .search-field input{
-  width:100%; height:52px; padding:0 44px 0 48px;
+  width:100%; height:44px; padding:0 44px 0 46px;
   background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md);
   color:var(--tx); font-size:15px; user-select:text; cursor:text;
 }
 .search-field input::placeholder{ color:var(--tx-3); }
 .search-field input:focus{ border-color:var(--line-hi); background:var(--card); }
 .search-field .si{ position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--tx-3); pointer-events:none; }
-.search-field .sx{ position:absolute; right:8px; top:50%; transform:translateY(-50%); width:36px; height:36px; }
-.search-hint{
-  height:52px; padding:0 16px; display:flex; align-items:center; gap:9px; flex:none;
-  background:var(--panel); border:1px solid var(--line); border-radius:var(--r-md);
-  color:var(--tx-3); font-size:13px; font-weight:600;
-}
+.search-field .sx{ position:absolute; right:5px; top:50%; transform:translateY(-50%); width:34px; height:34px; }
 .search-res{
-  position:absolute; top:calc(100% + 8px); left:0; right:0; z-index:50; padding:6px;
+  position:absolute; top:calc(100% + 8px); left:0; right:0; z-index:50; padding:8px;
   max-height:390px; overflow-y:auto;
+  display:grid; grid-template-columns:1fr 1fr; align-content:start; gap:8px;
   background:var(--card); border:1px solid var(--line-hi); border-radius:var(--r-md); box-shadow:var(--sh-menu);
 }
 .sr{
   display:flex; align-items:center; gap:14px; padding:12px 12px; border-radius:var(--r-xs);
 }
-.sr:hover, .sr.hi{ background:var(--card-act); }
-.sr .tag{ font-size:10.5px; font-weight:800; letter-spacing:.08em; width:82px; flex:none; }
+.sr{ background:#1F2628; border:1px solid var(--line); cursor:pointer; transition:background .1s, border-color .1s; }
+.sr:hover, .sr.hi{ background:var(--card-act); border-color:var(--line-hi); }
+.sr:active{ background:var(--card-act); transform:scale(.99); }
+.sr .tag{ font-size:10.5px; font-weight:800; letter-spacing:.08em; width:64px; flex:none; }
+.sr .p{ white-space:nowrap; }
 .sr .n{ flex:1; font-size:14.5px; font-weight:600; }
 .sr .p{ font-size:14.5px; font-weight:700; }
-.sr-none{ padding:22px; text-align:center; color:var(--tx-3); font-size:14px; }
-
-/* категории */
-.cats{
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(140px,1fr)); gap:8px;
-  margin:14px 0 0;
-}
-.cat{
-  height:48px; padding:0 14px; border-radius:var(--r-sm);
-  background:var(--panel); border:1px solid var(--line);
-  display:flex; align-items:center; gap:9px;
-  font-size:14px; font-weight:600; color:var(--tx-2);
-  transition:background .1s, border-color .1s, color .1s;
-}
-.cat i{ width:8px; height:8px; border-radius:50%; background:var(--c, var(--tx-3)); flex:none; transition:transform .1s; }
-.cat span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.cat:hover{ background:var(--card); color:var(--tx); }
-.cat:active{ transform:scale(.985); }
-.cat.on{
-  background:var(--card-hi); border-color:var(--line-hi); color:var(--tx); font-weight:700;
-  box-shadow:inset 0 0 0 1px var(--line-hi);
-}
-.cat.on i{ transform:scale(1.35); box-shadow:0 0 0 4px color-mix(in srgb, var(--c, var(--acc)) 18%, transparent); }
-.cat.hits i{ background:var(--acc); }
+.sr-none{ grid-column:1/-1; padding:22px; text-align:center; color:var(--tx-3); font-size:14px; }
 
 /* сетка товаров */
 .grid{
@@ -489,6 +499,9 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 }
 .paybox .l{ font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--acc); }
 .paybox .v{ font-size:46px; font-weight:800; letter-spacing:-.03em; line-height:1.1; margin-top:2px; }
+/* возврат виден с порога: деньги уходят из кассы, а не приходят */
+#sheetPay.refund .paybox{ background:var(--bad-soft); border-color:var(--bad-line); }
+#sheetPay.refund .paybox .l, #sheetPay.refund .paybox .v{ color:var(--bad); }
 
 .methods{ display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin:18px 0 16px; }
 .method{
@@ -501,6 +514,9 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .method.on{ background:var(--acc-soft); border-color:var(--acc); color:var(--acc-hi); font-weight:700; }
 .method kbd{ font-size:10px; opacity:.6; font-family:inherit; }
 
+.scale-btn{ width:100%; height:48px; margin-bottom:10px; color:var(--acc-hi); border-color:var(--acc-line); background:var(--acc-soft); }
+.scale-btn:hover{ background:var(--acc-dim); }
+.scale-btn:disabled{ opacity:.6; }
 .quick{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
 .quick button{
   height:44px; border-radius:var(--r-sm); background:var(--card); border:1px solid var(--line);
@@ -532,18 +548,20 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .keys button:active{ background:var(--card-act); transform:scale(.97); }
 .keys button.aux{ color:var(--tx-2); font-size:15px; font-weight:600; }
 .keys button.aux svg{ width:20px; height:20px; }
+/* окно количества: в нижнем ряду четыре клавиши, поэтому сетка на 12 долей;
+   в режиме веса запятая скрыта и ряд снова из трёх */
+#qtyKeys{ grid-template-columns:repeat(12,1fr); }
+#qtyKeys button{ grid-column:span 4; }
+#qtyKeys.dec button:nth-child(n+10){ grid-column:span 3; }
+#qtyKeys:not(.dec) .comma{ display:none; }
 
-.waiting{
-  padding:34px 20px; text-align:center; background:var(--card);
-  border:1px dashed var(--line-hi); border-radius:var(--r-md); color:var(--tx-2); font-size:14px;
-}
-.waiting .pulse{
+.pulse{
   width:44px; height:44px; margin:0 auto 14px; border-radius:50%;
   background:var(--acc-soft); border:1px solid var(--acc-line); color:var(--acc);
   display:flex; align-items:center; justify-content:center;
   animation:pulse 1.6s ease-in-out infinite;
 }
-@keyframes pulse{ 50%{ transform:scale(1.08); opacity:.7 } }
+@keyframes pulse{ 50%{ opacity:.45 } }
 
 .splits{ margin-top:14px; display:grid; gap:7px; }
 .split{
@@ -556,23 +574,145 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .split button:hover{ color:var(--bad); }
 .split button svg{ width:15px; height:15px; }
 
-/* успешная оплата */
-.done{ text-align:center; padding:8px 0 4px; }
-.done .ic{
-  width:76px; height:76px; margin:0 auto 20px; border-radius:50%;
-  background:var(--acc-soft); border:1px solid var(--acc-line); color:var(--acc);
-  display:flex; align-items:center; justify-content:center; animation:popIn .32s cubic-bezier(.2,1.4,.4,1);
+/* ------------------------------ ОПЛАТА ---------------------------------- */
+/* Панель встаёт на место витрины; весь экран затемнён, в том числе чек слева.
+   Клик по затемнению (например, по чеку) закрывает оплату. */
+.pay-veil .sheet{ width:calc(100% - var(--check-w)); }
+
+.pay-cols{ flex:1; min-height:0; display:grid; grid-template-columns:.82fr 1fr; }
+.pay-left{ padding:16px 18px; border-right:1px solid var(--line); overflow-y:auto; }
+.pay-right{ padding:16px 20px; overflow-y:auto; }
+.pay-cap{
+  font-size:11.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--tx-3); margin-bottom:8px;
 }
-.done .ic svg{ width:36px; height:36px; }
-@keyframes popIn{ from{ transform:scale(.6); opacity:0 } }
-.done h3{ font-size:22px; }
-.done .p{ color:var(--tx-2); font-size:14px; margin:6px 0 0; }
-.done .changebox{
-  margin-top:22px; padding:18px; border-radius:var(--r-lg);
-  background:var(--warn-soft); border:1px solid var(--warn-line);
+.pay .methods{ grid-template-columns:1fr; margin:0 0 18px; }
+.pay .method{
+  height:60px; flex-direction:row; justify-content:flex-start; gap:12px; padding:0 16px;
+  font-size:15px; text-align:left;
 }
-.done .changebox .l{ font-size:12px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--warn); }
-.done .changebox .v{ font-size:44px; font-weight:800; color:var(--warn); letter-spacing:-.03em; line-height:1.1; }
+.pay .method svg{ width:22px; height:22px; flex:none; }
+.pay .splits{ margin-top:0; }
+.split .mi{ width:18px; height:18px; color:var(--tx-3); flex:none; }
+.split-hint{
+  font-size:12.5px; line-height:1.45; color:var(--tx-3);
+  padding:10px 12px; border:1px dashed var(--line-hi); border-radius:var(--r-sm);
+}
+.pay .quick{ grid-template-columns:repeat(3,1fr); }
+.pay-right .paybox{ margin-bottom:8px; }
+.io.bad{ background:var(--bad-soft); border-color:var(--bad-line); }
+.io.bad .l, .io.bad .v{ color:var(--bad); }
+.refund-note{ margin-top:14px; font-size:13.5px; line-height:1.5; color:var(--tx-2); }
+
+.pay-foot{ display:grid; grid-template-columns:.82fr 1fr; gap:0; padding:0; }
+.pay-foot-l{ display:flex; gap:8px; padding:12px 18px; border-right:1px solid var(--line); }
+.pay-foot > .btn{ margin:12px 20px; }
+.pay-foot-l .btn{ height:100%; }
+
+/* ------------------------------ ТЕРМИНАЛ -------------------------------- */
+.term{ text-align:center; padding:30px 24px 22px; }
+.term .pulse{ width:64px; height:64px; margin-bottom:14px; }
+.term .pulse svg{ width:28px; height:28px; }
+.term-sum{ font-size:34px; font-weight:800; letter-spacing:-.02em; }
+.term-t{ font-size:17px; font-weight:700; margin-top:6px; }
+.term-h{ font-size:13.5px; color:var(--tx-3); margin-top:4px; }
+
+/* --------------------------- КАРТОЧКА ЧЕКА ------------------------------ */
+.lc.tap{ cursor:pointer; }
+.lc.tap:active{ background:var(--card-hi); }
+.lc .go{ width:18px; height:18px; color:var(--tx-3); transform:rotate(-90deg); flex:none; }
+.lc.done{ opacity:.55; }
+.tag-done{
+  font-size:11px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--bad);
+  padding:4px 8px; border:1px solid var(--bad-line); border-radius:var(--r-pill);
+}
+.ck-row{
+  display:flex; align-items:flex-start; gap:12px; padding:9px 0;
+  border-bottom:1px dashed var(--line); font-size:14px;
+}
+.ck-row .n{ flex:1; font-weight:600; line-height:1.35; }
+.ck-row .q{ display:block; font-size:12.5px; font-weight:500; color:var(--tx-3); margin-top:2px; }
+.ck-row b{ white-space:nowrap; }
+.ck-none{ font-size:13.5px; color:var(--tx-3); padding:4px 0 8px; }
+.ck-sum{ margin-top:8px; }
+.ck-total{ display:flex; justify-content:space-between; align-items:baseline; padding:6px 0 2px; font-weight:700; }
+.ck-total b{ font-size:24px; font-weight:800; letter-spacing:-.02em; }
+.ck-cap{
+  margin:14px 0 8px; font-size:11.5px; font-weight:800; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--tx-3);
+}
+.ck-pays{ display:grid; gap:6px; }
+.ck-pay{
+  display:flex; align-items:center; gap:10px; padding:10px 14px; font-size:14px; font-weight:600;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r-sm);
+}
+.ck-pay svg{ width:18px; height:18px; color:var(--tx-3); }
+.ck-pay b{ margin-left:auto; }
+.ck-pay.mute{ background:transparent; color:var(--tx-3); }
+
+/* ----------------------------- РАСХОД БЛЮД ------------------------------ */
+.usage-bar{ padding:14px 22px 0; }
+.picker{
+  height:44px; padding:0 12px 0 16px; display:flex; align-items:center; gap:10px;
+  background:var(--card); border:1px solid var(--line-hi); border-radius:var(--r-sm);
+  font-size:14.5px; font-weight:700; color:var(--tx);
+}
+.picker .chev{ width:16px; height:16px; opacity:.7; }
+#menuUsage{ max-height:340px; overflow-y:auto; }
+.usage-head, .usage-row{ display:grid; grid-template-columns:1fr 130px 110px; gap:12px; align-items:center; }
+.usage-head > :nth-child(n+2), .usage-row > :nth-child(n+2){ text-align:right; }
+.usage-head{
+  padding:0 4px 8px; border-bottom:1px solid var(--line);
+  font-size:11.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--tx-3);
+}
+.usage-row{ padding:10px 4px; border-bottom:1px dashed var(--line); font-size:14px; }
+.usage-row .n{ font-weight:600; }
+.usage-row.total{ border-bottom:0; font-size:15px; }
+.usage-row.total .n, .usage-row.total b{ font-weight:800; }
+
+/* ------------------------------ КОРРЕКЦИЯ ------------------------------- */
+.corr-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px 14px; }
+#modalCorr .corr-grid .field{ margin:0; }
+.sel{
+  width:100%; height:46px; padding:0 36px 0 14px; appearance:none; -webkit-appearance:none;
+  background:var(--card) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238C9895' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7 10l5 5 5-5'/></svg>") no-repeat right 12px center / 16px;
+  border:1px solid var(--line); border-radius:var(--r-md);
+  color:var(--tx); font:inherit; font-size:14.5px; font-weight:600; cursor:pointer;
+}
+
+/* свои списки вместо системного <select> */
+.csel .sel{ display:flex; align-items:center; text-align:left; }
+.csel .cv{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.csel-menu{ z-index:400; min-width:0; max-height:300px; overflow-y:auto; animation:none; }
+.csel-menu button{ padding:11px 12px; font-size:14px; white-space:nowrap; }
+.csel-menu button svg{ margin-left:auto; color:var(--acc); opacity:0; }
+.csel-menu button.on{ color:var(--acc-hi); }
+.csel-menu button.on svg{ opacity:1; }
+.cp-head{ display:flex; align-items:center; gap:8px; }
+.cp-now{
+  margin-left:6px; font-size:10.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--acc-hi); background:var(--acc-soft); border:1px solid var(--acc-line);
+  padding:2px 7px; border-radius:var(--r-pill); vertical-align:2px;
+}
+.corr-cap{ margin:16px 0 8px; font-size:13px; font-weight:600; color:var(--tx-2); }
+.corr-cap em{ font-style:normal; color:var(--tx-3); font-weight:500; }
+.cl{ display:grid; grid-template-columns:20px 130px 1fr 116px 100px 36px; gap:8px; align-items:center; margin-bottom:8px; }
+.cl-n{ text-align:center; font-weight:700; color:var(--tx-3); }
+.cl input{
+  width:100%; height:44px; padding:0 12px; user-select:text; cursor:text;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r-md);
+  color:var(--tx); font-size:15px; font-weight:700;
+}
+.cl input::placeholder{ color:var(--tx-3); font-weight:400; }
+.cl .sel{ height:44px; font-size:13.5px; padding-left:12px; }
+.cl-vs{ font-size:12.5px; color:var(--tx-3); text-align:right; white-space:nowrap; }
+.cl-rm:disabled{ opacity:.25; pointer-events:none; }
+.corr-add{ width:100%; height:40px; font-size:13.5px; gap:6px; }
+.corr-add svg{ width:16px; height:16px; }
+.corr-total{ flex:1; display:flex; align-items:baseline; gap:8px; min-width:0; }
+.corr-total .l{ font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--tx-3); }
+.corr-total b{ font-size:22px; font-weight:800; }
+.corr-total .vat{ font-size:12.5px; color:var(--tx-3); white-space:nowrap; }
 
 /* ============================ СПИСКИ / ФОРМЫ ============================ */
 .lc{
@@ -592,6 +732,17 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .lc .acts button.danger:hover{ background:var(--bad-soft); border-color:var(--bad-line); color:var(--bad); }
 
 .none{ text-align:center; color:var(--tx-3); padding:48px 12px; font-size:14px; }
+
+/* чек в списке коррекции раскрывается на месте */
+.lc-x{ margin-bottom:8px; background:var(--card); border:1px solid var(--line); border-radius:var(--r-md); }
+.lc-x:hover, .lc-x.open{ border-color:var(--line-hi); }
+.lc-x > .lc{ margin:0; border:0; background:transparent; border-radius:var(--r-md); }
+.lc-x.open .go{ transform:none; }
+.lc-body{ padding:2px 16px 16px; border-top:1px dashed var(--line); }
+.lc-body .ck-cap.first{ margin-top:12px; }
+.lc-date{ font-size:14px; font-weight:600; }
+.lc-pick{ width:100%; margin-top:16px; }
+
 
 .stats{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
 .stat{ background:var(--card); border:1px solid var(--line); border-radius:var(--r-md); padding:14px 16px; }
@@ -620,6 +771,14 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .opt:hover{ background:var(--card-hi); }
 .opt.on{ background:var(--acc-soft); border-color:var(--acc); color:var(--acc-hi); }
 .opt .pc{ margin-left:auto; font-weight:800; color:var(--tx-3); }
+
+/* окно коррекции: способ расчёта и основание — в два столбца,
+   иначе форма не помещается на экране кассы 1024×768 */
+#modalCorr .field{ margin-bottom:12px; }
+#modalCorr .field label{ margin-bottom:6px; }
+#modalCorr .opts{ grid-template-columns:1fr 1fr; }
+#modalCorr .opt{ height:44px; padding:0 12px; font-size:13.5px; }
+#modalCorr .field input{ height:46px; }
 .opt.on .pc{ color:var(--acc-hi); }
 
 .note{ font-size:13.5px; color:var(--tx-2); line-height:1.6; margin:0; }
@@ -629,19 +788,36 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .verdict.ok{ background:var(--acc-soft); color:var(--acc-hi); border:1px solid var(--acc-line); }
 .verdict.warn{ background:var(--warn-soft); color:var(--warn); border:1px solid var(--warn-line); }
 
-/* ============================== TOAST =================================== */
+/* ============================== УВЕДОМЛЕНИЯ ============================== */
+/* Все сообщения кассы выглядят одинаково и приходят в одно место — плашка
+   сверху по центру, как остров на телефоне: вырастает из точки и сворачивается.
+   Кликов не перехватывает, поэтому не мешает работать. */
 #toasts{
-  position:fixed; left:50%; bottom:26px; transform:translateX(-50%); z-index:300;
-  display:flex; flex-direction:column-reverse; gap:8px; align-items:center; pointer-events:none;
+  position:fixed; top:10px; left:50%; transform:translateX(-50%); z-index:600;
+  display:flex; flex-direction:column; gap:6px; align-items:center; pointer-events:none;
 }
 .toast{
-  display:flex; align-items:center; gap:10px; padding:13px 20px;
-  background:var(--card); border:1px solid var(--line-hi); border-radius:var(--r-pill);
-  font-size:14px; font-weight:600; box-shadow:var(--sh-menu); animation:tin .18s ease-out;
+  display:flex; align-items:center; gap:9px; height:38px; padding:0 18px 0 6px;
+  background:var(--card-hi); border:1px solid var(--line-hi); border-radius:999px;
+  box-shadow:0 12px 28px -12px rgba(0,0,0,.85);
+  font-size:13.5px; font-weight:700; color:var(--tx); white-space:nowrap;
+  opacity:0; transform:scale(.35);
+  transition:transform .24s ease-in, opacity .18s ease-in;
 }
-.toast.bad{ border-color:var(--bad-line); color:var(--bad); }
-.toast.warn{ border-color:var(--warn-line); color:var(--warn); }
-@keyframes tin{ from{ opacity:0; transform:translateY(10px) } }
+.toast.show{
+  opacity:1; transform:scale(1);
+  transition:transform .46s cubic-bezier(.3,1.5,.5,1), opacity .16s ease-out;
+}
+.toast .ic{
+  width:26px; height:26px; border-radius:50%; flex:none;
+  background:var(--acc); color:var(--acc-ink);
+  display:flex; align-items:center; justify-content:center;
+}
+.toast .ic svg{ width:15px; height:15px; stroke-width:2.8; }
+.toast.warn .ic{ background:var(--warn); color:#241B08; }
+.toast.bad  .ic{ background:var(--bad);  color:#2A0D0A; }
+.toast .tx{ opacity:0; }
+.toast.show .tx{ opacity:1; transition:opacity .2s ease-out .14s; }
 
 /* ======================= АДАПТАЦИЯ ПОД ЭКРАН КАССЫ ====================== */
 /* 1366×768 и другие «низкие» терминалы: сжимаем вертикаль, не ломая сетку */
@@ -656,10 +832,31 @@ svg{ width:20px; height:20px; display:block; flex:none; }
   .btn-primary{ font-size:16px; }
   /* на узкой панели сумма на кнопке дублирует итог прямо над ней — убираем */
   .btn-primary .amt{ display:none; }
-  .cat{ height:44px; }
   .keys button{ height:52px; }
   .paybox .v{ font-size:38px; }
   .pad button{ height:56px; }
+
+  /* панель оплаты: на 1024×768 всё, включая цифры и «Сброс», без прокрутки */
+  .sheet .m-head{ padding:12px 16px 10px 20px; }
+  .sheet .m-head h3{ font-size:16px; }
+  .sheet .m-body{ padding:12px 20px; }
+  .sheet .paybox{ padding:8px 16px 10px; }
+  .sheet .paybox .l{ font-size:11px; }
+  .sheet .paybox .v{ font-size:32px; margin-top:0; }
+  .pay-left{ padding:12px 16px; }
+  .pay-right{ padding:12px 18px; }
+  .pay .method{ height:60px; }
+  .sheet .quick{ gap:6px; margin:0 0 8px; }
+  .sheet .quick button{ height:40px; font-size:13.5px; padding:0 4px; }
+  .sheet .io{ padding:8px 14px; margin-bottom:6px; }
+  .sheet .io .v{ font-size:21px; }
+  .sheet .keys{ gap:6px; margin-top:8px; }
+  .sheet .keys button{ height:62px; font-size:21px; }
+  .sheet .keys button.aux{ font-size:14px; }
+  .pay-foot-l{ padding:10px 16px; }
+  .pay-foot > .btn{ margin:10px 18px; height:58px; }
+  .modal.slim .m-body{ padding:14px 22px; }
+  .modal.slim .keys button{ height:48px; }
 }
 @media (min-width: 1750px){
   :root{ --check-w:472px; }
@@ -701,6 +898,11 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .crumbs .cr.last{ color:var(--tx); font-weight:700; cursor:default; }
 .crumbs .cr.last:hover{ background:transparent; }
 .crumbs .sl{ color:var(--tx-3); opacity:.5; font-size:14px; flex:none; }
+/* витрина кассира: путь живёт отдельной строкой под переключателем
+   и переносится вниз, а не уходит за край экрана */
+.crumbs-row{ flex:none; flex-wrap:wrap; overflow:visible; row-gap:2px; margin-top:10px; }
+.crumbs-row:empty{ display:none; }
+.crumbs-row .cr{ max-width:none; white-space:normal; height:auto; min-height:34px; padding:6px 10px; text-align:left; }
 
 /* ---------- плитка-группа ---------- */
 .tile.group{
@@ -917,16 +1119,6 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 }
 .swatches button.on{ border-color:var(--c); }
 
-/* ------------------------- справка по клавишам -------------------------- */
-.keylist{ display:grid; gap:3px; }
-.keyrow{ display:flex; align-items:center; gap:14px; padding:9px 12px; border-radius:var(--r-xs); font-size:14px; }
-.keyrow:hover{ background:var(--card); }
-.keyrow kbd{
-  font-family:inherit; font-size:12.5px; font-weight:700; min-width:66px; text-align:center;
-  padding:5px 9px; border-radius:7px; background:var(--card); border:1px solid var(--line-hi); color:var(--tx-2);
-}
-.keyrow span{ color:var(--tx-2); }
-
 @media (max-height: 830px){
   .hk-top{ height:60px; }
   .hk-grid{ grid-template-columns:repeat(auto-fill,minmax(168px,1fr)); }
@@ -946,7 +1138,7 @@ svg{ width:20px; height:20px; display:block; flex:none; }
   --vk-key-h: 58px;
   --vk-cols: 12;
   --vk-kw: calc((100% - (var(--vk-cols) - 1) * var(--vk-gap)) / var(--vk-cols));
-  flex:none; padding:14px 18px 16px;
+  flex:none; padding:14px 18px 16px; max-width:100%; overflow:hidden;
   background:var(--panel); border-top:1px solid var(--line);
   animation:vkIn .16s cubic-bezier(.22,.7,.3,1);
 }
@@ -956,10 +1148,10 @@ svg{ width:20px; height:20px; display:block; flex:none; }
   position:fixed; left:0; right:0; bottom:0; z-index:400;
   box-shadow:0 -26px 60px -34px rgba(0,0,0,.95);
 }
-.vk-inner{ max-width:1040px; margin:0 auto; display:grid; gap:var(--vk-gap); }
+.vk-inner{ min-width:0; max-width:1500px; margin:0 auto; display:grid; gap:var(--vk-gap); }
 .vk[data-lay="num"] .vk-inner{ max-width:430px; }
 
-.vk-row{ display:flex; gap:var(--vk-gap); justify-content:center; }
+.vk-row{ display:flex; gap:var(--vk-gap); justify-content:center; min-width:0; }
 
 .vk-key{
   flex:0 0 var(--vk-kw); height:var(--vk-key-h);
@@ -1005,7 +1197,6 @@ body.vk-fixed .veil:not(.right){
 body.vk-fixed .veil:not(.right) .modal{ max-height:100%; }
 body.vk-fixed .veil:not(.right) .modal.tall{ height:100%; }
 
-body.vk-open #toasts{ bottom:calc(var(--vk-h, 340px) + 20px); }
 
 @media (max-height: 830px){
   .vk{ --vk-key-h:50px; --vk-gap:6px; padding:10px 14px 12px; }

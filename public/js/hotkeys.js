@@ -6,8 +6,8 @@
    в порядке, удобном конкретной столовой. Поэтому структуру собирает
    администратор заведения, а не разработчик.
 
-   Структура хранится в PostgreSQL (таблица hotkeys) и одинакова для всех
-   терминалов заведения: настроил на одном — увидели все.
+   Структура хранится в браузере вместе с остальными данными кассы
+   (js/api.js); на другой терминал её переносят файлом данных.
 
    Ограничения, которые держат систему в рамках:
    • глубина не больше трёх уровней групп — дальше кассир начинает «блуждать»;
@@ -100,7 +100,7 @@ const HK = (() => {
     o = o || {};
     const c = catOf(p.cat);
     const inCart = o.edit ? 0 : S.cart.filter(r => r.id === p.id).reduce((s, r) => s + r.qty, 0);
-    const badge = inCart ? `<span class="qty num">${p.weight ? String(inCart).replace('.', ',') : inCart}</span>` : '';
+    const badge = inCart ? `<span class="qty num">${p.weight ? String(inCart).replace('.', ',') : fmtQty(inCart)}</span>` : '';
     const cls = ['tile', p.cat === 'combo' ? 'combo' : '', inCart ? 'in' : '', o.edit ? 'edit' : ''].filter(Boolean).join(' ');
     const at = o.edit ? `data-nid="${o.nid}" draggable="true"` : `data-pid="${p.id}"`;
     return `<button class="${cls}" ${at} style="--c:${c.color}">
@@ -126,7 +126,7 @@ const HK = (() => {
   function renderCrumbs() {
     const el = document.getElementById('crumbs');
     if (!path.length) { el.innerHTML = ''; return; }
-    let html = `<button class="up" id="crumbUp" title="На уровень выше (Backspace)"><svg><use href="#i-back"/></svg></button>`;
+    let html = `<button class="up" id="crumbUp" title="На уровень выше"><svg><use href="#i-back"/></svg></button>`;
     html += `<button class="cr" data-i="-1">Все группы</button>`;
     path.forEach((id, i) => {
       const g = findNode(data, id);
@@ -141,10 +141,15 @@ const HK = (() => {
     const grid = document.getElementById('grid');
     const cur = nodeByPath(data, path);
 
-    /* Порядок внутри уровня — ровно тот, что задал администратор:
-       группы и блюда не пересортировываются, витрина у кассира выглядит
-       так же, как в редакторе. */
-    const rest = cur.items;
+    /* У кассира внутри уровня сначала идут группы, потом блюда, и те и другие
+       по алфавиту (числа в названиях — по значению: «№ 2» раньше «№ 10»).
+       Редактор администратора показывает порядок, в котором плитки заведены. */
+    const label = n => n.kind === 'group' ? n.name : ((prod(n.pid) || {}).name || '');
+    const byName = (x, y) => label(x).localeCompare(label(y), 'ru', { numeric: true, sensitivity: 'base' });
+    const rest = [
+      ...cur.items.filter(n => n.kind === 'group').sort(byName),
+      ...cur.items.filter(n => n.kind !== 'group').sort(byName),
+    ];
 
     if (!rest.length) {
       const inside = path.length ? findNode(data, path[path.length - 1]) : null;
@@ -180,6 +185,7 @@ const HK = (() => {
     return false;
   }
   function onCrumbClick(e) {
+    if (S.view !== 'hk') return;   // в каталоге крошками ведает app.js
     if (e.target.closest('#crumbUp')) { up(); return; }
     const c = e.target.closest('.cr');
     if (!c) return;
@@ -219,7 +225,7 @@ const HK = (() => {
     const btn = document.getElementById('hkSave');
     btn.disabled = true; btn.textContent = 'Сохраняю…';
     try {
-      /* Сервер возвращает витрину уже со своими идентификаторами —
+      /* Хранилище возвращает витрину уже со своими идентификаторами —
          принимаем её как есть, иначе следующая правка уйдёт в никуда. */
       const res = await API.saveHotkeys(draft.items);
       data = { items: res.items || [] };
@@ -308,7 +314,7 @@ const HK = (() => {
         <svg><use href="#i-folder"/></svg>
         <div class="t">${editPath.length ? 'В этой группе пока пусто' : 'Витрина пуста'}</div>
         <div class="h">Добавьте блюда из каталога или создайте подгруппу.
-        Быстрее всего — «Собрать из категорий»: готовые группы появятся за один шаг.</div>
+        Быстрее всего — «Собрать из групп»: готовые группы появятся за один шаг.</div>
       </div>` + html;
     }
     document.getElementById('hkGrid').innerHTML = html;
@@ -477,7 +483,7 @@ const HK = (() => {
         <span class="nm">${p.name}</span>
         ${added ? '<span class="added">уже в группе</span>' : `<span class="pr num">${money(p.price)}</span>`}
       </button>`;
-    }).join('') : `<div class="none">Ничего не найдено. Попробуйте другое слово или снимите фильтр категории.</div>`;
+    }).join('') : `<div class="none">Ничего не найдено. Попробуйте другое слово или снимите фильтр группы.</div>`;
     document.getElementById('pickCount').textContent = pickSel.size;
     document.getElementById('pickAdd').disabled = !pickSel.size;
     document.getElementById('pickAdd').textContent = pickSel.size ? `Добавить ${pickSel.size}` : 'Добавить';
@@ -493,7 +499,7 @@ const HK = (() => {
     toast(`Добавлено ${n} ${plural(n, 'товар', 'товара', 'товаров')}`);
   }
 
-  /* ---------------------- быстрая сборка из категорий --------------------- */
+  /* ---------------------- быстрая сборка из групп --------------------- */
   let catSel = new Set();
   function openFromCat() {
     catSel = new Set();
@@ -705,7 +711,7 @@ const HK = (() => {
     });
     document.getElementById('pickAdd').addEventListener('click', pickerAdd);
 
-    /* сборка из категорий */
+    /* сборка из групп */
     document.getElementById('catPickList').addEventListener('click', e => {
       const b = e.target.closest('[data-c]'); if (!b) return;
       catSel.has(b.dataset.c) ? catSel.delete(b.dataset.c) : catSel.add(b.dataset.c);

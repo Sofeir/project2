@@ -25,19 +25,19 @@ const VK = (() => {
     ru: {
       cols: 12,
       rows: [
-        ['1','2','3','4','5','6','7','8','9','0'],
+        ['1','2','3','4','5','6','7','8','9','0','-'],
         ['й','ц','у','к','е','н','г','ш','щ','з','х','ъ'],
         ['ф','ы','в','а','п','р','о','л','д','ж','э','ё'],
-        [B('shift'),'я','ч','с','м','и','т','ь','б','ю','-',B('back')],
+        [B('shift'),'я','ч','с','м','и','т','ь','б','ю',B('back')],
       ],
     },
     en: {
       cols: 12,
       rows: [
-        ['1','2','3','4','5','6','7','8','9','0'],
+        ['1','2','3','4','5','6','7','8','9','0','-'],
         ['q','w','e','r','t','y','u','i','o','p'],
         ['a','s','d','f','g','h','j','k','l'],
-        [B('shift'),'z','x','c','v','b','n','m','-',B('back')],
+        [B('shift'),'z','x','c','v','b','n','m',B('back')],
       ],
     },
     num: {
@@ -95,11 +95,23 @@ const VK = (() => {
     el.dataset.lay = name;
     el.style.setProperty('--vk-cols', L.cols);
 
-    const rows = L.rows.map(r =>
-      `<div class="vk-row">${r.map(k => keyHTML(k)).join('')}</div>`).join('');
+    /* Поле может попросить символ, которого нет в раскладке: например, номеру
+       документа-основания нужна дробь. Такие клавиши встают в ряд цифр —
+       он короче остальных, и место там есть. */
+    const extra = (target.dataset.vkExtra || '').split('').filter(Boolean);
+    const num = name === 'num';
+    /* У цифрового блока все ряды ровно по три клавиши: дополнительный символ
+       (запятая) встаёт слева от нуля, а «Очистить» переезжает к «Готово». */
+    const numExtra = num && extra.length > 0;
+    const src = numExtra
+      ? L.rows.slice(0, 3).concat([[extra[0], '0', B('back')]])
+      : L.rows.map((r, i) => (i === 0 && extra.length ? r.concat(extra) : r));
+    const rows = src
+      .map(r => `<div class="vk-row">${r.map(k => keyHTML(k, num ? 'w1' : '')).join('')}</div>`).join('');
 
-    const bottom = name === 'num'
+    const bottom = num
       ? `<div class="vk-row vk-bottom">
+           ${numExtra ? '<button class="vk-key fn" data-k="clear">Очистить</button>' : ''}
            <button class="vk-key done" data-k="done">Готово</button>
          </div>`
       : `<div class="vk-row vk-bottom">
@@ -192,12 +204,15 @@ const VK = (() => {
 
   function close() {
     if (!target) return;
+    const was = target;
     target = null;
     if (el && el.isConnected) el.remove();
     document.body.classList.remove('vk-open', 'vk-fixed');
     document.body.style.removeProperty('--vk-h');
     const cat = document.querySelector('[data-vk-host]');
     if (cat) cat.style.removeProperty('--sr-max');
+    /* поле, которому клавиатура больше не нужна, узнаёт об этом (например, поиск очищается) */
+    document.dispatchEvent(new CustomEvent('vk:close', { detail: { target: was } }));
   }
 
   /* фактическая высота — в переменную: по ней сдвигаются диалоги и уведомления */
@@ -209,9 +224,12 @@ const VK = (() => {
     /* выпадающий список результатов не должен уезжать под клавиатуру */
     const host = document.querySelector('[data-vk-host]');
     if (host && mode === 'inline' && target) {
-      const space = el.getBoundingClientRect().top - target.getBoundingClientRect().bottom - 32;
+      const space = el.getBoundingClientRect().top - target.getBoundingClientRect().bottom - 24;
       host.style.setProperty('--sr-max', Math.max(150, Math.round(space)) + 'px');
     }
+
+    /* диалог ужался над клавиатурой — поле, в которое печатают, должно остаться видно */
+    if (mode === 'fixed' && target) setTimeout(() => target && target.scrollIntoView({ block: 'nearest' }), 80);
   }
 
   /* ------------------------------- подключение ---------------------------- */
@@ -230,12 +248,8 @@ const VK = (() => {
   /* касание мимо поля, списка результатов и самой клавиатуры — закрываем */
   document.addEventListener('mousedown', e => {
     if (!isOpen()) return;
-    if (e.target.closest('#vk, .search-field, .pick-search, .field, .search-res')) return;
+    if (e.target.closest('#vk, .search-field, .pick-search, .field, .cl, .search-res')) return;
     close();
-  });
-
-  document.addEventListener('keydown', e => {
-    if (isOpen() && e.key === 'Escape') close();
   });
 
   window.addEventListener('resize', measure);
