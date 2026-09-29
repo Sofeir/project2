@@ -18,11 +18,13 @@
   --card-act:  #262E31;   /* pressed */
   --line:      #212729;   /* разделители */
   --line-hi:   #2E3639;   /* границы интерактивных элементов */
+  --line-strong: #5C6769; /* рамки состояний: пустой чекбокс, точки PIN, выбранная строка (≥3:1) */
+  --veil:      rgba(4,7,7,.72);   /* затемнение под модальными окнами */
 
   /* ---------- Текст ---------- */
   --tx:        #F1F5F4;
   --tx-2:      #9BA8A6;
-  --tx-3:      #66746F;
+  --tx-3:      #808E8A;   /* мелкие подписи: ≥4.5:1 на панели и карточке */
 
   /* ---------- Смысловые цвета ---------- */
   --acc:       #22C98A;   /* деньги, подтверждение, активное состояние */
@@ -31,14 +33,17 @@
   --acc-ink:   #04241A;
   --acc-soft:  rgba(34,201,138,.12);
   --acc-line:  rgba(34,201,138,.34);
+  --acc-press: #1BB57B;   /* нажатая главная кнопка */
 
   --warn:      #E9B45A;
   --warn-soft: rgba(233,180,90,.12);
   --warn-line: rgba(233,180,90,.32);
+  --warn-ink:  #241B08;   /* текст на янтарной заливке */
 
   --bad:       #F0685D;
   --bad-soft:  rgba(240,104,93,.12);
   --bad-line:  rgba(240,104,93,.32);
+  --bad-ink:   #2A0D0A;   /* текст на коралловой заливке */
 
   /* ---------- Радиусы ---------- */
   --r-xs: 8px;
@@ -138,7 +143,7 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .pin-dots{ display:flex; gap:14px; justify-content:center; margin-bottom:22px; height:12px; }
 .pin-dots i{
   width:12px; height:12px; border-radius:50%;
-  border:1.5px solid var(--line-hi); transition:background .12s, border-color .12s, transform .12s;
+  border:1.5px solid var(--line-strong); transition:background .12s, border-color .12s, transform .12s;
 }
 .pin-dots i.on{ background:var(--acc); border-color:var(--acc); transform:scale(1.08); }
 .pin-dots.err i{ border-color:var(--bad); background:transparent; }
@@ -195,7 +200,7 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .tbtn .chev{ width:14px; height:14px; opacity:.6; margin-left:-2px; }
 .tbtn .badge{
   position:absolute; top:4px; right:-4px; min-width:16px; height:16px; padding:0 4px;
-  border-radius:99px; background:var(--warn); color:#241B08;
+  border-radius:99px; background:var(--warn); color:var(--warn-ink);
   font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center;
 }
 
@@ -286,7 +291,7 @@ svg{ width:20px; height:20px; display:block; flex:none; }
   display:flex; flex-direction:column; flex:none; height:auto; min-width:0;
 }
 .row:hover{ background:var(--card); }
-.row.is-sel{ background:var(--card); border-color:var(--line-hi); }
+.row.is-sel{ background:var(--card); border-color:var(--line-strong); }
 .row.new{ animation:rowIn .28s ease-out; }
 @keyframes rowIn{ from{ background:var(--acc-soft); } }
 
@@ -322,6 +327,8 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .row-acts button svg{ width:14px; height:14px; }
 .row-acts button:hover{ background:var(--card-act); color:var(--tx); }
 .row-acts button.half{ flex:0 0 44px; font-size:17px; font-weight:700; }
+/* «Удалить» красная сразу, а не только под курсором: на сенсорном экране наведения нет */
+.row-acts button.danger{ color:var(--bad); }
 .row-acts button.danger:hover{ background:var(--bad-soft); border-color:var(--bad-line); color:var(--bad); }
 
 .row-disc{
@@ -367,7 +374,7 @@ svg{ width:20px; height:20px; display:block; flex:none; }
   font-size:17px; font-weight:800; letter-spacing:-.01em;
 }
 .btn-primary:hover{ background:var(--acc-hi); border-color:var(--acc-hi); }
-.btn-primary:active{ background:#1BB57B; }
+.btn-primary:active{ background:var(--acc-press); }
 .btn-primary:disabled{ background:var(--card); border-color:var(--line); color:var(--tx-3); }
 .btn-primary .amt{ font-weight:800; }
 
@@ -375,14 +382,14 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .btn-ghost{ background:transparent; border-color:var(--line); color:var(--tx-2); font-weight:600; }
 .btn-ghost:hover{ background:var(--card); color:var(--tx); }
 .btn-danger{ background:var(--bad-soft); border-color:var(--bad-line); color:var(--bad); }
-.btn-danger:hover{ background:var(--bad); border-color:var(--bad); color:#2A0D0A; }
+.btn-danger:hover{ background:var(--bad); border-color:var(--bad); color:var(--bad-ink); }
 
 /* --------------------------- КАТАЛОГ ----------------------------------- */
 .catalog{ flex:1; display:flex; flex-direction:column; min-width:0; position:relative; }
 /* пока открыта клавиатура поиска или список найденных блюд, витрина под ними затемнена — только в колонке каталога, чек не трогаем */
 .catalog.searching::before,
 body.vk-open:not(.vk-fixed) .catalog::before{
-  content:""; position:absolute; inset:0; z-index:30; background:rgba(4,7,7,.72);
+  content:""; position:absolute; inset:0; z-index:30; background:var(--veil);
   animation:fade .14s ease-out;
 }
 .catalog.searching .search-field, body.vk-open:not(.vk-fixed) .search-field{ z-index:60; }
@@ -455,13 +462,15 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   border-color:rgba(216,166,75,.34);
 }
 .tile.combo:hover{ border-color:rgba(216,166,75,.55); }
+/* комплекс в чеке отмечается той же зелёной рамкой, что и обычное блюдо */
+.tile.combo.in{ border-color:var(--acc-line); }
 .tile .wt{ font-size:10.5px; font-weight:800; color:var(--tx-3); border:1px solid var(--line-hi); border-radius:4px; padding:0 4px; }
 
 .grid-none{ grid-column:1/-1; text-align:center; color:var(--tx-3); padding:60px 0; font-size:14px; }
 
 /* ============================ СЛОИ / МОДАЛЬНЫЕ ========================== */
 .veil{
-  position:fixed; inset:0; z-index:200; background:rgba(4,7,7,.72);
+  position:fixed; inset:0; z-index:200; background:var(--veil);
   display:flex; align-items:center; justify-content:center; padding:28px;
   animation:fade .14s ease-out;
 }
@@ -729,6 +738,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   border:1px solid var(--line-hi); font-size:13px; font-weight:600; color:var(--tx-2);
 }
 .lc .acts button:hover{ background:var(--card-act); color:var(--tx); }
+.lc .acts button.danger{ color:var(--bad); }
 .lc .acts button.danger:hover{ background:var(--bad-soft); border-color:var(--bad-line); color:var(--bad); }
 
 .none{ text-align:center; color:var(--tx-3); padding:48px 12px; font-size:14px; }
@@ -742,7 +752,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 #parkedList .acts button{ background:var(--acc-soft); border-color:var(--acc-line); color:var(--acc-hi); }
 #parkedList .acts button:hover{ background:var(--acc-dim); color:var(--acc-hi); }
 #parkedList .acts button.danger{ background:var(--bad-soft); border-color:var(--bad-line); color:var(--bad); }
-#parkedList .acts button.danger:hover{ background:var(--bad); border-color:var(--bad); color:#2A0D0A; }
+#parkedList .acts button.danger:hover{ background:var(--bad); border-color:var(--bad); color:var(--bad-ink); }
 .lc-x .go{ width:24px; height:24px; color:var(--tx); }
 .lc-body{ padding:2px 16px 16px; border-top:1px dashed var(--line); }
 .lc-body .ck-cap.first{ margin-top:12px; }
@@ -820,8 +830,8 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   display:flex; align-items:center; justify-content:center;
 }
 .toast .ic svg{ width:15px; height:15px; stroke-width:2.8; }
-.toast.warn .ic{ background:var(--warn); color:#241B08; }
-.toast.bad  .ic{ background:var(--bad);  color:#2A0D0A; }
+.toast.warn .ic{ background:var(--warn); color:var(--warn-ink); }
+.toast.bad  .ic{ background:var(--bad);  color:var(--bad-ink); }
 .toast .tx{ opacity:0; }
 .toast.show .tx{ opacity:1; transition:opacity .2s ease-out .14s; }
 
@@ -1078,7 +1088,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .pk .added{ font-size:11.5px; font-weight:700; color:var(--tx-3); flex:none; }
 
 .cb{
-  width:24px; height:24px; border-radius:7px; border:1.5px solid var(--line-hi); flex:none;
+  width:24px; height:24px; border-radius:7px; border:1.5px solid var(--line-strong); flex:none;
   display:flex; align-items:center; justify-content:center; color:transparent; transition:all .1s;
 }
 .cb svg{ width:15px; height:15px; }
