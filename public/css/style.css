@@ -125,7 +125,9 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 
 .brand-name{ font-weight:800; font-size:15px; letter-spacing:.02em; text-transform:uppercase; }
 .brand-name em{ font-style:normal; color:var(--acc); }
-.brand-lg .brand-name{ font-size:17px; }
+.brand-lg{ gap:13px; }
+.brand-lg .brand-emblem{ width:56px; height:56px; }
+.brand-lg .brand-name{ font-size:21px; }
 
 .login h1{ font-size:26px; margin:28px 0 6px; }
 .login .sub{ color:var(--tx-2); font-size:14px; margin:0 0 24px; }
@@ -559,9 +561,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   width:44px; height:44px; margin:0 auto 14px; border-radius:50%;
   background:var(--acc-soft); border:1px solid var(--acc-line); color:var(--acc);
   display:flex; align-items:center; justify-content:center;
-  animation:pulse 1.6s ease-in-out infinite;
 }
-@keyframes pulse{ 50%{ opacity:.45 } }
 
 .splits{ margin-top:14px; display:grid; gap:7px; }
 .split{
@@ -738,6 +738,12 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .lc-x:hover, .lc-x.open{ border-color:var(--line-hi); }
 .lc-x > .lc{ margin:0; border:0; background:transparent; border-radius:var(--r-md); }
 .lc-x.open .go{ transform:none; }
+/* отложенные чеки: «Выбрать» — зелёная, «Удалить» — красная, стрелка раскрытия заметнее */
+#parkedList .acts button{ background:var(--acc-soft); border-color:var(--acc-line); color:var(--acc-hi); }
+#parkedList .acts button:hover{ background:var(--acc-dim); color:var(--acc-hi); }
+#parkedList .acts button.danger{ background:var(--bad-soft); border-color:var(--bad-line); color:var(--bad); }
+#parkedList .acts button.danger:hover{ background:var(--bad); border-color:var(--bad); color:#2A0D0A; }
+.lc-x .go{ width:24px; height:24px; color:var(--tx); }
 .lc-body{ padding:2px 16px 16px; border-top:1px dashed var(--line); }
 .lc-body .ck-cap.first{ margin-top:12px; }
 .lc-date{ font-size:14px; font-weight:600; }

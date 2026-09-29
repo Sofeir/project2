@@ -255,41 +255,8 @@ let admBuf = '', admThen = null;
 $('#menuSetup').addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   if (b.dataset.act === 'hk') return requireAdmin(() => HK.openEditor());
-  if (b.dataset.act === 'export') return exportFile();
-  if (b.dataset.act === 'import') return requireAdmin(() => $('#importFile').click());
 });
 
-/* ------------------------ данные кассы в файле -------------------------- */
-/* Все данные живут в этом браузере, поэтому их можно сохранить в файл
-   и перенести на другой компьютер или восстановить после очистки браузера. */
-async function exportFile() {
-  const data = await API.exportData();
-  const d = new Date(), p = n => String(n).padStart(2, '0');
-  const name = `asoft-pos-${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}_${p(d.getHours())}-${p(d.getMinutes())}.json`;
-  const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
-  const link = Object.assign(document.createElement('a'), { href: url, download: name });
-  document.body.appendChild(link); link.click(); link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  toast('Данные сохранены в файл ' + name);
-}
-$('#importFile').addEventListener('change', async e => {
-  const file = e.target.files[0];
-  e.target.value = '';
-  if (!file) return;
-  let text;
-  try { text = await file.text(); JSON.parse(text); } catch (_) { return toast('Файл не читается как JSON', 'bad'); }
-  ask('Загрузить данные из файла?',
-    `Все текущие данные кассы в этом браузере будут заменены содержимым файла «${file.name}». Сначала лучше сохранить текущие данные в файл.`,
-    'Загрузить', async () => {
-      try {
-        const r = await API.importData(text);
-        toast(`Загружено: ${r.shifts} смен, ${r.checks} чеков`);
-        setTimeout(() => location.reload(), 700);
-      } catch (err) {
-        toast('Не загружено: ' + err.message, 'bad');
-      }
-    });
-});
 function requireAdmin(then) {
   admBuf = ''; admThen = then; renderAdm(); open('modalPin');
 }
