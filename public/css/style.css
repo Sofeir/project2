@@ -465,8 +465,6 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   border-color:rgba(216,166,75,.34);
 }
 .tile.combo:hover{ border-color:rgba(216,166,75,.55); }
-/* комплекс в чеке отмечается той же зелёной рамкой, что и обычное блюдо */
-.tile.combo.in{ border-color:var(--acc-line); }
 .tile .wt{ font-size:10.5px; font-weight:800; color:var(--tx-3); border:1px solid var(--line-hi); border-radius:4px; padding:0 4px; }
 
 .grid-none{ grid-column:1/-1; text-align:center; color:var(--tx-3); padding:60px 0; font-size:14px; }
