@@ -10,21 +10,24 @@
    ============================================================================= */
 
 :root{
-  /* ---------- Поверхности ---------- */
-  --bg:        #0A0C0D;   /* фон приложения */
-  --panel:     #101314;   /* панели: чек, шапка */
-  --card:      #161A1C;   /* карточки, поля ввода */
-  --card-hi:   #1E2426;   /* hover карточки */
-  --card-act:  #262E31;   /* pressed */
-  --line:      #212729;   /* разделители */
-  --line-hi:   #2E3639;   /* границы интерактивных элементов */
-  --line-strong: #5C6769; /* рамки состояний: пустой чекбокс, точки PIN, выбранная строка (≥3:1) */
+  /* ---------- Поверхности ----------
+     Графит, а не почти чёрный: касса стоит и в светлых, и в тёмных залах.
+     Слишком тёмный экран в светлом зале даёт блики и резкий перепад яркости,
+     а белый текст на чёрном «расплывается» у людей с астигматизмом. */
+  --bg:        #171C1E;   /* фон приложения */
+  --panel:     #1E2427;   /* панели: чек, шапка */
+  --card:      #262D30;   /* карточки, поля ввода */
+  --card-hi:   #2F383B;   /* hover карточки */
+  --card-act:  #394347;   /* pressed */
+  --line:      #2C3437;   /* разделители */
+  --line-hi:   #3F494C;   /* границы интерактивных элементов */
+  --line-strong: #7B8886; /* рамки состояний: пустой чекбокс, точки PIN, выбранная строка (≥3:1) */
   --veil:      rgba(4,7,7,.72);   /* затемнение под модальными окнами */
 
   /* ---------- Текст ---------- */
-  --tx:        #F1F5F4;
-  --tx-2:      #9BA8A6;
-  --tx-3:      #808E8A;   /* мелкие подписи: ≥4.5:1 на панели и карточке */
+  --tx:        #E8EEEC;   /* не чисто белый: ~13:1 на панели, без «свечения» букв */
+  --tx-2:      #B3BFBC;
+  --tx-3:      #9EACA8;   /* мелкие подписи: ≥4.5:1 на панели и карточке */
 
   /* ---------- Смысловые цвета ---------- */
   --acc:       #22C98A;   /* деньги, подтверждение, активное состояние */
@@ -40,9 +43,9 @@
   --warn-line: rgba(233,180,90,.32);
   --warn-ink:  #241B08;   /* текст на янтарной заливке */
 
-  --bad:       #F0685D;
-  --bad-soft:  rgba(240,104,93,.12);
-  --bad-line:  rgba(240,104,93,.32);
+  --bad:       #F77F73;
+  --bad-soft:  rgba(247,127,115,.12);
+  --bad-line:  rgba(247,127,115,.32);
   --bad-ink:   #2A0D0A;   /* текст на коралловой заливке */
 
   /* ---------- Радиусы ---------- */
@@ -97,7 +100,7 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 
 ::-webkit-scrollbar{ width:10px; height:10px; }
 ::-webkit-scrollbar-thumb{ background:var(--line-hi); border-radius:99px; border:3px solid transparent; background-clip:content-box; }
-::-webkit-scrollbar-thumb:hover{ background:#3d4649; background-clip:content-box; }
+::-webkit-scrollbar-thumb:hover{ background:color-mix(in srgb, var(--line-hi) 60%, var(--line-strong)); background-clip:content-box; }
 ::-webkit-scrollbar-track{ background:transparent; }
 
 .dot{ width:7px; height:7px; border-radius:50%; background:var(--acc); flex:none; }
@@ -416,7 +419,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .sr{
   display:flex; align-items:center; gap:14px; padding:12px 12px; border-radius:var(--r-xs);
 }
-.sr{ background:#1F2628; border:1px solid var(--line); cursor:pointer; transition:background .1s, border-color .1s; }
+.sr{ background:color-mix(in srgb, var(--card) 50%, var(--card-hi)); border:1px solid var(--line); cursor:pointer; transition:background .1s, border-color .1s; }
 .sr:hover, .sr.hi{ background:var(--card-act); border-color:var(--line-hi); }
 .sr:active{ background:var(--card-act); transform:scale(.99); }
 .sr .tag{ font-size:10.5px; font-weight:800; letter-spacing:.08em; width:64px; flex:none; }
@@ -684,7 +687,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 #modalCorr .corr-grid .field{ margin:0; }
 .sel{
   width:100%; height:46px; padding:0 36px 0 14px; appearance:none; -webkit-appearance:none;
-  background:var(--card) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238C9895' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7 10l5 5 5-5'/></svg>") no-repeat right 12px center / 16px;
+  background:var(--card) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239EACA8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7 10l5 5 5-5'/></svg>") no-repeat right 12px center / 16px;
   border:1px solid var(--line); border-radius:var(--r-md);
   color:var(--tx); font:inherit; font-size:14.5px; font-weight:600; cursor:pointer;
 }
