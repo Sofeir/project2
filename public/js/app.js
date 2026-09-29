@@ -239,7 +239,7 @@ $('#menuOps').addEventListener('click', e => {
   const a = b.dataset.act;
   if (a === 'ret-check') { renderReturnList(); return open('modalReturn'); }
   if (a === S.op) return;
-  if (S.cart.length) return toast('Сначала завершите или аннулируйте текущий чек', 'warn');
+  if (S.cart.length) return toast('Сначала завершите или очистите текущий чек', 'warn');
   /* возврат блюд кассир набирает на витрине как обычную продажу;
      коррекция позиций не имеет — она правит итог смены, и ей нужно основание */
   setOp(a);
@@ -596,9 +596,9 @@ $('#menuCheck').addEventListener('click', e => {
   }
   if (a === 'void') {
     if (!S.cart.length) return toast('Чек пуст', 'warn');
-    ask('Аннулировать чек?', `Из чека будет удалено <b>${posCount()}</b> поз. на сумму <b>${money(total())}</b>. Действие необратимо.`, 'Аннулировать', () => {
+    ask('Очистить чек?', `Из чека будет удалено <b>${posCount()}</b> поз. на сумму <b>${money(total())}</b>. Действие необратимо.`, 'Очистить', () => {
       S.cart = []; S.sel = null; S.discount = null; renderAll();
-      toast('Чек аннулирован', 'warn');
+      toast('Чек очищен', 'warn');
     });
   }
 });
