@@ -827,19 +827,13 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .toast.bad  .ic{ background:var(--bad);  color:var(--bad-ink); }
 .toast .tx{ opacity:0; }
 .toast.show .tx{ opacity:1; transition:opacity .2s ease-out .14s; }
-/* крупная плашка — то, что кассир обязан сделать руками (выдать сдачу);
-   висит долго, по касанию убирается */
+/* плашка сдачи — та же форма, чуть выше и заметнее обычной; висит долго, по касанию убирается */
 .toast.big{
-  height:auto; padding:18px 40px 18px 18px; gap:18px; border-radius:24px; pointer-events:auto; cursor:pointer;
-  background:linear-gradient(var(--warn-soft), var(--warn-soft)), var(--panel);
-  border:2px solid var(--warn); box-shadow:0 24px 60px -16px rgba(0,0,0,.9);
+  height:48px; padding:0 22px 0 8px; gap:10px; font-size:16px; pointer-events:auto; cursor:pointer;
+  border-color:var(--warn-line);
 }
-.toast.big .ic{ width:56px; height:56px; }
-.toast.big .ic svg{ width:28px; height:28px; }
-.toast.big .tx{ display:flex; flex-direction:column; gap:2px; }
-.toast.big .t1{ font-size:15px; color:var(--warn); text-transform:uppercase; letter-spacing:.06em; }
-.toast.big .t2{ font-size:44px; font-weight:800; letter-spacing:-.02em; line-height:1.1; }
-.toast.big .t3{ font-size:14px; font-weight:600; color:var(--tx-2); }
+.toast.big .ic{ width:32px; height:32px; }
+.toast.big .tx b{ color:var(--warn); font-size:19px; font-weight:800; margin-left:4px; }
 
 /* ======================= АДАПТАЦИЯ ПОД ЭКРАН КАССЫ ====================== */
 /* 1366×768 и другие «низкие» терминалы: сжимаем вертикаль, не ломая сетку */

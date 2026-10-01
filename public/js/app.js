@@ -952,7 +952,7 @@ $('#btnDrawer').addEventListener('click', openDrawer);
 
 /* Сдачу кассир выдаёт руками — крупная плашка висит 12 секунд, пока он считает деньги */
 function showChange(sum) {
-  toast(`<span class="t1">Выдайте сдачу</span><span class="t2 num">${money(sum)}</span><span class="t3">Оплата проведена · денежный ящик открыт</span>`,
+  toast(`Выдайте сдачу <b class="num">${money(sum)}</b>`,
     'warn', { big: true, ms: 12000 });
 }
 
