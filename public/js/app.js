@@ -878,7 +878,6 @@ function renderPay() {
       : P.parts ? (P.splits.length ? 'Выберите способ для следующей части' : 'Выберите способ для первой части')
       : 'Приложите пропуск или выберите способ оплаты';
     $('#btnParts').classList.toggle('hidden', ret || P.parts);
-    $('#methods').classList.toggle('three', ret || P.parts);
     $('#splits').innerHTML = P.splits.map((s, i) => `
       <div class="split">
         <svg class="mi"><use href="#${METHOD_ICON[s.m]}"/></svg>
@@ -938,7 +937,6 @@ $('#splits').addEventListener('click', e => {
   S.pay.splits.splice(+b.dataset.rm, 1);
   renderPay();
 });
-$('#btnDrawer').addEventListener('click', () => toast('Денежный ящик открыт'));
 
 $('#btnPayConfirm').addEventListener('click', () => {
   const P = S.pay;
@@ -1606,3 +1604,26 @@ async function boot() {
   }
 }
 boot();
+
+/* ======================= ФИЗИЧЕСКАЯ КЛАВИАТУРА ========================= */
+/* Цифры, Backspace, Delete и Enter с клавиатуры кассы жмут те же экранные
+   кнопки: у всех цифровых окон одна логика ввода, дублировать её не нужно. */
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey || e.altKey || e.metaKey) return;
+  if (e.target.closest?.('input, textarea, [contenteditable]')) return;
+  const scope = topVeil() || (!$('#screen-login').classList.contains('hidden') && $('#screen-login'));
+  if (!scope) return;
+  const pad = $$('.keys', scope).find(k => k.offsetParent);
+  const k = /^\d$/.test(e.key) ? e.key
+    : e.key === ',' || e.key === '.' ? ','
+    : e.key === 'Backspace' ? 'back'
+    : e.key === 'Delete' ? 'clear' : null;
+  let b = null;
+  if (k && pad) b = pad.querySelector(`[data-k="${k}"]`);
+  else if (e.key === 'Enter') b = $$('.btn-primary', scope).find(x => x.offsetParent && !x.disabled);
+  if (!b || !b.offsetParent) return;
+  e.preventDefault();
+  b.classList.add('press');
+  setTimeout(() => b.classList.remove('press'), 110);
+  b.click();
+});

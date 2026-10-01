@@ -72,13 +72,20 @@
 
     <div class="pin-dots" id="pinDots"><i></i><i></i><i></i><i></i></div>
 
-    <div class="pad" id="pinPad">
-      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
-      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+    <div class="keys" id="pinPad">
+
       <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+
       <button class="aux" data-k="clear">Сброс</button>
+
       <button data-k="0">0</button>
-      <button class="aux" data-k="back">Стереть</button>
+
+      <button class="aux" data-k="back"><svg><use href="#i-back"/></svg></button>
+
     </div>
 
     <div class="login-foot">
@@ -240,10 +247,10 @@
         <div class="pay-hint" id="payHint">Приложите пропуск или выберите способ оплаты</div>
         <div class="splits" id="splits"></div>
         <div class="methods" id="methods">
-          <button class="method" data-m="cash"><svg><use href="#i-cash"/></svg><span>Наличные</span></button>
-          <button class="method" data-m="card"><svg><use href="#i-card"/></svg><span>Банковская карта</span></button>
-          <button class="method" data-m="qr"><svg><use href="#i-qr"/></svg><span>СБП по QR</span></button>
-          <button class="method" data-m="parts" id="btnParts"><svg><use href="#i-split"/></svg><span>Оплата частями</span></button>
+          <button class="method" data-m="cash"><span class="mi"><svg><use href="#i-cash"/></svg></span><span class="mt">Наличные</span><svg class="mc"><use href="#i-chev"/></svg></button>
+          <button class="method" data-m="card"><span class="mi"><svg><use href="#i-card"/></svg></span><span class="mt">Банковская карта</span><svg class="mc"><use href="#i-chev"/></svg></button>
+          <button class="method" data-m="qr"><span class="mi"><svg><use href="#i-qr"/></svg></span><span class="mt">СБП по QR</span><svg class="mc"><use href="#i-chev"/></svg></button>
+          <button class="method" data-m="parts" id="btnParts"><span class="mi"><svg><use href="#i-split"/></svg></span><span class="mt">Оплата частями</span><svg class="mc"><use href="#i-chev"/></svg></button>
         </div>
         <div class="refund-note hidden" id="refundNote">Выдайте покупателю деньги выбранным способом. При возврате на карту терминал попросит приложить её.</div>
       </div>
@@ -265,7 +272,6 @@
 
     <div class="m-foot pay-foot">
       <button class="btn" id="btnPayBack">Отмена</button>
-      <button class="btn" id="btnDrawer" title="Открыть денежный ящик"><svg><use href="#i-box"/></svg></button>
       <button class="btn btn-lg btn-primary" id="btnPayConfirm">Провести оплату</button>
     </div>
   </div>
@@ -513,13 +519,13 @@
     <div class="m-head"><div><h3>Режим настройки</h3><div class="hsub">Введите PIN администратора</div></div><button class="ibtn" data-close><svg><use href="#i-close"/></svg></button></div>
     <div class="m-body">
       <div class="pin-dots" id="admDots"><i></i><i></i><i></i><i></i></div>
-      <div class="pad" id="admPad">
-        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
-        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+      <div class="keys" id="admPad">
         <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+        <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+        <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
         <button class="aux" data-k="clear">Сброс</button>
         <button data-k="0">0</button>
-        <button class="aux" data-k="back">Стереть</button>
+        <button class="aux" data-k="back"><svg><use href="#i-back"/></svg></button>
       </div>
       <p class="note" style="margin-top:16px;text-align:center;color:var(--tx-3)">Демо-код: 1234</p>
     </div>
