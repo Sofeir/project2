@@ -812,6 +812,10 @@ const METHOD_NAME = { cash: 'Наличные', card: 'Банковская ка
 const METHOD_ICON = { cash: 'i-cash', card: 'i-card', qr: 'i-qr', staff: 'i-badge' };
 const pad4 = n => String(n).padStart(4, '0');
 
+/* Оплата идёт по шагам в одном окне по центру:
+   choose — выбор способа; карта и СБП сразу уходят на терминал;
+   amount — клавиатура: сколько дали наличными или сумма очередной части.
+   В режиме «частями» части копятся в splits, пока не закроют весь чек. */
 const paidSum   = () => S.pay.splits.reduce((s, x) => s + x.amount, 0);
 const remainSum = () => Math.max(0, round2(total() - paidSum()));
 const entered   = () => Number(S.pay.buf || '0');
@@ -821,60 +825,84 @@ const payGot    = () => (S.pay.buf === '' ? remainSum() : entered());
 $('#btnPay').addEventListener('click', openPay);
 function openPay() {
   if (!S.cart.length) return;
-  S.pay = { method: 'cash', buf: '', splits: [] };
+  S.pay = { step: 'choose', parts: false, method: null, buf: '', splits: [] };
   const ret = isRefund();
   $('#payTitle').textContent = ret ? 'Возврат блюд' : 'Оплата чека';
   $('#sheetPay').classList.toggle('refund', ret);
   /* при возврате деньги отдают, а не принимают: ни сдачи, ни оплаты частями */
-  ['#quickSums', '#ioGot', '#changeBox', '#payKeys', '#payParts']
-    .forEach(q => $(q).classList.toggle('hidden', ret));
   $('#refundNote').classList.toggle('hidden', !ret);
   $('#payCheckNo').textContent = '№ ' + pad4(S.checkNo);
-  setMethod('cash');
+  renderPay();
   open('sheetPay');
 }
-$('#methods').addEventListener('click', e => {
-  const b = e.target.closest('[data-m]'); if (!b) return;
-  setMethod(b.dataset.m);
-});
-function setMethod(m) {
-  S.pay.method = m; S.pay.buf = '';
-  $$('#methods .method').forEach(b => b.classList.toggle('on', b.dataset.m === m));
+function payStep(step) {
+  S.pay.step = step; S.pay.buf = '';
   renderPay();
 }
-function renderPay() {
+
+$('#methods').addEventListener('click', e => {
+  const b = e.target.closest('[data-m]'); if (!b) return;
+  const m = b.dataset.m;
+  if (m === 'parts') { S.pay.parts = true; return payStep('choose'); }
+  S.pay.method = m;
   const rem = remainSum();
-  const btn = $('#btnPayConfirm');
-  if (isRefund()) {
-    $('#payBoxLabel').textContent = 'К возврату';
-    $('#payTotal').textContent = money(rem);
-    btn.disabled = false;
-    btn.textContent = 'Оформить возврат';
-    return;
-  }
-  const cash = S.pay.method === 'cash';
-  $('#payBoxLabel').textContent = S.pay.splits.length ? 'Осталось оплатить' : 'Итого к оплате';
+  if (isRefund()) return finishPay([{ m, amount: rem }], 0);
+  /* карта и СБП целиком — без клавиатуры, сразу на терминал */
+  if (!S.pay.parts && m !== 'cash') return finishPay([{ m, amount: rem }], 0);
+  payStep('amount');
+});
+
+$('#btnPayBack').addEventListener('click', () => {
+  if (S.pay.step === 'amount') return payStep('choose');
+  /* из «частями» назад к обычному выбору: ничего ещё не списано, части сбрасываем */
+  if (S.pay.parts) { S.pay.parts = false; S.pay.splits = []; return payStep('choose'); }
+  close('sheetPay');
+});
+
+function renderPay() {
+  const ret = isRefund();
+  const P = S.pay, rem = remainSum();
+  const amount = P.step === 'amount';
+  $('.pay').dataset.step = P.step;
+  $('#stepChoose').classList.toggle('hidden', amount);
+  $('#stepAmount').classList.toggle('hidden', !amount);
+
+  $('#payBoxLabel').textContent = ret ? 'К возврату' : P.splits.length ? 'Осталось оплатить' : 'Итого к оплате';
   $('#payTotal').textContent = money(rem);
 
-  /* быстрые суммы нужны только наличным: точная + ближайшие удобные купюры */
-  $('#quickSums').classList.toggle('hidden', !cash);
-  if (cash) {
-    const ups = [Math.ceil(rem / 100) * 100, Math.ceil(rem / 500) * 500, 500, 1000, 2000, 5000]
-      .filter(v => v > rem);
-    const uniq = [...new Set(ups)].sort((a, b) => a - b).slice(0, 5);
-    $('#quickSums').innerHTML =
-      `<button data-s="${rem}">Без сдачи</button>` + uniq.map(v => `<button data-s="${v}" class="num">${fmt(v)}</button>`).join('');
+  const back = $('#btnPayBack'), btn = $('#btnPayConfirm');
+  back.textContent = amount || P.parts ? 'Назад' : 'Отмена';
+
+  if (!amount) {
+    $('#payHint').textContent = ret ? 'Выберите способ возврата'
+      : P.parts ? (P.splits.length ? 'Выберите способ для следующей части' : 'Выберите способ для первой части')
+      : 'Приложите пропуск или выберите способ оплаты';
+    $('#btnParts').classList.toggle('hidden', ret || P.parts);
+    $('#methods').classList.toggle('three', ret || P.parts);
+    $('#splits').innerHTML = P.splits.map((s, i) => `
+      <div class="split">
+        <svg class="mi"><use href="#${METHOD_ICON[s.m]}"/></svg>
+        <span class="m">${METHOD_NAME[s.m]}</span>
+        <span class="a num">${money(s.amount)}</span>
+        <button data-rm="${i}" title="Убрать"><svg><use href="#i-close"/></svg></button>
+      </div>`).join('');
+    /* на шаге выбора подтверждать нечего — место кнопки остаётся, чтобы ничего не прыгало */
+    btn.classList.add('ghost');
+    return;
   }
 
+  btn.classList.remove('ghost');
+  const cash = P.method === 'cash';
   const got = payGot();
-  $('#gotLabel').textContent = cash ? 'Получено' : 'Сумма списания';
+  $('#gotLabel').textContent = !P.parts ? 'Получено'
+    : `${METHOD_NAME[P.method]}${cash ? ' · получено' : ' · сумма'}`;
   $('#gotVal').textContent = money(got);
 
   const box = $('#changeBox');
-  box.classList.remove('change', 'ok', 'bad', 'hidden');
+  box.classList.remove('change', 'ok', 'bad');
   if (got < rem) {
-    box.classList.add('change');
-    $('#changeLabel').textContent = 'Остаток другим способом';
+    box.classList.add(P.parts ? 'change' : 'bad');
+    $('#changeLabel').textContent = P.parts ? 'Останется оплатить' : 'Не хватает';
     $('#changeVal').textContent = money(round2(rem - got));
   } else if (got > rem && cash) {
     box.classList.add('change');
@@ -890,24 +918,11 @@ function renderPay() {
     $('#changeVal').textContent = cash ? 'Без сдачи' : 'Нет';
   }
 
-  $('#splits').innerHTML = S.pay.splits.map((s, i) => `
-    <div class="split">
-      <svg class="mi"><use href="#${METHOD_ICON[s.m]}"/></svg>
-      <span class="m">${METHOD_NAME[s.m]}</span>
-      <span class="a num">${money(s.amount)}</span>
-      <button data-rm="${i}" title="Убрать"><svg><use href="#i-close"/></svg></button>
-    </div>`).join('');
-  $('#splitHint').classList.toggle('hidden', S.pay.splits.length > 0);
-
-  const partial = got > 0 && got < rem;
-  btn.disabled = got <= 0 || (!cash && got > rem);
-  btn.textContent = partial ? `Внести ${money(got)} частично`
+  const partial = P.parts && got > 0 && got < rem;
+  btn.disabled = got <= 0 || (!P.parts && got < rem) || (!cash && got > rem);
+  btn.textContent = partial ? 'Добавить часть'
     : cash && got > rem ? 'Провести и выдать сдачу' : 'Провести оплату';
 }
-$('#quickSums').addEventListener('click', e => {
-  const b = e.target.closest('[data-s]'); if (!b) return;
-  S.pay.buf = b.dataset.s; renderPay();
-});
 $('#payKeys').addEventListener('click', e => {
   const b = e.target.closest('[data-k]'); if (!b) return;
   payKey(b.dataset.k);
@@ -920,33 +935,36 @@ function payKey(k) {
 }
 $('#splits').addEventListener('click', e => {
   const b = e.target.closest('[data-rm]'); if (!b) return;
-  S.pay.splits.splice(+b.dataset.rm, 1); renderPay();
+  S.pay.splits.splice(+b.dataset.rm, 1);
+  renderPay();
 });
 $('#btnDrawer').addEventListener('click', () => toast('Денежный ящик открыт'));
 
+$('#btnPayConfirm').addEventListener('click', () => {
+  const P = S.pay;
+  if (P.step !== 'amount') return;
+  const rem = remainSum(), m = P.method, got = payGot();
+
+  /* часть меньше остатка — запоминаем и возвращаемся к выбору способа для следующей */
+  if (P.parts && got < rem) {
+    const same = P.splits.find(x => x.m === m);
+    if (same) same.amount = round2(same.amount + got);
+    else P.splits.push({ m, amount: got });
+    return payStep('choose');
+  }
+  const change = m === 'cash' ? Math.max(0, round2(got - rem)) : 0;
+  finishPay(P.splits.concat([{ m, amount: rem }]), change);
+});
+
 /* Чек считается пробитым только после записи в хранилище: пока запись не прошла,
    кассир не должен увидеть «оплачено» и отдать товар. */
-$('#btnPayConfirm').addEventListener('click', async () => {
-  const btn = $('#btnPayConfirm');
+let paying = false;
+async function finishPay(parts, change) {
+  if (paying) return;
   const ret = isRefund();
-  const rem = remainSum();
-  const m = S.pay.method;
-  const got = ret ? rem : payGot();
-
-  /* Сумма меньше остатка — это часть смешанной оплаты: запоминаем её
-     и ждём, чем покупатель доплатит остальное. */
-  if (!ret && got < rem) {
-    const same = S.pay.splits.find(x => x.m === m);
-    if (same) same.amount = round2(same.amount + got);
-    else S.pay.splits.push({ m, amount: got });
-    S.pay.buf = '';
-    return renderPay();
-  }
-
-  const parts = ret ? [{ m, amount: rem }] : S.pay.splits.concat([{ m, amount: rem }]);
-  const change = !ret && m === 'cash' ? Math.max(0, round2(got - rem)) : 0;
-
+  const btn = $('#btnPayConfirm');
   const label = btn.textContent;
+  paying = true;
   btn.disabled = true;
   try {
     /* безналичные части проходят через терминал до записи чека:
@@ -979,9 +997,11 @@ $('#btnPayConfirm').addEventListener('click', async () => {
   } catch (err) {
     toast((ret ? 'Возврат не проведён: ' : 'Чек не проведён: ') + err.message, 'bad');
   } finally {
-    btn.disabled = false; btn.textContent = label;
+    paying = false;
+    btn.textContent = label;
+    if (!$('#sheetPay').classList.contains('hidden')) renderPay();
   }
-});
+}
 
 /* «Оплата проведена» — не окно, а та же плашка сверху: кассир не тратит время
    на закрытие, а чек уже обнулён и готов к следующему покупателю */

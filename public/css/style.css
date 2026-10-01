@@ -499,15 +499,6 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .m-body{ padding:20px 22px; overflow-y:auto; }
 .m-foot{ flex:none; padding:16px 22px 20px; border-top:1px solid var(--line); display:flex; gap:10px; }
 
-/* панель оплаты — выезжает справа, каталог остаётся виден */
-.sheet{
-  width:540px; height:100%; display:flex; flex-direction:column;
-  background:var(--panel); border-left:1px solid var(--line-hi);
-  box-shadow:var(--sh-modal); animation:slide .2s cubic-bezier(.22,.7,.3,1);
-}
-@keyframes slide{ from{ transform:translateX(40px); opacity:.4 } }
-.sheet .m-body{ flex:1; padding:20px 24px; }
-
 .paybox{
   background:var(--acc-soft); border:1px solid var(--acc-line); border-radius:var(--r-lg);
   padding:16px 20px 18px; text-align:center;
@@ -588,39 +579,34 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .split button svg{ width:15px; height:15px; }
 
 /* ------------------------------ ОПЛАТА ---------------------------------- */
-/* Панель встаёт на место витрины; весь экран затемнён, в том числе чек слева.
-   Клик по затемнению (например, по чеку) закрывает оплату. */
-.pay-veil .sheet{ width:calc(100% - var(--check-w)); }
-
-.pay-cols{ flex:1; min-height:0; display:grid; grid-template-columns:.82fr 1fr; }
-.pay-left{ padding:16px 18px; border-right:1px solid var(--line); overflow-y:auto; }
-.pay-right{ padding:16px 20px; overflow-y:auto; }
-.pay-cap{
-  font-size:11.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase;
-  color:var(--tx-3); margin-bottom:8px;
-}
-.pay .methods{ grid-template-columns:1fr; margin:0 0 18px; }
+/* Окно по центру экрана. Высота одна на всех шагах, поэтому «Назад» и
+   «Провести» не сдвигаются: палец жмёт в одно и то же место. */
+.modal.pay{ max-width:480px; height:min(660px, 100%); max-height:100%; }
+.pay-body{ flex:1; min-height:0; display:flex; flex-direction:column; padding:16px 22px; overflow-y:auto; }
+.pay .paybox{ flex:none; margin-bottom:14px; }
+.pay-step{ flex:1; display:flex; flex-direction:column; }
+.pay-hint{ text-align:center; font-size:15px; color:var(--tx-2); margin:4px 0 14px; }
+/* все способы равны: ни один не подсвечен заранее */
+.pay .methods{ flex:1; max-height:300px; grid-template-columns:1fr 1fr; grid-auto-rows:1fr; gap:10px; margin:0; }
+/* без «частями» способов три — в один ряд, чтобы не оставалось дыры */
+.pay .methods.three{ grid-template-columns:repeat(3,1fr); flex:none; height:150px; }
 .pay .method{
-  height:60px; flex-direction:row; justify-content:flex-start; gap:12px; padding:0 16px;
-  font-size:15px; text-align:left;
+  height:auto; min-height:90px; gap:10px; font-size:15.5px; color:var(--tx); font-weight:600;
 }
-.pay .method svg{ width:22px; height:22px; flex:none; }
-.pay .splits{ margin-top:0; }
+.pay .method svg{ width:28px; height:28px; color:var(--tx-2); }
+.pay .method:active{ background:var(--card-act); transform:scale(.98); }
+.pay .splits{ margin:0 0 12px; }
+.pay .splits:empty{ display:none; }
 .split .mi{ width:18px; height:18px; color:var(--tx-3); flex:none; }
-.split-hint{
-  font-size:12.5px; line-height:1.45; color:var(--tx-3);
-  padding:10px 12px; border:1px dashed var(--line-hi); border-radius:var(--r-sm);
-}
-.pay .quick{ grid-template-columns:repeat(3,1fr); }
-.pay-right .paybox{ margin-bottom:8px; }
+.pay .keys{ flex:1; grid-auto-rows:1fr; margin-top:6px; }
+.pay .keys button{ height:auto; min-height:52px; }
 .io.bad{ background:var(--bad-soft); border-color:var(--bad-line); }
 .io.bad .l, .io.bad .v{ color:var(--bad); }
-.refund-note{ margin-top:14px; font-size:13.5px; line-height:1.5; color:var(--tx-2); }
+.refund-note{ margin-top:14px; font-size:13.5px; line-height:1.5; color:var(--tx-2); text-align:center; }
 
-.pay-foot{ display:grid; grid-template-columns:.82fr 1fr; gap:0; padding:0; }
-.pay-foot-l{ display:flex; gap:8px; padding:12px 18px; border-right:1px solid var(--line); }
-.pay-foot > .btn{ margin:12px 20px; }
-.pay-foot-l .btn{ height:100%; }
+.pay-foot{ display:grid; grid-template-columns:1fr 60px 1.4fr; gap:8px; }
+.pay-foot .btn{ height:60px; }
+.pay-foot .btn-primary.ghost{ visibility:hidden; }
 
 /* ------------------------------ ТЕРМИНАЛ -------------------------------- */
 .term{ text-align:center; padding:30px 24px 22px; }
@@ -858,24 +844,21 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   .pad button{ height:56px; }
 
   /* панель оплаты: на 1024×768 всё, включая цифры и «Сброс», без прокрутки */
-  .sheet .m-head{ padding:12px 16px 10px 20px; }
-  .sheet .m-head h3{ font-size:16px; }
-  .sheet .m-body{ padding:12px 20px; }
-  .sheet .paybox{ padding:8px 16px 10px; }
-  .sheet .paybox .l{ font-size:11px; }
-  .sheet .paybox .v{ font-size:32px; margin-top:0; }
-  .pay-left{ padding:12px 16px; }
-  .pay-right{ padding:12px 18px; }
-  .pay .method{ height:60px; }
-  .sheet .quick{ gap:6px; margin:0 0 8px; }
-  .sheet .quick button{ height:40px; font-size:13.5px; padding:0 4px; }
-  .sheet .io{ padding:8px 14px; margin-bottom:6px; }
-  .sheet .io .v{ font-size:21px; }
-  .sheet .keys{ gap:6px; margin-top:8px; }
-  .sheet .keys button{ height:62px; font-size:21px; }
-  .sheet .keys button.aux{ font-size:14px; }
-  .pay-foot-l{ padding:10px 16px; }
-  .pay-foot > .btn{ margin:10px 18px; height:58px; }
+  /* окно оплаты: на 1024×768 всё, включая цифры и «Сброс», без прокрутки */
+  .pay-veil{ padding:16px; }
+  .pay .m-head{ padding:12px 16px 10px 20px; }
+  .pay .m-head h3{ font-size:16px; }
+  .pay-body{ padding:12px 20px; }
+  .pay .paybox{ padding:8px 16px 10px; margin-bottom:10px; }
+  .pay .paybox .l{ font-size:11px; }
+  .pay .paybox .v{ font-size:32px; margin-top:0; }
+  .pay .io{ padding:8px 14px; margin-bottom:6px; }
+  .pay .io .v{ font-size:21px; }
+  .pay .keys{ gap:6px; }
+  .pay .keys button{ font-size:21px; }
+  .pay .keys button.aux{ font-size:14px; }
+  .pay-foot{ padding:10px 16px 14px; }
+  .pay-foot .btn{ height:58px; }
   .modal.slim .m-body{ padding:14px 22px; }
   .modal.slim .keys button{ height:48px; }
 }

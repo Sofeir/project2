@@ -34,7 +34,8 @@
   <symbol id="i-cash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><circle cx="12" cy="12" r="2.6"/><path d="M6 10v4M18 10v4"/></symbol>
   <symbol id="i-card" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M2.5 10h19"/><path d="M6 15h4"/></symbol>
   <symbol id="i-qr" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><path d="M14 14h2.5v2.5H14zM19 14h1.5M14 19h2.5M19 18.5v2M19.5 19h1"/></symbol>
-  <symbol id="i-badge" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="11" r="2.2"/><path d="M5.6 16.4a3.8 3.8 0 0 1 6.8 0M14.5 10h4M14.5 13.5h4"/></symbol>
+  <symbol id="i-split" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5V12l6 6"/></symbol>
+  <symbol id="i-badge"viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.5"/><circle cx="9" cy="11" r="2.2"/><path d="M5.6 16.4a3.8 3.8 0 0 1 6.8 0M14.5 10h4M14.5 13.5h4"/></symbol>
   <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
   <symbol id="i-dots" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="18" cy="12" r="1.7"/></symbol>
   <symbol id="i-print" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V4h10v5"/><rect x="3.5" y="9" width="17" height="7" rx="2"/><path d="M7 14h10v6H7z"/></symbol>
@@ -215,10 +216,11 @@
 </section>
 
 <!-- ============================ ОПЛАТА ============================ -->
-<!-- Панель закрывает витрину, но не чек: кассир сверяет позиции, пока принимает деньги.
-     Слева — чем платят (в том числе частями), справа — сколько и сдача. -->
-<div class="veil right pay-veil hidden" id="sheetPay">
-  <div class="sheet pay">
+<!-- Окно оплаты по центру экрана, по шагам: сначала способ, потом (для наличных
+     и частей) сумма. Окно одной высоты на всех шагах, поэтому кнопки «Назад» и
+     «Провести» всегда в одном месте — палец не ищет их по экрану. -->
+<div class="veil pay-veil hidden" id="sheetPay">
+  <div class="modal pay" data-step="choose">
     <div class="m-head">
       <div>
         <h3 id="payTitle">Оплата чека</h3>
@@ -227,29 +229,27 @@
       <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
     </div>
 
-    <div class="pay-cols">
-      <div class="pay-left">
-        <div class="pay-cap">Способ оплаты</div>
-        <div class="methods" id="methods">
-          <button class="method on" data-m="cash"><svg><use href="#i-cash"/></svg><span>Наличные</span></button>
-          <button class="method" data-m="card"><svg><use href="#i-card"/></svg><span>Банковская карта</span></button>
-          <button class="method" data-m="qr"><svg><use href="#i-qr"/></svg><span>СБП по QR</span></button>
-          <button class="method" data-m="staff"><svg><use href="#i-badge"/></svg><span>Карта сотрудника</span></button>
-        </div>
-
-        <div class="pay-parts" id="payParts">
-          <div class="pay-cap">Оплата частями</div>
-          <div class="splits" id="splits"></div>
-          <div class="split-hint" id="splitHint">Наберите сумму меньше итога — остаток оплатите другим способом</div>
-        </div>
+    <div class="pay-body">
+      <div class="paybox">
+        <div class="l" id="payBoxLabel">Итого к оплате</div>
+        <div class="v num" id="payTotal">0 ₽</div>
       </div>
 
-      <div class="pay-right">
-        <div class="paybox">
-          <div class="l" id="payBoxLabel">Итого к оплате</div>
-          <div class="v num" id="payTotal">0 ₽</div>
+      <!-- шаг 1: способ оплаты (и шаг «частями»: способ для очередной части) -->
+      <div class="pay-step" id="stepChoose">
+        <div class="pay-hint" id="payHint">Приложите пропуск или выберите способ оплаты</div>
+        <div class="splits" id="splits"></div>
+        <div class="methods" id="methods">
+          <button class="method" data-m="cash"><svg><use href="#i-cash"/></svg><span>Наличные</span></button>
+          <button class="method" data-m="card"><svg><use href="#i-card"/></svg><span>Банковская карта</span></button>
+          <button class="method" data-m="qr"><svg><use href="#i-qr"/></svg><span>СБП по QR</span></button>
+          <button class="method" data-m="parts" id="btnParts"><svg><use href="#i-split"/></svg><span>Оплата частями</span></button>
         </div>
-        <div class="quick" id="quickSums"></div>
+        <div class="refund-note hidden" id="refundNote">Выдайте покупателю деньги выбранным способом. При возврате на карту терминал попросит приложить её.</div>
+      </div>
+
+      <!-- шаг 2: сумма — наличные целиком или одна часть -->
+      <div class="pay-step hidden" id="stepAmount">
         <div class="io" id="ioGot"><span class="l" id="gotLabel">Получено</span><span class="v num" id="gotVal">0 ₽</span></div>
         <div class="io change" id="changeBox"><span class="l" id="changeLabel">Сдача</span><span class="v num" id="changeVal">0 ₽</span></div>
         <div class="keys" id="payKeys">
@@ -260,15 +260,12 @@
           <button data-k="0">0</button>
           <button class="aux" data-k="back"><svg><use href="#i-back"/></svg></button>
         </div>
-        <div class="refund-note hidden" id="refundNote">Выдайте покупателю деньги выбранным способом. При возврате на карту терминал попросит приложить её.</div>
       </div>
     </div>
 
     <div class="m-foot pay-foot">
-      <div class="pay-foot-l">
-        <button class="btn" data-close style="flex:1">Отмена</button>
-        <button class="btn" id="btnDrawer" title="Открыть денежный ящик" style="width:60px;flex:none"><svg><use href="#i-box"/></svg></button>
-      </div>
+      <button class="btn" id="btnPayBack">Отмена</button>
+      <button class="btn" id="btnDrawer" title="Открыть денежный ящик"><svg><use href="#i-box"/></svg></button>
       <button class="btn btn-lg btn-primary" id="btnPayConfirm">Провести оплату</button>
     </div>
   </div>
