@@ -534,7 +534,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .io.ok .l, .io.ok .v{ color:var(--acc-hi); }
 
 /* Одна цифровая клавиатура на всю кассу: вход, PIN администратора, количество,
-   внесение/изъятие, оплата. Размер клавиш задаёт --key-h, раскладка везде 7-8-9 сверху. */
+   внесение/изъятие, оплата. Размер клавиш задаёт --key-h, раскладка везде 1-2-3 сверху, как на телефоне. */
 :root{ --key-h:60px; }
 .keys{ display:grid; grid-template-columns:repeat(3,1fr); grid-auto-rows:var(--key-h); gap:8px; margin-top:12px; }
 .keys button{
@@ -579,7 +579,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .pay .paybox{ margin-bottom:12px; }
 .pay-step{ height:var(--pay-step-h); display:flex; flex-direction:column; }
 #stepChoose{ overflow-y:auto; }
-.pay-hint{ text-align:center; font-size:14.5px; color:var(--tx-2); margin:2px 0 12px; }
+.pay-hint{ text-align:center; font-size:16px; font-weight:700; color:var(--tx); margin:2px 0 12px; }
 
 /* способы оплаты — ровный список одинаковых строк, ни одна не выделена заранее */
 .pay .methods{ display:grid; grid-template-columns:1fr; gap:8px; margin:0; }
@@ -608,6 +608,8 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .pay-foot{ display:grid; grid-template-columns:1fr 1.6fr; gap:10px; }
 .pay-foot .btn{ height:60px; }
 .pay-foot .btn-primary.ghost{ visibility:hidden; }
+/* денежный ящик нужен только при наличных — тогда кнопка встаёт между «Назад» и «Провести» */
+.pay-foot.drawer{ grid-template-columns:1fr 60px 1.8fr; }
 
 /* ------------------------------ ТЕРМИНАЛ -------------------------------- */
 .term{ text-align:center; padding:30px 24px 22px; }
@@ -825,6 +827,19 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .toast.bad  .ic{ background:var(--bad);  color:var(--bad-ink); }
 .toast .tx{ opacity:0; }
 .toast.show .tx{ opacity:1; transition:opacity .2s ease-out .14s; }
+/* крупная плашка — то, что кассир обязан сделать руками (выдать сдачу);
+   висит долго, по касанию убирается */
+.toast.big{
+  height:auto; padding:18px 40px 18px 18px; gap:18px; border-radius:24px; pointer-events:auto; cursor:pointer;
+  background:linear-gradient(var(--warn-soft), var(--warn-soft)), var(--panel);
+  border:2px solid var(--warn); box-shadow:0 24px 60px -16px rgba(0,0,0,.9);
+}
+.toast.big .ic{ width:56px; height:56px; }
+.toast.big .ic svg{ width:28px; height:28px; }
+.toast.big .tx{ display:flex; flex-direction:column; gap:2px; }
+.toast.big .t1{ font-size:15px; color:var(--warn); text-transform:uppercase; letter-spacing:.06em; }
+.toast.big .t2{ font-size:44px; font-weight:800; letter-spacing:-.02em; line-height:1.1; }
+.toast.big .t3{ font-size:14px; font-weight:600; color:var(--tx-2); }
 
 /* ======================= АДАПТАЦИЯ ПОД ЭКРАН КАССЫ ====================== */
 /* 1366×768 и другие «низкие» терминалы: сжимаем вертикаль, не ломая сетку */

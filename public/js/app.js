@@ -63,18 +63,22 @@ const catOf = id => CATEGORIES.find(c => c.id === id) || { name: '', short: '', 
    потому что её нужно успеть прочитать. */
 const TOAST_ICON = { ok: 'i-check', warn: 'i-info', bad: 'i-close' };
 
-function toast(msg, kind) {
+function toast(msg, kind, opt) {
   const k = kind || 'ok';
+  const o = opt || {};
   const el = document.createElement('div');
-  el.className = 'toast ' + k;
+  el.className = 'toast ' + k + (o.big ? ' big' : '');
   el.innerHTML = `<span class="ic"><svg><use href="#${TOAST_ICON[k]}"/></svg></span><span class="tx">${msg}</span>`;
   $('#toasts').appendChild(el);
   void el.offsetWidth;          /* вынуждаем пересчёт, иначе анимация не стартует */
   el.classList.add('show');
-  setTimeout(() => {
+  const hide = () => {
+    clearTimeout(timer);
     el.classList.remove('show');
     setTimeout(() => el.remove(), 300);
-  }, k === 'bad' ? 3200 : 1700);
+  };
+  const timer = setTimeout(hide, o.ms || (k === 'bad' ? 3200 : 1700));
+  el.addEventListener('click', hide);
 }
 
 const syncPaying = () => document.body.classList.toggle('paying', !$('#sheetPay').classList.contains('hidden'));
@@ -885,6 +889,8 @@ function renderPay() {
         <span class="a num">${money(s.amount)}</span>
         <button data-rm="${i}" title="Убрать"><svg><use href="#i-close"/></svg></button>
       </div>`).join('');
+    $('#btnDrawer').classList.add('hidden');
+    $('.pay-foot').classList.remove('drawer');
     /* на шаге выбора подтверждать нечего — место кнопки остаётся, чтобы ничего не прыгало */
     btn.classList.add('ghost');
     return;
@@ -892,6 +898,8 @@ function renderPay() {
 
   btn.classList.remove('ghost');
   const cash = P.method === 'cash';
+  $('#btnDrawer').classList.toggle('hidden', !cash);
+  $('.pay-foot').classList.toggle('drawer', cash);
   const got = payGot();
   $('#gotLabel').textContent = !P.parts ? 'Получено'
     : `${METHOD_NAME[P.method]}${cash ? ' · получено' : ' · сумма'}`;
@@ -919,8 +927,8 @@ function renderPay() {
 
   const partial = P.parts && got > 0 && got < rem;
   btn.disabled = got <= 0 || (!P.parts && got < rem) || (!cash && got > rem);
-  btn.textContent = partial ? 'Добавить часть'
-    : cash && got > rem ? 'Провести и выдать сдачу' : 'Провести оплату';
+  /* сдачу видно в строке выше, на кнопке длинная надпись не помещается рядом с ящиком */
+  btn.textContent = partial ? 'Добавить часть' : 'Провести оплату';
 }
 $('#payKeys').addEventListener('click', e => {
   const b = e.target.closest('[data-k]'); if (!b) return;
@@ -937,6 +945,16 @@ $('#splits').addEventListener('click', e => {
   S.pay.splits.splice(+b.dataset.rm, 1);
   renderPay();
 });
+
+/* Банковского оборудования в прототипе нет: ящик «открывается» сообщением */
+function openDrawer() { toast('Денежный ящик открыт'); }
+$('#btnDrawer').addEventListener('click', openDrawer);
+
+/* Сдачу кассир выдаёт руками — крупная плашка висит 12 секунд, пока он считает деньги */
+function showChange(sum) {
+  toast(`<span class="t1">Выдайте сдачу</span><span class="t2 num">${money(sum)}</span><span class="t3">Оплата проведена · денежный ящик открыт</span>`,
+    'warn', { big: true, ms: 12000 });
+}
 
 $('#btnPayConfirm').addEventListener('click', () => {
   const P = S.pay;
@@ -986,7 +1004,8 @@ async function finishPay(parts, change) {
     S.lastSale = st.checks[0];
 
     close('sheetPay');
-    showPaid(ret ? 'Возврат оформлен' : 'Оплата проведена', ret);
+    if (change > 0) showChange(change);
+    else showPaid(ret ? 'Возврат оформлен' : 'Оплата проведена', ret);
     setOp('sale');
 
     S.cart = []; S.sel = null; S.discount = null;
