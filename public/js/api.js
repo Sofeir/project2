@@ -38,6 +38,15 @@ const API = (() => {
     d.discounts = SEED.DISCOUNTS.filter(x => x.percent).map(x => ({ ...x }));  // «Без скидки» — это отсутствие записи
     d.hotkeys = renumber(SEED.hotkeysTree());
     d.shifts = [{ id: 1, number: 33, register: 13, opening_cash: 3000, counted_cash: null, opened_at: now(), closed_at: null }];
+    return normalize(d);
+  }
+
+  /* Пропуска и настройки появились позже остальных таблиц: в данных, сохранённых
+     прежней версией кассы, их нет — достраиваем, ничего не трогая в остальном */
+  function normalize(d) {
+    if (!Array.isArray(d.passes)) d.passes = clone(SEED.PASSES);
+    if (!d.settings || typeof d.settings !== 'object') d.settings = {};
+    if (typeof d.settings.sbp !== 'boolean') d.settings.sbp = true;
     return d;
   }
 
@@ -49,6 +58,7 @@ const API = (() => {
       try { db = JSON.parse(raw); } catch (_) { db = null; }
     }
     if (!db || !Array.isArray(db.shifts)) { db = seeded(); save(); }
+    else if (!Array.isArray(db.passes) || !db.settings) { normalize(db); save(); }
     return db;
   }
 
@@ -131,6 +141,9 @@ const API = (() => {
   }
 
   const isIncome = kind => kind === 'sale' || kind === 'correction_sale';
+  /* прочая оплата — не деньги покупателя: списание и нефискальный расчёт */
+  const OTHER_METHODS = ['writeoff', 'nonfiscal'];
+  const benefitName = id => (SEED.BENEFITS.find(b => b.id === id) || { name: id }).name;
 
   /** Документ смены в том виде, в каком его ждёт интерфейс */
   function checkView(d, c) {
@@ -149,7 +162,8 @@ const API = (() => {
       source_ref: ref,
       date: ddmmyyyy(c.created_at), time: hhmm(c.created_at),
       items: c.items.map(i => ({ id: i.id, name: i.name, price: i.price, unit: i.unit, qty: i.qty })),
-      payments: c.payments.map(p => ({ m: p.m, amount: p.amount, vat: p.vat ?? null, vatSum: p.vatSum ?? null })),
+      payments: c.payments.map(p => ({ m: p.m, kind: p.kind ?? null, amount: p.amount, vat: p.vat ?? null, vatSum: p.vatSum ?? null })),
+      pass: c.pass ? { number: c.pass.number, owner: c.pass.owner } : null,
     };
   }
   const pad4 = n => String(n).padStart(4, '0');
@@ -167,13 +181,21 @@ const API = (() => {
     const shift = currentShift(d);
     const mine = d.checks.filter(c => c.shift_id === shift.id);
 
-    let revenue = 0, returns = 0, cash = 0, cashless = 0;
+    let revenue = 0, returns = 0, cash = 0, cashless = 0, pass = 0, other = 0;
+    const passBy = {};
     mine.forEach(c => {
       revenue += isIncome(c.kind) ? c.total : -c.total;
       if (!isIncome(c.kind)) returns += c.total;
       c.payments.forEach(p => {
         const v = isIncome(c.kind) ? p.amount : -p.amount;
-        if (p.m === 'cash') cash += v; else cashless += v;
+        if (p.m === 'cash') cash += v;
+        else if (p.m === 'pass') {
+          pass += v;
+          const k = p.kind || 'pass';
+          passBy[k] = money((passBy[k] || 0) + v);
+        }
+        else if (OTHER_METHODS.includes(p.m)) other += v;
+        else cashless += v;
       });
     });
     const ops = d.cashOps.filter(o => o.shift_id === shift.id);
@@ -195,6 +217,9 @@ const API = (() => {
         returns: money(returns),
         cash: money(cash),
         cashless: money(cashless),
+        pass: money(pass),
+        passBy,
+        other: money(other),
         drawer: money(shift.opening_cash + cash + delta),
       },
     };
@@ -218,6 +243,9 @@ const API = (() => {
     if (!items.length) throw new Error('Чек без позиций');
     const payments = Array.isArray(body.payments) ? body.payments : [];
     if (!payments.length) throw new Error('Не указан способ оплаты');
+    const byPass = payments.filter(p => p.m === 'pass');
+    if (byPass.length && kind !== 'sale') throw new Error('Возврат на пропуск — только по чеку продажи');
+    if (byPass.length && !body.pass) throw new Error('Пропуск не приложен');
 
     tx(d => {
       const shift = currentShift(d);
@@ -245,12 +273,27 @@ const API = (() => {
       Object.assign(c, { subtotal, discount_id: discountId, discount_percent: percent, discount_sum: discountSum,
         total, change_sum: money(body.change || 0), items: priced });
 
+      let card = null;
+      if (byPass.length) {
+        card = d.passes.find(x => x.number === String(body.pass));
+        if (!card) throw new Error('Пропуск не найден');
+        c.pass = { number: card.number, owner: card.owner };
+      }
+
       /* Сдача не является выручкой: наличными фиксируем ровно ту часть, что осталась в кассе */
       let rest = total;
       payments.forEach(p => {
         const amount = money(Math.min(Number(p.amount), rest));
         if (amount <= 0) return;
-        c.payments.push({ m: p.m, amount, vat: null, vatSum: null });
+        if (p.m === 'pass') {
+          /* начисление списывается с пропуска в той же операции, что и чек */
+          const left = money(card.balances[p.kind] || 0);
+          if (amount > left + 0.001) throw new Error(`На пропуске не хватает начисления «${benefitName(p.kind)}»: осталось ${left} ₽`);
+          card.balances[p.kind] = money(left - amount);
+          c.payments.push({ m: 'pass', kind: p.kind, amount, vat: null, vatSum: null });
+        } else {
+          c.payments.push({ m: p.m, amount, vat: null, vatSum: null });
+        }
         rest = money(rest - amount);
       });
       d.checks.push(c);
@@ -271,6 +314,12 @@ const API = (() => {
       Object.assign(c, {
         subtotal: src.subtotal, discount_percent: src.discount_percent, discount_sum: src.discount_sum,
         total: src.total, source_number: sourceNumber, items: clone(src.items), payments: clone(src.payments),
+        pass: src.pass ? clone(src.pass) : null,
+      });
+      /* что было списано с пропуска, возвращается на него же */
+      const card = src.pass && d.passes.find(x => x.number === src.pass.number);
+      if (card) src.payments.filter(p => p.m === 'pass' && p.kind).forEach(p => {
+        card.balances[p.kind] = money((card.balances[p.kind] || 0) + p.amount);
       });
       d.checks.push(c);
     });
@@ -283,7 +332,7 @@ const API = (() => {
   const CORRECTION_TYPES = ['self', 'order'];
   const TAX_SYSTEMS = ['osn', 'usn', 'usn_dr', 'eshn', 'psn'];
   const VAT_RATES = { '22': 22, '20': 20, '10': 10, '0': 0, none: null };
-  const METHODS = ['cash', 'card', 'qr', 'staff'];
+  const METHODS = ['cash', 'card', 'qr', 'staff', 'pass', 'writeoff', 'nonfiscal'];
   const isIsoDate = v => /^\d{4}-\d{2}-\d{2}$/.test(String(v || ''));
 
   function correctionCheck(body) {
@@ -403,6 +452,28 @@ const API = (() => {
     return { closed, ...shiftState() };
   }
 
+  /* ================================ ПРОПУСК ================================ */
+  /* Номер с ридера → владелец и начисления с ненулевым остатком, в порядке списка */
+  function passInfo(number) {
+    const n = String(number || '').trim();
+    if (!n) throw new Error('Пустой номер пропуска');
+    const card = load().passes.find(x => x.number === n || x.number === n.padStart(6, '0'));
+    if (!card) throw new Error(`Пропуск № ${n} не найден`);
+    return {
+      number: card.number, owner: card.owner,
+      benefits: SEED.BENEFITS.filter(b => money(card.balances[b.id] || 0) > 0)
+        .map(b => ({ id: b.id, name: b.name, amount: money(card.balances[b.id]) })),
+    };
+  }
+
+  /* ============================== НАСТРОЙКИ =============================== */
+  function setSettings(patch) {
+    return tx(d => {
+      if (patch && typeof patch.sbp === 'boolean') d.settings.sbp = patch.sbp;
+      return clone(d.settings);
+    });
+  }
+
   /* Весы. Пока только тестовое устройство: случайный устойчивый вес.
      Реальные весы подключаются здесь — вернуть { grams, stable }. */
   function scale() {
@@ -422,7 +493,7 @@ const API = (() => {
     for (const k of Object.keys(empty())) {
       if (!Array.isArray(d[k])) throw new Error(`В файле повреждён раздел «${k}»`);
     }
-    db = clone(d);
+    db = normalize(clone(d));
     save();
     return { shifts: d.shifts.length, checks: d.checks.length, products: d.products.length };
   }
@@ -448,6 +519,10 @@ const API = (() => {
     shiftChecks: id   => run(() => ({ checks: shiftChecksOf(load(), Number(id)) })),
 
     scale,
+
+    pass:        n    => run(() => passInfo(n)),
+    settings:    ()   => run(() => clone(load().settings)),
+    setSettings: p    => run(() => setSettings(p)),
 
     hotkeys:     ()    => run(() => ({ items: clone(load().hotkeys) })),
     saveHotkeys: items => run(() => saveHotkeys(items)),

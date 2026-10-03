@@ -48,6 +48,15 @@
   --bad-line:  rgba(247,127,115,.32);
   --bad-ink:   #2A0D0A;   /* текст на коралловой заливке */
 
+  /* ---------- Способы оплаты ----------
+     Каждый способ узнаётся по цвету, а не только по надписи:
+     безнал — синий, СБП — фиолетовый, наличные — спокойный янтарь. */
+  --m-card:      #2F6FE0;   /* белый текст ≥4.5:1 */
+  --m-card-hi:   #3D7DF0;
+  --m-qr:        #7348DE;
+  --m-qr-hi:     #8257EC;
+  --m-cash:      #E9B45A;
+
   /* ---------- Радиусы ---------- */
   --r-xs: 8px;
   --r-sm: 10px;
@@ -67,6 +76,83 @@
   --topbar-h: 60px;
   --check-w:  424px;
   --gap:      12px;
+}
+
+/* =========================== СВЕТЛАЯ ТЕМА ===============================
+   Не «белый лист с чёрным текстом»: минеральная палитра с лёгким
+   шалфейным оттенком в тон фирменному зелёному. Фон приложения —
+   серо-зелёный, панели — тёплый off-white, чистый белый только у карточек.
+   Текст — графит, не чёрный: меньше бликов и рези в глазах. Смысловые
+   цвета затемнены, чтобы на светлом держать контраст ≥4.5:1. */
+:root{ color-scheme:dark; }
+:root[data-theme="light"]{
+  color-scheme:light;
+
+  --bg:        #E7EBE7;
+  --panel:     #F4F6F3;
+  --card:      #FDFEFC;
+  --card-hi:   #EEF2EE;
+  --card-act:  #E2E8E3;
+  --line:      #D8DED9;
+  --line-hi:   #C3CCC6;
+  --line-strong: #7B8782;
+  --veil:      rgba(26,36,32,.40);
+
+  --tx:        #18211E;
+  --tx-2:      #3E4A46;
+  --tx-3:      #5B6762;
+
+  --acc:       #0F8F62;
+  --acc-hi:    #0B7A53;
+  --acc-dim:   rgba(15,143,98,.18);
+  --acc-ink:   #FFFFFF;
+  --acc-soft:  rgba(15,143,98,.09);
+  --acc-line:  rgba(15,143,98,.34);
+  --acc-press: #096A48;
+
+  --warn:      #A86400;
+  --warn-soft: rgba(214,140,20,.12);
+  --warn-line: rgba(168,100,0,.34);
+  --warn-ink:  #FFFFFF;
+
+  --bad:       #C2373A;
+  --bad-soft:  rgba(194,55,58,.08);
+  --bad-line:  rgba(194,55,58,.32);
+  --bad-ink:   #FFFFFF;
+
+  --m-card:    #2B67D6;
+  --m-card-hi: #2F72EA;
+  --m-qr:      #6C40D6;
+  --m-qr-hi:   #7A4FE6;
+  --m-cash:    #A86400;
+
+  /* тени мягкие и цветные, а не чёрные пятна */
+  --sh-menu:  0 16px 36px -14px rgba(28,44,38,.28);
+  --sh-modal: 0 36px 80px -30px rgba(28,44,38,.42);
+}
+/* светлые всплывающие слои: та же форма, мягче тень */
+:root[data-theme="light"] .toast{ background:var(--card); box-shadow:0 12px 28px -14px rgba(28,44,38,.42); }
+:root[data-theme="light"] .vk[data-mode="fixed"]{ box-shadow:0 -20px 50px -30px rgba(28,44,38,.45); }
+/* пастельный круг эмблемы на светлом фоне получает тонкий контур */
+:root[data-theme="light"] .brand-emblem{ filter:drop-shadow(0 0 1px rgba(28,44,38,.35)) drop-shadow(0 2px 5px rgba(28,44,38,.12)); }
+:root[data-theme="light"] .brand-name{ color:var(--tx); }
+/* панели отделяются от фона тонкой тенью — на светлом одних линий мало */
+:root[data-theme="light"] .topbar{ box-shadow:0 1px 0 var(--line), 0 6px 18px -14px rgba(28,44,38,.35); position:relative; z-index:2; }
+:root[data-theme="light"] .tile{ box-shadow:0 1px 2px rgba(28,44,38,.06); }
+:root[data-theme="light"] .tile.combo{
+  background:linear-gradient(155deg, rgba(196,140,40,.16), rgba(196,140,40,.05) 62%, var(--panel));
+  border-color:rgba(168,110,20,.32);
+}
+/* цвета групп подобраны под тёмный фон; на светлом метки и значки
+   затемняем, иначе жёлтый «ГАРНИР» почти не читается */
+:root[data-theme="light"] .sr .tag,
+:root[data-theme="light"] .pk .tg{ filter:brightness(.62) saturate(1.25); }
+:root[data-theme="light"] .tile.group .gi{ color:color-mix(in srgb, var(--c) 62%, #1A2420); }
+:root[data-theme="light"] #screen-login{
+  background:
+    radial-gradient(720px 460px at 22% 14%, rgba(15,143,98,.12), transparent 62%),
+    radial-gradient(620px 420px at 82% 88%, rgba(15,143,98,.07), transparent 60%),
+    var(--bg);
 }
 
 /* ============================== БАЗА ==================================== */
@@ -169,7 +255,8 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 }
 .topbar .brand{ margin-right:14px; }
 .brand-btn{ padding:4px 12px 4px 4px; margin-left:-4px; border-radius:var(--r-md); transition:background .1s; }
-.brand-btn:hover{ background:var(--card); }
+@media (hover:hover){ .brand-btn:hover{ background:var(--card); } }
+.brand-btn.on{ background:var(--card); }
 .brand-btn:active{ background:var(--card-act); }
 /* только значок, без фона и рамки — как «Отложенные» и «Операции» */
 .topbar .setup-btn{ background:transparent; border:1px solid var(--line-hi); border-radius:50%; color:var(--tx-2); margin-right:6px; }
@@ -268,7 +355,15 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .check-tools .ibtn:disabled{ color:var(--tx-2); }
 
 /* строки чека */
-.check-list{ flex:1; overflow-y:auto; padding:0 10px 8px; }
+.check-list{ flex:1; overflow-y:auto; padding:0 4px 8px 10px; }
+/* Ползунок списка широкий: на сенсорном экране кассы его берут пальцем */
+.check-list::-webkit-scrollbar{ width:20px; }
+.check-list::-webkit-scrollbar-track{ background:var(--bg); border-radius:99px; border:5px solid var(--panel); }
+.check-list::-webkit-scrollbar-thumb{
+  min-height:56px; background:var(--line-strong); border-radius:99px;
+  border:5px solid transparent; background-clip:content-box;
+}
+.check-list::-webkit-scrollbar-thumb:active{ background:var(--tx-2); background-clip:content-box; }
 .check-empty{
   height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center;
   gap:14px; color:var(--tx-3); text-align:center; padding:0 32px;
@@ -277,51 +372,64 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .check-empty .t{ font-size:15px; font-weight:600; color:var(--tx-2); }
 .check-empty .h{ font-size:13px; line-height:1.5; }
 
+/* Строка чека — одна линия высотой с палец (≈40px): так без прокрутки
+   помещается 10 позиций. Нажатие раскрывает строку с кнопками правки. */
 .row{
-  border-radius:var(--r-md); padding:8px 8px 8px 10px; margin-bottom:2px;
+  border-radius:var(--r-sm); padding:9px 8px 9px 10px; margin-bottom:2px;
   border:1px solid transparent; transition:background .1s, border-color .1s;
-  display:flex; flex-direction:column; flex:none; height:auto; min-width:0;
+  display:flex; flex-direction:column; flex:none; height:auto; min-width:0; cursor:pointer;
 }
-.row:hover{ background:var(--card); }
-.row.is-sel{ background:var(--card); border-color:var(--line-strong); }
+.row + .row:not(.is-sel){ box-shadow:0 -1px 0 var(--line); }
+.row.is-sel + .row{ box-shadow:none; }
+@media (hover:hover){ .row:not(.is-sel):hover{ background:var(--card); } }
+.row:not(.is-sel):active{ background:var(--card-hi); }
+.row.is-sel{ background:var(--card); border-color:var(--line-strong); padding:10px 10px 10px; cursor:default; }
 .row.new{ animation:rowIn .28s ease-out; }
 @keyframes rowIn{ from{ background:var(--acc-soft); } }
 
-.row-top{ display:flex; align-items:flex-start; gap:10px; }
-.row-name{ flex:1; min-width:0; overflow-wrap:anywhere; font-size:14.5px; font-weight:600; line-height:1.35; }
+.row-top{ display:flex; align-items:baseline; gap:10px; min-width:0; }
+.row-name{
+  flex:1; min-width:0; font-size:14.5px; font-weight:600; line-height:1.35;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+/* раскрытая строка показывает название целиком */
+.row.is-sel .row-name{ white-space:normal; overflow-wrap:anywhere; }
+.row-q{
+  flex:none; font-size:13px; font-weight:700; color:var(--acc-hi);
+  background:var(--acc-soft); border-radius:var(--r-pill); padding:1px 8px;
+}
 .row-sum{ font-size:15px; font-weight:700; letter-spacing:-.01em; white-space:nowrap; }
 
-.row-bot{ display:flex; align-items:center; justify-content:space-between; margin-top:5px; }
-.row-price{ font-size:12.5px; color:var(--tx-3); }
-.row-price b{ color:var(--tx-2); font-weight:600; }
+.row-price{ font-size:12.5px; color:var(--tx-3); margin-top:3px; }
 
-.stepper{ display:flex; align-items:center; gap:2px; background:var(--bg); border-radius:var(--r-sm); padding:2px; }
+.stepper{ display:flex; align-items:center; gap:2px; background:var(--bg); border-radius:var(--r-sm); padding:2px; flex:none; }
 .stepper button{
-  width:28px; height:28px; border-radius:7px; color:var(--tx-2);
+  width:40px; height:36px; border-radius:7px; color:var(--tx);
   display:flex; align-items:center; justify-content:center; font-size:17px; font-weight:600;
   transition:background .1s, color .1s;
 }
-.stepper button:hover{ background:var(--card-act); color:var(--tx); }
-.stepper button:active{ transform:scale(.94); }
+@media (hover:hover){ .stepper button:hover{ background:var(--card-act); color:var(--tx); } }
+.stepper button:active{ transform:scale(.94); background:var(--card-act); }
 .stepper .q{
-  width:auto; min-width:40px; padding:0 8px; white-space:nowrap; text-align:center; font-size:14px; font-weight:700;
-  border-radius:7px; height:28px; line-height:28px; transition:background .1s;
+  width:auto; min-width:48px; padding:0 8px; white-space:nowrap; text-align:center; font-size:14.5px; font-weight:700;
+  border-radius:7px; height:36px; line-height:36px; transition:background .1s;
 }
-.stepper .q:hover{ background:var(--card-act); }
 
-.row-acts{ display:flex; gap:5px; margin-top:7px; }
-.row-acts button{
-  flex:1; min-width:0; height:30px; padding:0 8px; border-radius:var(--r-xs); background:var(--bg);
+.row-acts{ display:flex; gap:6px; margin-top:8px; align-items:stretch; }
+.row-acts > button{
+  flex:1; min-width:0; height:40px; padding:0 8px; border-radius:var(--r-xs); background:var(--bg);
   border:1px solid var(--line); font-size:12px; font-weight:600; color:var(--tx-2);
   display:flex; align-items:center; justify-content:center; gap:5px; white-space:nowrap;
   transition:background .1s, color .1s, border-color .1s;
 }
-.row-acts button svg{ width:14px; height:14px; }
-.row-acts button:hover{ background:var(--card-act); color:var(--tx); }
-.row-acts button.half{ flex:0 0 44px; font-size:17px; font-weight:700; }
+.row-acts > button svg{ width:15px; height:15px; }
+@media (hover:hover){ .row-acts > button:hover{ background:var(--card-act); color:var(--tx); } }
+.row-acts > button:active{ background:var(--card-act); }
+.row-acts > button.half{ flex:0 0 48px; font-size:17px; font-weight:700; color:var(--tx); }
 /* «Удалить» красная сразу, а не только под курсором: на сенсорном экране наведения нет */
-.row-acts button.danger{ color:var(--bad); }
-.row-acts button.danger:hover{ background:var(--bad-soft); border-color:var(--bad-line); color:var(--bad); }
+.row-acts > button.danger{ color:var(--bad); border-color:var(--bad-line); }
+@media (hover:hover){ .row-acts > button.danger:hover{ background:var(--bad-soft); color:var(--bad); } }
+.row-acts > button.danger:active{ background:var(--bad-soft); }
 
 .row-disc{
   display:inline-flex; align-items:center; gap:5px; margin-top:8px;
@@ -579,13 +687,26 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .pay .paybox{ margin-bottom:12px; }
 .pay-step{ height:var(--pay-step-h); display:flex; flex-direction:column; }
 #stepChoose{ overflow-y:auto; }
-.pay-hint{ text-align:center; font-size:16px; font-weight:700; color:var(--tx); margin:2px 0 12px; }
+/* Первое, что видит кассир: крупно и с иконкой пропуска, а не мелкой строкой */
+.pay-hint{
+  display:flex; align-items:center; gap:12px; margin:0 0 12px; padding:11px 14px;
+  border-radius:var(--r-md); background:var(--warn-soft); border:1px solid var(--warn-line);
+  font-size:19px; font-weight:800; line-height:1.25; letter-spacing:-.01em; color:var(--tx);
+}
+.pay-hint svg{ width:32px; height:32px; color:var(--warn); }
+.pay-hint.ok{ background:var(--acc-soft); border-color:var(--acc-line); }
+.pay-hint.ok svg{ color:var(--acc); }
+/* в возврате и при выборе частей это уже не призыв, а подпись шага */
+.pay-hint.plain{ background:transparent; border-color:transparent; justify-content:center; padding:4px 0; font-size:17px; }
+.pay-hint.plain svg{ display:none; }
 
-/* способы оплаты — ровный список одинаковых строк, ни одна не выделена заранее */
-.pay .methods{ display:grid; grid-template-columns:1fr; gap:8px; margin:0; }
+/* Способы оплаты — крупные блоки, а не длинные строки. Сверху вниз:
+   безнал и СБП (заливка), наличные (спокойнее), «Оплата частями»,
+   прочая оплата — узкой приглушённой строкой в самом низу. */
+.pay .methods{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:0; }
 .pay .method{
-  height:62px; flex-direction:row; justify-content:flex-start; gap:14px; padding:0 14px 0 10px;
-  font-size:16px; font-weight:600; color:var(--tx); text-align:left;
+  height:66px; flex-direction:row; justify-content:flex-start; gap:12px; padding:0 14px 0 10px;
+  font-size:16px; font-weight:600; color:var(--tx); text-align:left; min-width:0;
 }
 .pay .method .mi{
   width:42px; height:42px; flex:none; border-radius:var(--r-sm); background:var(--panel);
@@ -595,9 +716,117 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .pay .method .mt{ flex:1; }
 .pay .method .mc{ width:18px; height:18px; color:var(--tx-3); transform:rotate(-90deg); }
 .pay .method:active{ background:var(--card-act); transform:scale(.99); }
-.pay .splits{ margin:0 0 10px; }
-.pay .splits:empty{ display:none; }
-.split .mi{ width:18px; height:18px; color:var(--tx-3); flex:none; }
+.pay .method:disabled{ opacity:.32; cursor:not-allowed; transform:none; }
+.pay .method.hidden{ display:none; }
+
+.pay .method.m-card, .pay .method.m-qr{
+  height:112px; flex-direction:column; justify-content:center; align-items:center; gap:4px; padding:8px;
+  text-align:center; color:#fff; border:none;
+}
+.pay .method.m-card{ background:var(--m-card); }
+.pay .method.m-qr{ background:var(--m-qr); }
+@media (hover:hover){
+  .pay .method.m-card:hover:not(:disabled){ background:var(--m-card-hi); }
+  .pay .method.m-qr:hover:not(:disabled){ background:var(--m-qr-hi); }
+}
+.pay .method.m-card:active, .pay .method.m-qr:active{ filter:brightness(.92); }
+.pay .method.m-card .mi, .pay .method.m-qr .mi{ background:rgba(255,255,255,.16); border-color:transparent; color:#fff; }
+.pay .method.m-card .mt, .pay .method.m-qr .mt{ flex:none; font-size:21px; font-weight:800; letter-spacing:-.01em; }
+.pay .method .ms{ font-size:12.5px; font-weight:600; opacity:.85; }
+/* СБП отключена — безнал во всю строку */
+.pay .methods.no-sbp .m-card{ grid-column:1 / -1; }
+
+.pay .method.m-cash{ border-color:var(--warn-line); font-weight:700; }
+.pay .method.m-cash .mi{ color:var(--m-cash); border-color:var(--warn-line); background:var(--warn-soft); }
+
+.pay .method.m-other{
+  grid-column:1 / -1; height:40px; justify-content:center; gap:6px; padding:0 12px;
+  background:transparent; border:1px dashed var(--line-hi); color:var(--tx-3); font-size:13.5px; font-weight:600;
+}
+.pay .method.m-other span{ font-weight:500; opacity:.8; }
+@media (hover:hover){ .pay .method.m-other:hover:not(:disabled){ background:var(--card); color:var(--tx-2); } }
+.other-row{ grid-column:1 / -1; display:grid; grid-template-columns:1fr 1fr 44px; gap:8px; }
+.other-row .method.m-other{ grid-column:auto; color:var(--tx-2); border-style:solid; }
+.other-row .m-x{ padding:0; }
+.other-row .m-x svg{ width:16px; height:16px; }
+
+/* Окно оплаты и боковая панель «Выбрано к оплате» стоят рядом одной высоты */
+.pay-wrap{ display:flex; align-items:stretch; gap:12px; max-width:100%; max-height:100%; }
+.pay-wrap > .modal.pay{ flex:0 1 460px; width:460px; min-width:0; }
+/* высоту задаёт окно оплаты: панель своим содержимым его не растягивает
+   (иначе «Назад» и «Провести» прыгали бы), длинный список листается внутри */
+.pay-side{
+  flex:0 1 300px; width:300px; min-width:240px; display:flex; flex-direction:column; contain:size;
+  background:var(--panel); border:1px solid var(--line-hi); border-radius:var(--r-xl);
+  box-shadow:var(--sh-modal); animation:rise .16s ease-out; overflow:hidden;
+}
+.ps-head{
+  flex:none; padding:16px 18px 12px; border-bottom:1px solid var(--line);
+  font-size:13px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--tx-2);
+}
+.ps-body{ flex:1; min-height:0; overflow-y:auto; padding:12px 14px; }
+.ps-cap{ margin:4px 2px 8px; font-size:11.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--tx-3); }
+.ps-pass{ margin-bottom:10px; }
+.ps-owner{
+  display:flex; align-items:center; gap:10px; padding:10px 6px 10px 10px; margin-bottom:12px;
+  background:var(--acc-soft); border:1px solid var(--acc-line); border-radius:var(--r-md);
+}
+.ps-owner .pi{
+  width:38px; height:38px; flex:none; border-radius:var(--r-sm); background:var(--acc); color:var(--acc-ink);
+  display:flex; align-items:center; justify-content:center;
+}
+.ps-owner .po{ flex:1; min-width:0; }
+.ps-owner .po b{ display:block; font-size:16px; font-weight:800; line-height:1.2; overflow-wrap:anywhere; }
+.ps-owner .po span{ display:block; font-size:12.5px; color:var(--tx-2); margin-top:2px; }
+.ps-owner .ibtn{ width:36px; height:36px; color:var(--tx-2); flex:none; }
+.ps-bens{ display:grid; gap:6px; }
+.ben{
+  display:flex; align-items:center; gap:10px; min-height:46px; padding:6px 12px 6px 10px; text-align:left;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r-sm);
+  font-size:14.5px; font-weight:600; color:var(--tx-2); transition:background .1s, border-color .1s;
+}
+.ben:active{ background:var(--card-act); }
+.ben .bx{
+  width:22px; height:22px; flex:none; border-radius:6px; border:1.5px solid var(--line-strong);
+  display:flex; align-items:center; justify-content:center; color:transparent;
+}
+.ben .bx svg{ width:15px; height:15px; }
+.ben .bn{ flex:1; min-width:0; }
+.ben .ba{ text-align:right; font-weight:700; white-space:nowrap; }
+.ben .ba em{ display:block; font-style:normal; font-size:11.5px; font-weight:600; color:var(--tx-3); }
+.ben.on{ background:var(--acc-soft); border-color:var(--acc-line); color:var(--tx); }
+.ben.on .bx{ background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }
+.ben.on .ba em{ color:var(--acc-hi); }
+.ps-none, .ps-empty{ font-size:13.5px; color:var(--tx-3); padding:6px 2px; }
+.ps-empty:empty{ display:none; }
+.ps-list{ display:grid; gap:6px; }
+.ps-row{
+  display:flex; align-items:center; gap:10px; min-height:42px; padding:6px 8px 6px 12px;
+  background:var(--card); border:1px solid var(--line); border-radius:var(--r-sm); font-size:14px;
+}
+.ps-row .mi{ width:18px; height:18px; color:var(--tx-3); flex:none; }
+.ps-row.pass .mi{ color:var(--acc); }
+.ps-row .m{ flex:1; min-width:0; font-weight:600; color:var(--tx); }
+.ps-row .m i{ display:block; font-style:normal; font-size:11.5px; font-weight:600; color:var(--warn); }
+.ps-row.cur{ border-color:var(--warn-line); border-style:dashed; }
+.ps-row .a{ font-weight:700; white-space:nowrap; padding-right:4px; }
+.ps-row button{ width:32px; height:32px; flex:none; border-radius:var(--r-xs); color:var(--tx-3); display:flex; align-items:center; justify-content:center; }
+.ps-row button:active{ background:var(--bad-soft); color:var(--bad); }
+@media (hover:hover){ .ps-row button:hover{ color:var(--bad); } }
+.ps-row button svg{ width:15px; height:15px; }
+.ps-foot{ flex:none; border-top:1px solid var(--line); padding:12px 14px 14px; }
+.ps-line{ display:flex; justify-content:space-between; font-size:13.5px; color:var(--tx-2); padding:0 4px 8px; }
+.ps-line b{ color:var(--tx); }
+.ps-rest{
+  display:flex; align-items:baseline; justify-content:space-between; gap:10px; padding:10px 14px;
+  background:var(--warn-soft); border:1px solid var(--warn-line); border-radius:var(--r-md);
+}
+.ps-rest span{ font-size:12.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:var(--warn); }
+.ps-rest b{ font-size:24px; font-weight:800; letter-spacing:-.02em; color:var(--warn); }
+.ps-rest.done{ background:var(--acc-soft); border-color:var(--acc-line); }
+.ps-rest.done span{ color:var(--acc-hi); }
+#sheetPay.refund .ps-rest{ background:var(--bad-soft); border-color:var(--bad-line); }
+#sheetPay.refund .ps-rest span, #sheetPay.refund .ps-rest b{ color:var(--bad); }
 
 .pay .io{ height:56px; padding:0 16px; margin-bottom:8px; }
 .pay .keys{ margin-top:auto; }
@@ -651,6 +880,14 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .ck-pay svg{ width:18px; height:18px; color:var(--tx-3); }
 .ck-pay b{ margin-left:auto; }
 .ck-pay.mute{ background:transparent; color:var(--tx-3); }
+.ck-passby{
+  display:flex; align-items:center; gap:10px; margin-bottom:6px; padding:9px 14px;
+  font-size:13.5px; font-weight:700; color:var(--acc-hi);
+  background:var(--acc-soft); border:1px solid var(--acc-line); border-radius:var(--r-sm);
+}
+.ck-passby svg{ width:18px; height:18px; }
+#repPassBox .ck-cap.first{ margin-top:0; }
+#repPassBox{ margin-bottom:4px; }
 
 /* ----------------------------- РАСХОД БЛЮД ------------------------------ */
 .usage-bar{ padding:14px 22px 0; }
@@ -847,6 +1084,8 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   .tile{ height:108px; }
   .tile.dish{ min-height:96px; }
   .btn-primary{ font-size:16px; }
+  /* шапка чека ниже: больше места строкам */
+  .check-head{ padding:10px 18px 8px; }
   /* на узкой панели сумма на кнопке дублирует итог прямо над ней — убираем */
   .btn-primary .amt{ display:none; }
   .paybox .v{ font-size:38px; }
@@ -862,7 +1101,12 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   .pay .paybox .v{ font-size:32px; margin-top:0; }
   .pay .io{ height:50px; margin-bottom:6px; }
   .pay .io .v{ font-size:21px; }
-  .pay .method{ height:58px; }
+  .pay .method{ height:60px; }
+  .pay .method.m-card, .pay .method.m-qr{ height:100px; }
+  .pay .method.m-other{ height:38px; }
+  .pay-hint{ font-size:18px; padding:9px 12px; margin-bottom:10px; }
+  .pay-hint svg{ width:28px; height:28px; }
+  .ps-head{ padding:12px 16px 10px; }
   .pay-foot{ padding:10px 20px 14px; }
   .pay-foot .btn{ height:56px; }
   .modal.slim .m-body{ padding:14px 22px; }

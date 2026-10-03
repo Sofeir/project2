@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800;900&display=swap">
 <link rel="stylesheet" href="css/style.css">
+<!-- тему ставим до первой отрисовки, иначе светлая касса на миг мигнёт тёмной -->
+<script>try { if (localStorage.getItem('asoft-pos-theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch (_) {}</script>
 </head>
 <body>
 
@@ -52,6 +54,8 @@
   <symbol id="i-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="12" height="12" rx="2.5"/><path d="M15.5 5.5h-9a3 3 0 0 0-3 3v9"/></symbol>
   <symbol id="i-magic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19L16 8"/><path d="M14.5 4.5l1.2 2.4 2.4 1.2-2.4 1.2-1.2 2.4-1.2-2.4L10.9 8l2.4-1.2z"/><path d="M6 5.5l.6 1.2 1.2.6-1.2.6L6 9.1l-.6-1.2L4.2 7.3l1.2-.6z"/><path d="M19 15l.5 1 1 .5-1 .5-.5 1-.5-1-1-.5 1-.5z"/></symbol>
   <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8v.2"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6L6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4L6 18M18 6l1.4-1.4"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/></symbol>
   <symbol id="i-kitchen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h16a8 8 0 0 0-16 0z"/><path d="M2.5 16.5h19M12 5v0"/><path d="M12 5a1.5 1.5 0 1 1 1.5 1.5"/></symbol>
 </svg>
 
@@ -100,10 +104,16 @@
 
   <!-- ---------- Шапка: только статус и редкие операции ---------- -->
   <header class="topbar">
-    <button class="brand brand-btn" id="btnBrand" type="button">
-      <img class="brand-emblem" src="img/asoft-emblem.png" alt="ASOFT POS" width="36" height="36">
-      <span class="brand-name">ASOFT <em>POS</em></span>
-    </button>
+    <!-- нажатие на логотип — меню оформления: светлая или тёмная тема -->
+    <div class="drop" id="dropBrand">
+      <button class="brand brand-btn" id="btnBrand" type="button" title="Оформление">
+        <img class="brand-emblem" src="img/asoft-emblem.png" alt="ASOFT POS" width="36" height="36">
+        <span class="brand-name">ASOFT <em>POS</em></span>
+      </button>
+      <div class="menu hidden" id="menuBrand">
+        <button data-act="theme"><svg><use id="themeIcon" href="#i-sun"/></svg><span><span class="mt" id="themeText">Поменять тему на светлую</span><span class="mh">Оформление этой кассы</span></span></button>
+      </div>
+    </div>
     <div class="sep"></div>
 
     <button class="tbtn" id="btnParked"><svg><use href="#i-park"/></svg>Отложенные<span class="badge hidden" id="parkedBadge">0</span></button>
@@ -128,6 +138,7 @@
       <button class="ibtn setup-btn" id="btnSetup" title="Настройки кассы"><svg><use href="#i-grip"/></svg></button>
       <div class="menu right hidden" id="menuSetup">
         <button data-act="hk"><span><span class="mt">Настроить горячие клавиши</span><span class="mh">Группы и товары на витрине кассира</span></span></button>
+        <button data-act="sbp"><svg><use href="#i-qr"/></svg><span><span class="mt">Оплата по СБП</span><span class="mh" id="sbpState">Включена</span></span></button>
       </div>
     </div>
 
@@ -227,6 +238,7 @@
      и частей) сумма. Окно одной высоты на всех шагах, поэтому кнопки «Назад» и
      «Провести» всегда в одном месте — палец не ищет их по экрану. -->
 <div class="veil pay-veil hidden" id="sheetPay">
+  <div class="pay-wrap">
   <div class="modal pay" data-step="choose">
     <div class="m-head">
       <div>
@@ -244,13 +256,19 @@
 
       <!-- шаг 1: способ оплаты (и шаг «частями»: способ для очередной части) -->
       <div class="pay-step" id="stepChoose">
-        <div class="pay-hint" id="payHint">Приложите пропуск или выберите способ оплаты</div>
-        <div class="splits" id="splits"></div>
+        <div class="pay-hint" id="payHint"><svg><use href="#i-badge"/></svg><span id="payHintText">Приложите пропуск, либо выберите способ оплаты</span></div>
+        <!-- сверху вниз: безнал и СБП — главные, наличные спокойнее, прочая оплата — узкой строкой внизу -->
         <div class="methods" id="methods">
-          <button class="method" data-m="cash"><span class="mi"><svg><use href="#i-cash"/></svg></span><span class="mt">Наличные</span><svg class="mc"><use href="#i-chev"/></svg></button>
-          <button class="method" data-m="card"><span class="mi"><svg><use href="#i-card"/></svg></span><span class="mt">Банковская карта</span><svg class="mc"><use href="#i-chev"/></svg></button>
-          <button class="method" data-m="qr"><span class="mi"><svg><use href="#i-qr"/></svg></span><span class="mt">СБП по QR</span><svg class="mc"><use href="#i-chev"/></svg></button>
+          <button class="method m-card" data-m="card"><span class="mi"><svg><use href="#i-card"/></svg></span><span class="mt">Безнал</span><span class="ms">Банковская карта</span></button>
+          <button class="method m-qr" data-m="qr"><span class="mi"><svg><use href="#i-qr"/></svg></span><span class="mt">СБП</span><span class="ms">Оплата по QR-коду</span></button>
+          <button class="method m-cash" data-m="cash"><span class="mi"><svg><use href="#i-cash"/></svg></span><span class="mt">Наличные</span></button>
           <button class="method" data-m="parts" id="btnParts"><span class="mi"><svg><use href="#i-split"/></svg></span><span class="mt">Оплата частями</span><svg class="mc"><use href="#i-chev"/></svg></button>
+          <button class="method m-other" data-m="other" id="btnOther">Прочая оплата<span>· списание, нефискальная</span></button>
+          <div class="other-row hidden" id="otherRow">
+            <button class="method m-other" data-m="writeoff">Списание</button>
+            <button class="method m-other" data-m="nonfiscal">Нефискальная оплата</button>
+            <button class="method m-other m-x" data-m="other-x" title="Свернуть"><svg><use href="#i-close"/></svg></button>
+          </div>
         </div>
         <div class="refund-note hidden" id="refundNote">Выдайте покупателю деньги выбранным способом. При возврате на карту терминал попросит приложить её.</div>
       </div>
@@ -275,6 +293,30 @@
       <button class="btn hidden" id="btnDrawer" title="Открыть денежный ящик"><svg><use href="#i-box"/></svg></button>
       <button class="btn btn-lg btn-primary" id="btnPayConfirm">Провести оплату</button>
     </div>
+  </div>
+
+  <!-- Что уже выбрано: пропуск с начислениями (только когда он приложен),
+       части оплаты и способ, который вводится сейчас. Внизу — сколько доплатить. -->
+  <aside class="pay-side" id="paySide">
+    <div class="ps-head">Выбрано к оплате</div>
+    <div class="ps-body">
+      <div class="ps-pass hidden" id="psPass">
+        <div class="ps-owner">
+          <span class="pi"><svg><use href="#i-badge"/></svg></span>
+          <div class="po"><b id="psOwner">—</b><span class="num" id="psNumber">Пропуск</span></div>
+          <button class="ibtn" id="btnPassOff" title="Убрать пропуск"><svg><use href="#i-close"/></svg></button>
+        </div>
+        <div class="ps-cap">Начисления — отметьте, что списать</div>
+        <div class="ps-bens" id="psBens"></div>
+      </div>
+      <div class="ps-cap" id="psListCap">Оплата</div>
+      <div class="ps-list" id="psList"></div>
+    </div>
+    <div class="ps-foot">
+      <div class="ps-line"><span>Итого чека</span><b class="num" id="psTotal">0 ₽</b></div>
+      <div class="ps-rest" id="psRestBox"><span id="psRestLabel">Доплатить</span><b class="num" id="psRest">0 ₽</b></div>
+    </div>
+  </aside>
   </div>
 </div>
 
@@ -377,8 +419,14 @@
         <div class="stat acc"><div class="k">Выручка</div><div class="v num" id="repRevenue">0 ₽</div></div>
         <div class="stat"><div class="k">Наличными</div><div class="v num" id="repCash">0 ₽</div></div>
         <div class="stat"><div class="k">Безналичными</div><div class="v num" id="repCashless">0 ₽</div></div>
+        <div class="stat"><div class="k">По пропуску</div><div class="v num" id="repPass">0 ₽</div></div>
+        <div class="stat"><div class="k">Прочая оплата</div><div class="v num" id="repOther">0 ₽</div></div>
         <div class="stat"><div class="k">Возвраты</div><div class="v num" id="repReturns">0 ₽</div></div>
         <div class="stat"><div class="k">Наличных в ящике</div><div class="v num" id="repDrawer">0 ₽</div></div>
+      </div>
+      <div id="repPassBox" class="hidden">
+        <div class="ck-cap first">Оплачено по пропуску</div>
+        <div class="ck-pays" id="repPassBy"></div>
       </div>
       <div id="repCloseArea" class="hidden">
         <div class="field">
@@ -614,6 +662,7 @@
       <div class="ck-items" id="ckItems"></div>
       <div class="ck-sum" id="ckSum"></div>
       <div class="ck-cap">Оплата</div>
+      <div class="ck-passby hidden" id="ckPass"></div>
       <div class="ck-pays" id="ckPays"></div>
     </div>
     <div class="m-foot">

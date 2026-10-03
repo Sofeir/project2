@@ -177,6 +177,22 @@ const SEED = (() => {
     { id: 'vet',   name: 'Льготная категория', percent: 50 },
   ];
 
+  /* Пропуска сотрудников. Номер считывает ридер у кассы, а на пропуске лежат
+     начисления предприятия: компенсация питания, ЛПП, талоны, молоко, кефир.
+     Суммы — остаток в рублях; кассир сам отмечает, что списать в этом чеке. */
+  const BENEFITS = [
+    { id: 'comp',  name: 'Компенсация' },
+    { id: 'lpp',   name: 'ЛПП' },
+    { id: 'talon', name: 'Талоны на питание' },
+    { id: 'milk',  name: 'Молоко' },
+    { id: 'kefir', name: 'Кефир' },
+  ];
+  const PASSES = [
+    { number: '000417', owner: 'Иванов А. П.',    balances: { comp: 100, lpp: 20, milk: 30 } },
+    { number: '000522', owner: 'Смирнова Е. В.',  balances: { comp: 150, talon: 250, kefir: 35 } },
+    { number: '000608', owner: 'Кузнецов Д. С.',  balances: { milk: 30, kefir: 35 } },
+  ];
+
   /* Стартовая витрина: группы по разделам меню. Дальше администратор
      правит её в режиме настройки. */
   function hotkeysTree() {
@@ -213,5 +229,5 @@ const SEED = (() => {
     ];
   }
 
-  return { CATEGORIES, PRODUCTS, DISCOUNTS, hotkeysTree };
+  return { CATEGORIES, PRODUCTS, DISCOUNTS, BENEFITS, PASSES, hotkeysTree };
 })();
