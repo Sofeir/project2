@@ -1843,14 +1843,17 @@ $('#usagePeriod').addEventListener('click', e => {
   openCal(d);
 });
 
-/* календарь */
+/* календарь: период выбирают двумя нажатиями в одном месяце — первое число
+   и последнее, дни между ними подсвечиваются, и отчёт сразу пересчитывается.
+   Один день — нажать его и «Готово». Нажатие мимо календаря — отмена. */
 const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
-const CAL = { end: null, month: null };
+const CAL = { end: null, month: null, from: null, to: null, picking: false };
 function openCal(btn) {
   CAL.end = btn.dataset.end;
+  CAL.from = PER.from; CAL.to = PER.to; CAL.picking = false;
   const d = PER[CAL.end];
   CAL.month = new Date(d.getFullYear(), d.getMonth(), 1);
-  $$('#usagePeriod .pdate').forEach(b => b.classList.toggle('on', b === btn));
+  $$('#usagePeriod .pdate').forEach(b => b.classList.add('on'));
   renderCal();
   const c = $('#cal'), r = btn.getBoundingClientRect();
   c.classList.remove('hidden');
@@ -1863,13 +1866,19 @@ function closeCal() {
   $$('#usagePeriod .pdate').forEach(b => b.classList.remove('on'));
   CAL.end = null;
 }
+function applyCal() {
+  PER.from = CAL.from; PER.to = CAL.to;
+  $$('#usagePeriod .pq').forEach(x => x.classList.remove('on'));
+  closeCal();
+  loadUsagePeriod();
+}
 function renderCal() {
   const m = CAL.month, today = dayStart(new Date());
   $('#calTitle').textContent = `${MONTHS[m.getMonth()]} ${m.getFullYear()}`;
   $('#cal [data-m="1"]').disabled = m.getFullYear() === today.getFullYear() && m.getMonth() === today.getMonth();
   const lead = (m.getDay() + 6) % 7;               /* неделя с понедельника */
   const days = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
-  const from = +PER.from, to = +PER.to;
+  const from = +CAL.from, to = +CAL.to;
   let html = '';
   for (let i = 0; i < lead; i++) html += '<button class="out" disabled></button>';
   for (let n = 1; n <= days; n++) {
@@ -1878,19 +1887,27 @@ function renderCal() {
     html += `<button class="${cls}" data-d="${t}" ${t > +today ? 'disabled' : ''}>${n}</button>`;
   }
   $('#calDays').innerHTML = html;
+  const one = +CAL.from === +CAL.to;
+  $('#calHint').textContent = CAL.picking ? `С ${ruDate(CAL.from)} — нажмите последний день или «Готово»`
+    : one ? ruDate(CAL.from) : `${ruDate(CAL.from)} — ${ruDate(CAL.to)}`;
 }
 $('#cal').addEventListener('click', e => {
   e.stopPropagation();
+  if (e.target.closest('#calOk')) return applyCal();
   const mv = e.target.closest('[data-m]');
   if (mv && !mv.disabled) { CAL.month.setMonth(CAL.month.getMonth() + Number(mv.dataset.m)); return renderCal(); }
   const b = e.target.closest('[data-d]'); if (!b || b.disabled) return;
   const d = new Date(Number(b.dataset.d));
-  /* «с» позже «по» (или наоборот) — второй конец переезжает следом */
-  if (CAL.end === 'from') { PER.from = d; if (d > PER.to) PER.to = d; }
-  else { PER.to = d; if (d < PER.from) PER.from = d; }
-  $$('#usagePeriod .pq').forEach(x => x.classList.remove('on'));
-  closeCal();
-  loadUsagePeriod();
+  if (!CAL.picking) {
+    /* первое нажатие — начало нового периода */
+    CAL.from = d; CAL.to = d; CAL.picking = true;
+    return renderCal();
+  }
+  /* второе — конец периода; нажали раньше начала — меняем местами */
+  if (d < CAL.from) { CAL.to = CAL.from; CAL.from = d; } else CAL.to = d;
+  CAL.picking = false;
+  renderCal();
+  setTimeout(applyCal, 180);   /* даём увидеть выделенный период */
 });
 document.addEventListener('click', () => { if (CAL.end) closeCal(); });
 document.addEventListener('mousedown', e => { if (CAL.end && !e.target.closest('#cal, .pdate')) closeCal(); }, true);
