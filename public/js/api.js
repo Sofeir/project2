@@ -42,9 +42,12 @@ const API = (() => {
   }
 
   /* Пропуска и настройки появились позже остальных таблиц: в данных, сохранённых
-     прежней версией кассы, их нет — достраиваем, ничего не трогая в остальном */
+     прежней версией кассы, их нет — достраиваем, ничего не трогая в остальном.
+     Вторая версия пропусков хранит начисления штуками, а не рублями:
+     старые остатки в рублях не переводятся, пропуска берутся заново */
+  const PASSES_VER = 2;
   function normalize(d) {
-    if (!Array.isArray(d.passes)) d.passes = clone(SEED.PASSES);
+    if (!Array.isArray(d.passes) || d.passesVer !== PASSES_VER) { d.passes = clone(SEED.PASSES); d.passesVer = PASSES_VER; }
     if (!d.settings || typeof d.settings !== 'object') d.settings = {};
     if (typeof d.settings.sbp !== 'boolean') d.settings.sbp = true;
     return d;
@@ -58,7 +61,7 @@ const API = (() => {
       try { db = JSON.parse(raw); } catch (_) { db = null; }
     }
     if (!db || !Array.isArray(db.shifts)) { db = seeded(); save(); }
-    else if (!Array.isArray(db.passes) || !db.settings) { normalize(db); save(); }
+    else if (!Array.isArray(db.passes) || !db.settings || db.passesVer !== PASSES_VER) { normalize(db); save(); }
     return db;
   }
 
@@ -162,7 +165,7 @@ const API = (() => {
       source_ref: ref,
       date: ddmmyyyy(c.created_at), time: hhmm(c.created_at),
       items: c.items.map(i => ({ id: i.id, name: i.name, price: i.price, unit: i.unit, qty: i.qty })),
-      payments: c.payments.map(p => ({ m: p.m, kind: p.kind ?? null, amount: p.amount, vat: p.vat ?? null, vatSum: p.vatSum ?? null })),
+      payments: c.payments.map(p => ({ m: p.m, kind: p.kind ?? null, qty: p.qty ?? null, amount: p.amount, vat: p.vat ?? null, vatSum: p.vatSum ?? null })),
       pass: c.pass ? { number: c.pass.number, owner: c.pass.owner } : null,
     };
   }
@@ -286,11 +289,18 @@ const API = (() => {
         const amount = money(Math.min(Number(p.amount), rest));
         if (amount <= 0) return;
         if (p.m === 'pass') {
-          /* начисление списывается с пропуска в той же операции, что и чек */
-          const left = money(card.balances[p.kind] || 0);
-          if (amount > left + 0.001) throw new Error(`На пропуске не хватает начисления «${benefitName(p.kind)}»: осталось ${left} ₽`);
-          card.balances[p.kind] = money(left - amount);
-          c.payments.push({ m: 'pass', kind: p.kind, amount, vat: null, vatSum: null });
+          /* начисление списывается с пропуска штуками в той же операции, что и чек;
+             сумма — номинал × штуки, но не больше того, что осталось оплатить */
+          const ben = SEED.BENEFITS.find(b => b.id === p.kind);
+          const qty = Math.floor(Number(p.qty));
+          const left = Math.floor(card.balances[p.kind] || 0);
+          if (!ben || !(qty > 0)) throw new Error(`Некорректное начисление «${benefitName(p.kind)}»`);
+          if (qty > left) throw new Error(`На пропуске не хватает начисления «${benefitName(p.kind)}»: осталось ${left} шт`);
+          const sum = money(Math.min(qty * ben.price, rest));
+          card.balances[p.kind] = left - qty;
+          c.payments.push({ m: 'pass', kind: p.kind, qty, amount: sum, vat: null, vatSum: null });
+          rest = money(rest - sum);
+          return;
         } else {
           c.payments.push({ m: p.m, amount, vat: null, vatSum: null });
         }
@@ -318,8 +328,8 @@ const API = (() => {
       });
       /* что было списано с пропуска, возвращается на него же */
       const card = src.pass && d.passes.find(x => x.number === src.pass.number);
-      if (card) src.payments.filter(p => p.m === 'pass' && p.kind).forEach(p => {
-        card.balances[p.kind] = money((card.balances[p.kind] || 0) + p.amount);
+      if (card) src.payments.filter(p => p.m === 'pass' && p.kind && p.qty).forEach(p => {
+        card.balances[p.kind] = (card.balances[p.kind] || 0) + p.qty;
       });
       d.checks.push(c);
     });
@@ -461,8 +471,8 @@ const API = (() => {
     if (!card) throw new Error(`Пропуск № ${n} не найден`);
     return {
       number: card.number, owner: card.owner,
-      benefits: SEED.BENEFITS.filter(b => money(card.balances[b.id] || 0) > 0)
-        .map(b => ({ id: b.id, name: b.name, amount: money(card.balances[b.id]) })),
+      benefits: SEED.BENEFITS.filter(b => Math.floor(card.balances[b.id] || 0) > 0)
+        .map(b => ({ id: b.id, name: b.name, price: b.price, count: Math.floor(card.balances[b.id]) })),
     };
   }
 

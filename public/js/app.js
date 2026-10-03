@@ -80,6 +80,7 @@ function toast(msg, kind, opt) {
   };
   const timer = setTimeout(hide, o.ms || (k === 'bad' ? 3200 : 1700));
   el.addEventListener('click', hide);
+  return hide;
 }
 
 const syncPaying = () => document.body.classList.toggle('paying', !$('#sheetPay').classList.contains('hidden'));
@@ -129,7 +130,7 @@ document.addEventListener('click', e => {
 }, true);
 
 const open  = id => {
-  /* кнопка, которой открыли окно, остаётся в фокусе; после нажатия F1 или
+  /* кнопка, которой открыли окно, остаётся в фокусе; после нажатия F8 или
      цифры браузер рисует на ней рамку, и та висит под окном — снимаем фокус */
   const a = document.activeElement;
   if (a && a.tagName === 'BUTTON' && !$('#' + id).contains(a)) a.blur();
@@ -188,7 +189,7 @@ function applyState(st) {
       type: c.correction_type, date: c.doc_date, no: c.doc_number,
       opDate: c.op_date, tax: c.tax_system, fp: c.fiscal_sign, ref: c.source_ref,
     } : null,
-    payments: (c.payments || []).map(p => ({ m: p.m, kind: p.kind || null, amount: Number(p.amount), vat: p.vat })),
+    payments: (c.payments || []).map(p => ({ m: p.m, kind: p.kind || null, qty: p.qty || null, amount: Number(p.amount), vat: p.vat })),
     pass: c.pass || null,
   }));
 
@@ -239,15 +240,46 @@ function setTheme(light) {
   try { localStorage.setItem(THEME_KEY, light ? 'light' : 'dark'); } catch (_) { /* тема просто не запомнится */ }
   renderTheme();
 }
+/* Светлая тема пока в трёх вариантах на выбор заказчика; вариант — тоже
+   свойство терминала. Пункт меню виден только в светлой теме */
+const LIGHT_KEY = 'asoft-pos-light';
+const LIGHT_VARS = { 1: 'Шалфей', 2: 'Песок', 3: 'Яркие плитки' };
+const lightVar = () => Number(document.documentElement.dataset.light) || 1;
+function setLightVar(v) {
+  if (v === 1) delete document.documentElement.dataset.light;
+  else document.documentElement.dataset.light = String(v);
+  try { localStorage.setItem(LIGHT_KEY, String(v)); } catch (_) { /* вариант просто не запомнится */ }
+  renderTheme();
+}
 function renderTheme() {
   $('#themeText').textContent = isLight() ? 'Поменять тему на тёмную' : 'Поменять тему на светлую';
   $('#themeIcon').setAttribute('href', isLight() ? '#i-moon' : '#i-sun');
+  $('#btnLightVar').classList.toggle('hidden', !isLight());
+  $('#lightVarText').textContent = `Светлая тема: ${lightVar()} из 3 · «${LIGHT_VARS[lightVar()]}»`;
 }
 renderTheme();
+/* Настройки кассы — в меню логотипа. Тема и СБП меняют работу кассы для всех
+   смен, поэтому обе закрыты PIN администратора, как и правка витрины */
 $('#menuBrand').addEventListener('click', e => {
-  const b = e.target.closest('[data-act="theme"]'); if (!b) return;
-  setTheme(!isLight());
-  toast(isLight() ? 'Светлая тема' : 'Тёмная тема');
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  b.blur();
+  if (b.dataset.act === 'theme') return requireAdmin(() => {
+    setTheme(!isLight());
+    toast(isLight() ? 'Светлая тема' : 'Тёмная тема');
+  });
+  if (b.dataset.act === 'light') return requireAdmin(() => {
+    setLightVar(lightVar() % 3 + 1);
+    toast(`Светлая тема «${LIGHT_VARS[lightVar()]}»`);
+  });
+  if (b.dataset.act === 'sbp') return requireAdmin(async () => {
+    try {
+      S.sbp = (await API.setSettings({ sbp: !S.sbp })).sbp;
+      renderSbp();
+      toast(S.sbp ? 'Оплата по СБП включена' : 'Оплата по СБП отключена', S.sbp ? 'ok' : 'warn');
+    } catch (err) {
+      toast(err.message, 'bad');
+    }
+  });
 });
 
 /* --------------------------- режим операции ----------------------------- */
@@ -290,16 +322,8 @@ let admBuf = '', admThen = null;
 
 $('#menuSetup').addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
+  b.blur();
   if (b.dataset.act === 'hk') return requireAdmin(() => HK.openEditor());
-  if (b.dataset.act === 'sbp') return requireAdmin(async () => {
-    try {
-      S.sbp = (await API.setSettings({ sbp: !S.sbp })).sbp;
-      renderSbp();
-      toast(S.sbp ? 'Оплата по СБП включена' : 'Оплата по СБП отключена', S.sbp ? 'ok' : 'warn');
-    } catch (err) {
-      toast(err.message, 'bad');
-    }
-  });
 });
 
 /* СБП пока не подключена на всех кассах: администратор прячет кнопку,
@@ -594,6 +618,16 @@ $('#checkList').addEventListener('click', e => {
   if (open) open.scrollIntoView({ block: 'nearest' });
 });
 
+/* Раскрытая строка сворачивается нажатием на любое свободное место —
+   как меню и списки. Окна (количество, вес) и клавиатура её не трогают:
+   их открывают как раз из раскрытой строки */
+document.addEventListener('click', e => {
+  if (S.sel === null || e.target.closest('#checkList .row, .veil, #vk, .menu')) return;
+  if (!document.contains(e.target)) return;   /* кнопку уже перерисовали — нажатие обработано */
+  S.sel = null;
+  renderCheck();
+}, true);
+
 function renderTotals() {
   $('#fCount').textContent = posCount();
   const n = S.history.length;
@@ -627,6 +661,7 @@ function renderTotals() {
 }
 
 function renderAll(scroll) {
+  if (S.cart.length) dismissChange();
   renderCheck(); renderTotals(); renderGrid();
   if (scroll) { const l = $('#checkList'); l.scrollTop = l.scrollHeight; }
 }
@@ -873,7 +908,7 @@ const METHOD_ICON = { cash: 'i-cash', card: 'i-card', qr: 'i-qr', staff: 'i-badg
 const NO_TERMINAL = ['cash', 'pass', 'writeoff', 'nonfiscal'];
 const benefitName = id => ((typeof SEED !== 'undefined' && SEED.BENEFITS.find(b => b.id === id)) || { name: 'Пропуск' }).name;
 /* подпись оплаты в чеке и списках: у пропуска — какое начисление списано */
-const payLabel = p => (p.m === 'pass' ? `Пропуск · ${benefitName(p.kind)}` : METHOD_NAME[p.m] || p.m);
+const payLabel = p => (p.m === 'pass' ? `Пропуск · ${benefitName(p.kind)}${p.qty ? ` × ${p.qty}` : ''}` : METHOD_NAME[p.m] || p.m);
 const pad4 = n => String(n).padStart(4, '0');
 
 /* Оплата идёт по шагам в одном окне по центру:
@@ -883,18 +918,20 @@ const pad4 = n => String(n).padStart(4, '0');
 const paidSum   = () => S.pay.splits.reduce((s, x) => s + x.amount, 0);
 const remainSum = () => Math.max(0, round2(total() - passSum() - paidSum()));
 
-/* Начисления пропуска списываются по порядку, пока не закроют чек:
-   отмеченное, но уже ненужное начисление остаётся на пропуске целиком */
+/* Начисления пропуска списываются штуками — столько, сколько кассир выбрал
+   в окне начислений. Сумма — номинал × штуки, но не больше остатка чека:
+   последняя штука может закрыть чек не целиком своим номиналом */
 function passParts() {
   const P = S.pay.pass;
   if (!P || isRefund()) return [];
   let left = total();
   const out = [];
   P.benefits.forEach(b => {
-    if (P.off.includes(b.id) || left <= 0) return;
-    const amount = round2(Math.min(b.amount, left));
+    const qty = P.sel[b.id] || 0;
+    if (!qty || left <= 0) return;
+    const amount = round2(Math.min(qty * b.price, left));
     left = round2(left - amount);
-    out.push({ m: 'pass', kind: b.id, amount });
+    out.push({ m: 'pass', kind: b.id, qty, price: b.price, amount });
   });
   return out;
 }
@@ -973,6 +1010,9 @@ function renderPay() {
       : P.parts ? (P.splits.length ? 'Выберите способ для следующей части' : 'Выберите способ для первой части')
       : 'Приложите пропуск, либо выберите способ оплаты';
     $('#btnParts').classList.toggle('hidden', ret || P.parts);
+    /* без «Оплаты частями» наличные одни в строке — растягиваем во всю ширину,
+       чтобы блоки не выглядели разными по весу */
+    $('#methods').classList.toggle('cash-wide', ret || P.parts);
     /* при возврате деньги отдают тем же способом — списание и нефискальная здесь не нужны */
     $('#btnOther').classList.toggle('hidden', ret || P.other);
     $('#otherRow').classList.toggle('hidden', ret || !P.other);
@@ -1035,16 +1075,6 @@ function renderPaySide() {
   if (pass) {
     $('#psOwner').textContent = pass.owner;
     $('#psNumber').textContent = 'Пропуск № ' + pass.number;
-    $('#psBens').innerHTML = pass.benefits.length ? pass.benefits.map(b => {
-      const on = !pass.off.includes(b.id);
-      const u = parts.find(x => x.kind === b.id);
-      const note = !on ? '' : !u ? '<em>не нужно</em>' : u.amount < b.amount ? `<em>спишется ${money(u.amount)}</em>` : '';
-      return `<button class="ben ${on ? 'on' : ''}" data-ben="${b.id}">
-        <span class="bx"><svg><use href="#i-check"/></svg></span>
-        <span class="bn">${b.name}</span>
-        <span class="ba num">${money(b.amount)}${note}</span>
-      </button>`;
-    }).join('') : `<div class="ps-none">На пропуске нет начислений</div>`;
   }
 
   /* что пойдёт в чек: пока идёт проведение — ровно отправленный список */
@@ -1062,10 +1092,12 @@ function renderPaySide() {
     }
   }
   $('#psListCap').classList.toggle('hidden', !rows.length && !!pass);
+  /* у начисления сразу видно, сколько штук списывается и по какому номиналу */
+  const qtyNote = p => p.m === 'pass' && p.qty ? `<i class="q num">${p.qty} шт × ${money(p.price || benefitPrice(p.kind))}</i>` : '';
   $('#psList').innerHTML = rows.length ? rows.map(({ p, rm, cur }) => `
     <div class="ps-row ${cur ? 'cur' : ''} ${p.m === 'pass' ? 'pass' : ''}">
       <svg class="mi"><use href="#${METHOD_ICON[p.m] || 'i-card'}"/></svg>
-      <span class="m">${p.m === 'pass' ? benefitName(p.kind) : METHOD_NAME[p.m]}${cur ? `<i>${cur}</i>` : ''}</span>
+      <span class="m">${p.m === 'pass' ? benefitName(p.kind) : METHOD_NAME[p.m]}${cur ? `<i>${cur}</i>` : qtyNote(p)}</span>
       <span class="a num">${money(p.amount)}</span>
       ${rm !== undefined ? `<button data-rm="${rm}" title="Убрать часть"><svg><use href="#i-close"/></svg></button>` : ''}
     </div>`).join('')
@@ -1081,11 +1113,10 @@ function renderPaySide() {
   $('#psRestBox').classList.toggle('done', !ret && rest <= 0);
 }
 
-$('#psBens').addEventListener('click', e => {
-  const b = e.target.closest('[data-ben]'); if (!b || paying || !S.pay.pass) return;
-  const off = S.pay.pass.off, id = b.dataset.ben;
-  S.pay.pass.off = off.includes(id) ? off.filter(x => x !== id) : off.concat(id);
-  passChanged();
+/* нажатие на карточку владельца — вернуться к выбору начислений */
+$('#psOwnerCard').addEventListener('click', e => {
+  if (e.target.closest('#btnPassOff') || paying || !S.pay.pass) return;
+  openBens(S.pay.pass, S.pay.pass.sel);
 });
 $('#btnPassOff').addEventListener('click', () => {
   if (paying) return;
@@ -1104,24 +1135,81 @@ function passChanged() {
 }
 
 /* ------------------------------- пропуск -------------------------------- */
-/* Ридера пропусков в прототипе нет: его заменяет клавиша F1 — «пропуск
-   приложен». Каждое следующее нажатие прикладывает другой тестовый пропуск. */
+/* Ридера пропусков в прототипе нет: его заменяет клавиша F8 — «пропуск
+   приложен». Каждое следующее нажатие прикладывает другой тестовый пропуск.
+   Пропуск сразу открывает отдельное окно начислений: кассир выбирает,
+   сколько штук каждого списать, и только по «Продолжить» возвращается
+   к оплате — уже с выбранным и суммой к доплате. */
 let _testPass = -1;
 async function attachPass(number) {
   try {
     const info = await API.pass(number);
     if (sheetHidden()) return;
-    S.pay.pass = { ...info, off: [] };
-    passChanged();
-    toast(`Пропуск принят · ${info.owner}`);
+    openBens(info, {});
   } catch (err) {
     toast(err.message, 'bad');
   }
 }
+
+const benefitPrice = id => ((typeof SEED !== 'undefined' && SEED.BENEFITS.find(b => b.id === id)) || { price: 0 }).price;
+/* окно начислений: пропуск и выбор живут здесь, пока не нажато «Продолжить» */
+const B = { pass: null, sel: {} };
+function openBens(info, sel) {
+  B.pass = info;
+  B.sel = { ...sel };
+  $('#bensOwner').textContent = info.owner;
+  $('#bensNumber').textContent = 'Пропуск № ' + info.number;
+  renderBens();
+  open('modalBens');
+}
+/* начислениями уже закрыт весь чек — дальше прибавлять бессмысленно:
+   лишняя штука спишется с пропуска, а чек не уменьшит */
+const bensSum = sel => round2(B.pass.benefits.reduce((s, b) => s + (sel[b.id] || 0) * b.price, 0));
+function renderBens() {
+  const list = B.pass.benefits;
+  const sum = bensSum(B.sel), tot = total();
+  const covered = sum >= tot;
+  $('#bensList').innerHTML = list.length ? `
+    <div class="bn-head"><span>Начисление</span><span>Доступно</span><span>Списать</span><span>Сумма</span></div>` +
+    list.map(b => {
+      const n = B.sel[b.id] || 0;
+      return `<div class="bn-row ${n ? 'on' : ''}" data-ben="${b.id}">
+        <div class="bn-name"><b>${b.name}</b><span class="num">${money(b.price)} за шт</span></div>
+        <div class="bn-avail num">${b.count}</div>
+        <div class="stepper">
+          <button data-d="-1" ${n ? '' : 'disabled'} aria-label="Меньше"><svg><use href="#i-minus"/></svg></button>
+          <span class="q num">${n}</span>
+          <button data-d="1" ${n >= b.count || covered ? 'disabled' : ''} aria-label="Больше"><svg><use href="#i-plus"/></svg></button>
+        </div>
+        <div class="bn-sum num">${n ? money(n * b.price) : '—'}</div>
+      </div>`;
+    }).join('')
+    : `<div class="bn-none">На пропуске нет начислений</div>`;
+  const used = Math.min(sum, tot);
+  $('#bensTotal').textContent = money(tot);
+  $('#bensUsed').textContent = money(used);
+  $('#bensRest').textContent = money(round2(tot - used));
+  $('#btnBensOk').disabled = !sum;
+}
+$('#bensList').addEventListener('click', e => {
+  const b = e.target.closest('[data-d]'); if (!b || b.disabled) return;
+  const id = b.closest('[data-ben]').dataset.ben;
+  const ben = B.pass.benefits.find(x => x.id === id);
+  const n = Math.max(0, Math.min(ben.count, (B.sel[id] || 0) + Number(b.dataset.d)));
+  if (n) B.sel[id] = n; else delete B.sel[id];
+  renderBens();
+});
+$('#btnBensOk').addEventListener('click', () => {
+  if (!bensSum(B.sel)) return;
+  S.pay.pass = { ...B.pass, sel: { ...B.sel } };
+  close('modalBens');
+  passChanged();
+  toast(`Пропуск принят · ${B.pass.owner}`);
+});
 const sheetHidden = () => $('#sheetPay').classList.contains('hidden');
 document.addEventListener('keydown', e => {
-  if (e.key !== 'F1') return;
-  e.preventDefault();                       // F1 в браузере открывает справку
+  if (e.key !== 'F8') return;
+  e.preventDefault();
   if (e.repeat || paying || isRefund()) return;
   if ($('#screen-main').classList.contains('hidden')) return;
   /* пропуск прикладывают к открытой оплате или прямо к набранному чеку */
@@ -1155,10 +1243,16 @@ $('#psList').addEventListener('click', e => {
 function openDrawer() { toast('Денежный ящик открыт'); }
 $('#btnDrawer').addEventListener('click', openDrawer);
 
-/* Сдачу кассир выдаёт руками — крупная плашка висит 12 секунд, пока он считает деньги */
+/* Сдачу кассир выдаёт руками — крупная плашка висит 12 секунд, пока он считает деньги.
+   Начал набирать следующий чек — сдача уже выдана, плашка уходит сразу */
+let hideChange = null;
 function showChange(sum) {
-  toast(`Выдайте сдачу <b class="num">${money(sum)}</b>`,
+  dismissChange();
+  hideChange = toast(`Выдайте сдачу <b class="num">${money(sum)}</b>`,
     'warn', { big: true, ms: 12000 });
+}
+function dismissChange() {
+  if (hideChange) { hideChange(); hideChange = null; }
 }
 
 $('#btnPayConfirm').addEventListener('click', () => {
@@ -1216,13 +1310,14 @@ async function finishPay(parts, change) {
     S.lastSale = st.checks[0];
 
     close('sheetPay');
-    if (change > 0) showChange(change);
-    else showPaid(ret ? 'Возврат оформлен' : 'Оплата проведена', ret);
     setOp('sale');
 
     S.cart = []; S.sel = null; S.discount = null;
     HK.goRoot();   /* следующий покупатель начинает с первого экрана витрины */
     renderAll();
+    /* плашку — после очистки чека: пока в чеке позиции, сдача сразу бы убиралась */
+    if (change > 0) showChange(change);
+    else showPaid(ret ? 'Возврат оформлен' : 'Оплата проведена', ret);
   } catch (err) {
     toast((ret ? 'Возврат не проведён: ' : 'Чек не проведён: ') + err.message, 'bad');
   } finally {

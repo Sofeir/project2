@@ -7,9 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800;900&display=swap">
-<link rel="stylesheet" href="css/style.css?v=20261003b">
+<link rel="stylesheet" href="css/style.css?v=20261003c">
 <!-- тему ставим до первой отрисовки, иначе светлая касса на миг мигнёт тёмной -->
-<script>try { if (localStorage.getItem('asoft-pos-theme') === 'light') document.documentElement.dataset.theme = 'light'; } catch (_) {}</script>
+<script>try { if (localStorage.getItem('asoft-pos-theme') === 'light') document.documentElement.dataset.theme = 'light'; const v = localStorage.getItem('asoft-pos-light'); if (v === '2' || v === '3') document.documentElement.dataset.light = v; } catch (_) {}</script>
 </head>
 <body>
 
@@ -63,7 +63,7 @@
 <section id="screen-login">
   <div class="login">
     <div class="brand brand-lg">
-      <img class="brand-emblem" src="img/asoft-emblem.png" alt="ASOFT POS" width="56" height="56">
+      <img class="brand-emblem" src="img/asoft-emblem.png?v=2" alt="ASOFT POS" width="56" height="56">
       <span class="brand-name">ASOFT <em>POS</em></span>
     </div>
 
@@ -104,14 +104,16 @@
 
   <!-- ---------- Шапка: только статус и редкие операции ---------- -->
   <header class="topbar">
-    <!-- нажатие на логотип — меню оформления: светлая или тёмная тема -->
+    <!-- нажатие на логотип — настройки кассы: тема и оплата по СБП, обе под PIN администратора -->
     <div class="drop" id="dropBrand">
-      <button class="brand brand-btn" id="btnBrand" type="button" title="Оформление">
-        <img class="brand-emblem" src="img/asoft-emblem.png" alt="ASOFT POS" width="36" height="36">
+      <button class="brand brand-btn" id="btnBrand" type="button" title="Настройки кассы">
+        <img class="brand-emblem" src="img/asoft-emblem.png?v=2" alt="ASOFT POS" width="36" height="36">
         <span class="brand-name">ASOFT <em>POS</em></span>
       </button>
       <div class="menu hidden" id="menuBrand">
-        <button data-act="theme"><svg><use id="themeIcon" href="#i-sun"/></svg><span><span class="mt" id="themeText">Поменять тему на светлую</span><span class="mh">Оформление этой кассы</span></span></button>
+        <button data-act="theme"><svg><use id="themeIcon" href="#i-sun"/></svg><span><span class="mt" id="themeText">Поменять тему на светлую</span><span class="mh">Оформление этой кассы · PIN администратора</span></span></button>
+        <button data-act="light" id="btnLightVar"><svg><use href="#i-sun"/></svg><span><span class="mt" id="lightVarText">Вариант светлой темы</span><span class="mh">Нажмите, чтобы сменить · PIN администратора</span></span></button>
+        <button data-act="sbp"><svg><use href="#i-qr"/></svg><span><span class="mt">Оплата по СБП</span><span class="mh" id="sbpState">Включена</span></span></button>
       </div>
     </div>
     <div class="sep"></div>
@@ -138,7 +140,6 @@
       <button class="ibtn setup-btn" id="btnSetup" title="Настройки кассы"><svg><use href="#i-grip"/></svg></button>
       <div class="menu right hidden" id="menuSetup">
         <button data-act="hk"><span><span class="mt">Настроить горячие клавиши</span><span class="mh">Группы и товары на витрине кассира</span></span></button>
-        <button data-act="sbp"><svg><use href="#i-qr"/></svg><span><span class="mt">Оплата по СБП</span><span class="mh" id="sbpState">Включена</span></span></button>
       </div>
     </div>
 
@@ -301,13 +302,12 @@
     <div class="ps-head">Выбрано к оплате</div>
     <div class="ps-body">
       <div class="ps-pass hidden" id="psPass">
-        <div class="ps-owner">
+        <!-- нажатие на карточку снова открывает выбор начислений -->
+        <div class="ps-owner" id="psOwnerCard" title="Изменить начисления">
           <span class="pi"><svg><use href="#i-badge"/></svg></span>
           <div class="po"><b id="psOwner">—</b><span class="num" id="psNumber">Пропуск</span></div>
           <button class="ibtn" id="btnPassOff" title="Убрать пропуск"><svg><use href="#i-close"/></svg></button>
         </div>
-        <div class="ps-cap">Начисления — отметьте, что списать</div>
-        <div class="ps-bens" id="psBens"></div>
       </div>
       <div class="ps-cap" id="psListCap">Оплата</div>
       <div class="ps-list" id="psList"></div>
@@ -317,6 +317,34 @@
       <div class="ps-rest" id="psRestBox"><span id="psRestLabel">Доплатить</span><b class="num" id="psRest">0 ₽</b></div>
     </div>
   </aside>
+  </div>
+</div>
+
+<!-- ============================ НАЧИСЛЕНИЯ ПРОПУСКА ============================ -->
+<!-- Открывается, как только приложен пропуск (F8). Кассир выбирает, сколько штук
+     каждого начисления списать; «Доступно» не меняется — это остаток на пропуске.
+     «Продолжить» возвращает к оплате с выбранным и суммой к доплате. -->
+<div class="veil hidden" id="modalBens">
+  <div class="modal bens">
+    <div class="m-head">
+      <div class="bens-owner">
+        <span class="pi"><svg><use href="#i-badge"/></svg></span>
+        <div><h3 id="bensOwner">—</h3><div class="hsub num" id="bensNumber">Пропуск</div></div>
+      </div>
+      <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="m-body">
+      <div class="bens-list" id="bensList"></div>
+    </div>
+    <div class="bens-sum">
+      <div class="bs"><span>Итого чека</span><b class="num" id="bensTotal">0 ₽</b></div>
+      <div class="bs acc"><span>Начислениями</span><b class="num" id="bensUsed">0 ₽</b></div>
+      <div class="bs warn"><span>Доплатить</span><b class="num" id="bensRest">0 ₽</b></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn" data-close style="flex:1">Отмена</button>
+      <button class="btn btn-primary" id="btnBensOk" style="flex:1.6">Продолжить</button>
+    </div>
   </div>
 </div>
 
@@ -565,7 +593,7 @@
 <!-- ============================ ДОСТУП АДМИНИСТРАТОРА ============================ -->
 <div class="veil hidden" id="modalPin">
   <div class="modal slim">
-    <div class="m-head"><div><h3>Режим настройки</h3><div class="hsub">Введите PIN администратора</div></div><button class="ibtn" data-close><svg><use href="#i-close"/></svg></button></div>
+    <div class="m-head"><div><h3>Доступ администратора</h3><div class="hsub">Введите PIN администратора</div></div><button class="ibtn" data-close><svg><use href="#i-close"/></svg></button></div>
     <div class="m-body">
       <div class="pin-dots" id="admDots"><i></i><i></i><i></i><i></i></div>
       <div class="keys" id="admPad">
@@ -711,11 +739,11 @@
 
 <div id="toasts"></div>
 
-<script src="js/seed.js?v=20261003b"></script>
-<script src="js/api.js?v=20261003b"></script>
-<script src="js/data.js?v=20261003b"></script>
-<script src="js/hotkeys.js?v=20261003b"></script>
-<script src="js/app.js?v=20261003b"></script>
-<script src="js/keyboard.js?v=20261003b"></script>
+<script src="js/seed.js?v=20261003c"></script>
+<script src="js/api.js?v=20261003c"></script>
+<script src="js/data.js?v=20261003c"></script>
+<script src="js/hotkeys.js?v=20261003c"></script>
+<script src="js/app.js?v=20261003c"></script>
+<script src="js/keyboard.js?v=20261003c"></script>
 </body>
 </html>
