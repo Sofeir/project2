@@ -426,11 +426,19 @@ const API = (() => {
       .map(s => ({ id: s.id, number: s.number, opened: f(s.opened_at), closed: f(s.closed_at) }));
   }
 
-  /* Расход блюд: возврат уменьшает расход. Суммы — по цене позиции, до скидки. */
-  function usage(id) {
+  /* Расход блюд: возврат уменьшает расход. Суммы — по цене позиции, до скидки.
+     Считается по смене или по датам чеков (местное время кассы, обе даты включительно). */
+  const localDay = iso => { const t = new Date(iso); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; };
+  function usage(id) { return usageOf(c => c.shift_id === Number(id)); }
+  function usageRange(from, to) {
+    if (!from || !to) throw new Error('Укажите обе даты периода');
+    if (from > to) throw new Error('Дата начала позже даты конца');
+    return usageOf(c => { const day = localDay(c.created_at); return day >= from && day <= to; });
+  }
+  function usageOf(pick) {
     const d = load();
     const acc = new Map();
-    d.checks.filter(c => c.shift_id === Number(id) && (c.kind === 'sale' || c.kind === 'return')).forEach(c => {
+    d.checks.filter(c => pick(c) && (c.kind === 'sale' || c.kind === 'return')).forEach(c => {
       const sign = c.kind === 'sale' ? 1 : -1;
       c.items.forEach(i => {
         const k = i.name + '\u0000' + i.unit;
@@ -526,6 +534,7 @@ const API = (() => {
     closeShift:  cash => run(() => closeShift(cash)),
     shifts:      ()   => run(shifts),
     usage:       id   => run(() => usage(id)),
+    usageRange:  (from, to) => run(() => usageRange(from, to)),
     shiftChecks: id   => run(() => ({ checks: shiftChecksOf(load(), Number(id)) })),
 
     scale,

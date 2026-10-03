@@ -232,51 +232,28 @@ bindDrop('btnBrand', 'menuBrand');
 /* ------------------------------- тема ----------------------------------- */
 /* Тёмная — по умолчанию. Тема — свойство терминала (в светлом зале удобнее
    светлая), поэтому хранится в браузере кассы, а не в данных смены. */
-/* Светлых оттенков несколько — администратор выбирает тот, что лучше
-   смотрится в зале. Все светлые различаются только поверхностями. */
 const THEME_KEY = 'asoft-pos-theme';
-const THEMES = [
-  { id: 'dark',     name: 'Тёмная',         note: 'Графит, как по умолчанию' },
-  { id: 'cloud',    name: 'Облако',         note: 'Самая светлая, прохладная' },
-  { id: 'pearl',    name: 'Жемчуг',         note: 'Светлая, тёплый нейтральный' },
-  { id: 'slate',    name: 'Сланец',         note: 'Светлая, серо-голубая' },
-  { id: 'mint',     name: 'Мята',           note: 'Светлая, серо-зелёная' },
-  { id: 'silver',   name: 'Серебро',        note: 'Светлая, нейтральный серый' },
-  { id: 'graphite', name: 'Светлый графит', note: 'Серая, приглушённая' },
-];
-const themeId = () => document.documentElement.dataset.theme === 'light' ? (document.documentElement.dataset.light || 'graphite') : 'dark';
-function setTheme(id) {
-  const root = document.documentElement;
-  if (id === 'dark') { delete root.dataset.theme; delete root.dataset.light; }
-  else { root.dataset.theme = 'light'; root.dataset.light = id; }
-  try { localStorage.setItem(THEME_KEY, id); } catch (_) { /* тема просто не запомнится */ }
+const isLight = () => document.documentElement.dataset.theme === 'light';
+function setTheme(light) {
+  if (light) document.documentElement.dataset.theme = 'light';
+  else delete document.documentElement.dataset.theme;
+  try { localStorage.setItem(THEME_KEY, light ? 'light' : 'dark'); } catch (_) { /* тема просто не запомнится */ }
   renderTheme();
 }
 function renderTheme() {
-  const t = THEMES.find(x => x.id === themeId()) || THEMES[0];
-  $('#themeText').textContent = `${t.name} · PIN администратора`;
-  $('#themeIcon').setAttribute('href', t.id === 'dark' ? '#i-moon' : '#i-sun');
-  $('#themesGrid').innerHTML = THEMES.map(x => `
-    <button class="th ${x.id === t.id ? 'on' : ''}" data-t="${x.id}">
-      <span class="th-prev" data-light="${x.id}">
-        <span class="pc"><i></i><i></i><i class="pay"></i></span>
-        <span class="pg"><i style="--c:#7C76AE"></i><i style="--c:#A9805C"></i><i style="--c:#5A82AA"></i><i style="--c:#5C9670"></i></span>
-      </span>
-      <b>${x.name}<svg><use href="#i-check"/></svg></b>
-      <span>${x.note}</span>
-    </button>`).join('');
+  $('#themeText').textContent = isLight() ? 'Поменять тему на тёмную' : 'Поменять тему на светлую';
+  $('#themeIcon').setAttribute('href', isLight() ? '#i-moon' : '#i-sun');
 }
 renderTheme();
-$('#themesGrid').addEventListener('click', e => {
-  const b = e.target.closest('[data-t]'); if (!b) return;
-  setTheme(b.dataset.t);
-});
 /* Настройки кассы — в меню логотипа. Тема и СБП меняют работу кассы для всех
    смен, поэтому обе закрыты PIN администратора, как и правка витрины */
 $('#menuBrand').addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   b.blur();
-  if (b.dataset.act === 'theme') return requireAdmin(() => open('modalThemes'));
+  if (b.dataset.act === 'theme') return requireAdmin(() => {
+    setTheme(!isLight());
+    toast(isLight() ? 'Светлая тема' : 'Тёмная тема');
+  });
   if (b.dataset.act === 'sbp') return requireAdmin(async () => {
     try {
       S.sbp = (await API.setSettings({ sbp: !S.sbp })).sbp;
@@ -1785,12 +1762,82 @@ $('#modalCorrPick').addEventListener('click', e => {
   if (e.target.closest('[data-close]') || e.target === $('#modalCorrPick')) setOp('sale');
 });
 
+/* ================================ ОТЧЁТЫ ================================= */
+/* Чеки смены и расход блюд собраны в одно окно «Отчёты»: в меню операций
+   один пункт, а выбор — уже в окне */
+$('#repOpts').addEventListener('click', e => {
+  const b = e.target.closest('[data-r]'); if (!b) return;
+  close('modalReports');
+  if (b.dataset.r === 'history') { renderHistory(); open('modalHistory'); }
+  if (b.dataset.r === 'usage') openUsage();
+  if (b.dataset.r === 'period') openUsagePeriod();
+});
+
 /* ============================== РАСХОД БЛЮД ============================== */
-/* Сколько каждого блюда ушло за смену — для кухни и склада. Смену можно
-   выбрать любую из последних: расход часто сверяют на следующий день. */
+/* Сколько каждого блюда ушло — для кухни и склада. Либо за смену (любую из
+   последних: расход часто сверяют на следующий день), либо за период дат. */
 let _usage = null;
+function usageMode(period) {
+  $('#usagePeriod').classList.toggle('hidden', !period);
+  $('#usageShiftDrop').classList.toggle('hidden', period);
+}
+function renderUsage(items, empty) {
+  const sum = round2(items.reduce((s, i) => s + i.sum, 0));
+  $('#usageList').innerHTML = items.length ? `
+    <div class="usage-head"><span>Блюдо</span><span>Количество</span><span>Сумма</span></div>
+    ${items.map(i => `
+      <div class="usage-row"><span class="n">${i.name}</span><span class="num">${fmtQty(i.qty)}${nbsp}${i.unit}</span><b class="num">${money(i.sum)}</b></div>`).join('')}
+    <div class="usage-row total"><span class="n">Итого · ${items.length} ${plural(items.length, 'блюдо', 'блюда', 'блюд')}</span><span></span><b class="num">${money(sum)}</b></div>`
+    : `<div class="none">${empty}</div>`;
+}
+
+/* ---- за период ---- */
+const ruDate = d => d.toLocaleDateString('ru-RU');
+function periodPreset(p) {
+  const to = new Date(), from = new Date();
+  if (p === 'yesterday') { from.setDate(from.getDate() - 1); to.setDate(to.getDate() - 1); }
+  if (p === 'week') from.setDate(from.getDate() - 6);
+  if (p === 'month') from.setDate(from.getDate() - 29);
+  $('#usageFrom').value = ruDate(from);
+  $('#usageTo').value = ruDate(to);
+  $$('#usagePeriod .pq').forEach(b => b.classList.toggle('on', b.dataset.p === p));
+  loadUsagePeriod();
+}
+function openUsagePeriod() {
+  usageMode(true);
+  open('modalUsage');
+  periodPreset('today');
+}
+async function loadUsagePeriod() {
+  const fromText = $('#usageFrom').value, toText = $('#usageTo').value;
+  const from = isoDate(fromText), to = isoDate(toText);
+  if (!from || !to) return toast('Даты периода — в виде ДД.ММ.ГГГГ', 'warn');
+  const key = from + to;
+  _usage = { period: true, key, text: fromText === toText ? `за ${fromText}` : `с ${fromText} по ${toText}` };
+  $('#usageSub').textContent = fromText === toText ? fromText : `${fromText} — ${toText}`;
+  $('#usageList').innerHTML = `<div class="none">Загружаю…</div>`;
+  try {
+    const { items } = await API.usageRange(from, to);
+    if (_usage.key !== key) return;
+    renderUsage(items, 'За этот период блюда не продавались');
+  } catch (err) {
+    $('#usageList').innerHTML = '';
+    toast(err.message, 'bad');
+  }
+}
+$('#usagePeriod').addEventListener('click', e => {
+  const b = e.target.closest('[data-p]'); if (b) periodPreset(b.dataset.p);
+});
+$('#btnUsageShow').addEventListener('click', () => {
+  $$('#usagePeriod .pq').forEach(b => b.classList.remove('on'));
+  if (typeof VK !== 'undefined') VK.close();
+  loadUsagePeriod();
+});
+
+/* ---- за смену ---- */
 async function openUsage() {
   try {
+    usageMode(false);
     S.shifts = await API.shifts();
     $('#menuUsage').innerHTML = S.shifts.map(s => `
       <button data-id="${s.id}"><svg><use href="#i-shift"/></svg><span>
@@ -1809,13 +1856,7 @@ async function loadUsage(sh) {
   $('#usageList').innerHTML = `<div class="none">Загружаю…</div>`;
   const { items } = await API.usage(sh.id);
   if (_usage !== sh) return;
-  const sum = round2(items.reduce((s, i) => s + i.sum, 0));
-  $('#usageList').innerHTML = items.length ? `
-    <div class="usage-head"><span>Блюдо</span><span>Количество</span><span>Сумма</span></div>
-    ${items.map(i => `
-      <div class="usage-row"><span class="n">${i.name}</span><span class="num">${fmtQty(i.qty)}${nbsp}${i.unit}</span><b class="num">${money(i.sum)}</b></div>`).join('')}
-    <div class="usage-row total"><span class="n">Итого · ${items.length} ${plural(items.length, 'блюдо', 'блюда', 'блюд')}</span><span></span><b class="num">${money(sum)}</b></div>`
-    : `<div class="none">За эту смену блюда не продавались</div>`;
+  renderUsage(items, 'За эту смену блюда не продавались');
 }
 bindDrop('usageShiftBtn', 'menuUsage');
 $('#menuUsage').addEventListener('click', e => {
@@ -1825,7 +1866,7 @@ $('#menuUsage').addEventListener('click', e => {
 });
 $('#btnUsagePrint').addEventListener('click', () => {
   close('modalUsage');
-  toast(`Расход блюд за смену №${_usage.number} отправлен на печать`);
+  toast(_usage.period ? `Расход блюд ${_usage.text} отправлен на печать` : `Расход блюд за смену №${_usage.number} отправлен на печать`);
 });
 
 /* ============================ ДЕНЬГИ И СМЕНА ============================= */
@@ -1839,8 +1880,7 @@ $('#menuShift').addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   const a = b.dataset.act;
   if (a === 'drawer') return toast('Денежный ящик открыт');
-  if (a === 'history') { renderHistory(); return open('modalHistory'); }
-  if (a === 'usage') return openUsage();
+  if (a === 'reports') return open('modalReports');
   if (a === 'in' || a === 'out') return openCash(a);
   if (a === 'x') return openReport('x');
   if (a === 'z') return openReport('z');

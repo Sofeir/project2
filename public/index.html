@@ -7,9 +7,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800;900&display=swap">
-<link rel="stylesheet" href="css/style.css?v=20261004b">
+<link rel="stylesheet" href="css/style.css?v=20261004c">
 <!-- тему ставим до первой отрисовки, иначе светлая касса на миг мигнёт тёмной -->
-<script>try { const t = localStorage.getItem('asoft-pos-theme'); if (t && t !== 'dark') { document.documentElement.dataset.theme = 'light'; document.documentElement.dataset.light = t === 'light' ? 'graphite' : t; } } catch (_) {}</script>
+<script>try { const t = localStorage.getItem('asoft-pos-theme'); if (t && t !== 'dark') document.documentElement.dataset.theme = 'light'; } catch (_) {}</script>
 </head>
 <body>
 
@@ -63,7 +63,7 @@
 <section id="screen-login">
   <div class="login">
     <div class="brand brand-lg">
-      <img class="brand-emblem" src="img/asoft-emblem.png?v=2" alt="ASOFT POS" width="56" height="56">
+      <img class="brand-emblem" src="img/asoft-emblem.png?v=3" alt="ASOFT POS" width="56" height="56">
       <span class="brand-name">ASOFT <em>POS</em></span>
     </div>
 
@@ -107,11 +107,11 @@
     <!-- нажатие на логотип — настройки кассы: тема и оплата по СБП, обе под PIN администратора -->
     <div class="drop" id="dropBrand">
       <button class="brand brand-btn" id="btnBrand" type="button" title="Настройки кассы">
-        <img class="brand-emblem" src="img/asoft-emblem.png?v=2" alt="ASOFT POS" width="36" height="36">
+        <img class="brand-emblem" src="img/asoft-emblem.png?v=3" alt="ASOFT POS" width="36" height="36">
         <span class="brand-name">ASOFT <em>POS</em></span>
       </button>
       <div class="menu hidden" id="menuBrand">
-        <button data-act="theme"><svg><use id="themeIcon" href="#i-sun"/></svg><span><span class="mt">Оформление</span><span class="mh" id="themeText">Тёмная · PIN администратора</span></span></button>
+        <button data-act="theme"><svg><use id="themeIcon" href="#i-sun"/></svg><span><span class="mt" id="themeText">Поменять тему на светлую</span><span class="mh">Оформление этой кассы · PIN администратора</span></span></button>
         <button data-act="sbp"><svg><use href="#i-qr"/></svg><span><span class="mt">Оплата по СБП</span><span class="mh" id="sbpState">Включена</span></span></button>
       </div>
     </div>
@@ -126,8 +126,7 @@
         <button data-act="in"><svg><use href="#i-in"/></svg><span><span class="mt">Внести наличные</span><span class="mh">Размен, довнесение</span></span></button>
         <button data-act="out"><svg><use href="#i-out"/></svg><span><span class="mt">Изъять наличные</span><span class="mh">Инкассация</span></span></button>
         <button data-act="drawer"><svg><use href="#i-box"/></svg><span class="mt">Открыть денежный ящик</span></button>
-        <button data-act="history"><svg><use href="#i-clock"/></svg><span><span class="mt">Чеки смены</span><span class="mh">Список чеков, копия и возврат</span></span></button>
-        <button data-act="usage"><svg><use href="#i-kitchen"/></svg><span><span class="mt">Расход блюд</span><span class="mh">Сколько блюд ушло за смену</span></span></button>
+        <button data-act="reports"><svg><use href="#i-shift"/></svg><span><span class="mt">Отчёты</span><span class="mh">Чеки смены, расход блюд</span></span></button>
         <div class="menu-sep"></div>
         <button data-act="z" class="danger"><svg><use href="#i-lock"/></svg><span><span class="mt">Закрыть смену</span><span class="mh">Z-отчёт с гашением</span></span></button>
       </div>
@@ -319,20 +318,6 @@
   </div>
 </div>
 
-<!-- ============================ ОФОРМЛЕНИЕ ============================ -->
-<!-- PIN спрашивается один раз при входе; дальше темы переключаются сразу по нажатию -->
-<div class="veil hidden" id="modalThemes">
-  <div class="modal themes">
-    <div class="m-head">
-      <div><h3>Оформление</h3><div class="hsub">Нажмите на тему — касса сразу перекрасится</div></div>
-      <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
-    </div>
-    <div class="m-body"><div class="themes-grid" id="themesGrid"></div></div>
-    <div class="m-foot">
-      <button class="btn btn-primary" data-close style="flex:1">Готово</button>
-    </div>
-  </div>
-</div>
 
 <!-- ============================ НАЧИСЛЕНИЯ ПРОПУСКА ============================ -->
 <!-- Открывается, как только приложен пропуск (F8). Кассир выбирает, сколько штук
@@ -730,6 +715,23 @@
   </div>
 </div>
 
+<!-- ============================ ОТЧЁТЫ ============================ -->
+<div class="veil hidden" id="modalReports">
+  <div class="modal">
+    <div class="m-head">
+      <div><h3>Отчёты</h3><div class="hsub">Выберите, что открыть</div></div>
+      <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="m-body">
+      <div class="rep-opts" id="repOpts">
+        <button class="rep-opt" data-r="history"><span class="ri"><svg><use href="#i-clock"/></svg></span><span class="rt"><b>Чеки смены</b><span>Список чеков, копия и возврат</span></span><svg class="mc"><use href="#i-chev"/></svg></button>
+        <button class="rep-opt" data-r="usage"><span class="ri"><svg><use href="#i-kitchen"/></svg></span><span class="rt"><b>Расход блюд за смену</b><span>Сколько блюд ушло за выбранную смену</span></span><svg class="mc"><use href="#i-chev"/></svg></button>
+        <button class="rep-opt" data-r="period"><span class="ri"><svg><use href="#i-clock"/></svg></span><span class="rt"><b>Расход блюд за период</b><span>За день, неделю, месяц или свои даты</span></span><svg class="mc"><use href="#i-chev"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ============================ РАСХОД БЛЮД ============================ -->
 <div class="veil hidden" id="modalUsage">
   <div class="modal wide">
@@ -738,7 +740,19 @@
       <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
     </div>
     <div class="usage-bar">
-      <div class="drop">
+      <div class="period hidden" id="usagePeriod">
+        <button class="pq" data-p="today">Сегодня</button>
+        <button class="pq" data-p="yesterday">Вчера</button>
+        <button class="pq" data-p="week">7 дней</button>
+        <button class="pq" data-p="month">Месяц</button>
+        <div class="pd">
+          <input type="text" id="usageFrom" class="date-in num" inputmode="numeric" placeholder="ДД.ММ.ГГГГ" autocomplete="off">
+          <span>—</span>
+          <input type="text" id="usageTo" class="date-in num" inputmode="numeric" placeholder="ДД.ММ.ГГГГ" autocomplete="off">
+          <button class="btn" id="btnUsageShow">Показать</button>
+        </div>
+      </div>
+      <div class="drop" id="usageShiftDrop">
         <button class="picker" id="usageShiftBtn"><span id="usageShiftText">Смена</span><svg class="chev"><use href="#i-chev"/></svg></button>
         <div class="menu hidden" id="menuUsage"></div>
       </div>
@@ -753,11 +767,11 @@
 
 <div id="toasts"></div>
 
-<script src="js/seed.js?v=20261004b"></script>
-<script src="js/api.js?v=20261004b"></script>
-<script src="js/data.js?v=20261004b"></script>
-<script src="js/hotkeys.js?v=20261004b"></script>
-<script src="js/app.js?v=20261004b"></script>
-<script src="js/keyboard.js?v=20261004b"></script>
+<script src="js/seed.js?v=20261004c"></script>
+<script src="js/api.js?v=20261004c"></script>
+<script src="js/data.js?v=20261004c"></script>
+<script src="js/hotkeys.js?v=20261004c"></script>
+<script src="js/app.js?v=20261004c"></script>
+<script src="js/keyboard.js?v=20261004c"></script>
 </body>
 </html>
