@@ -783,13 +783,39 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   font-size:13.5px; font-weight:600; color:var(--tx-2);
 }
 .period .pq.on{ background:var(--acc-soft); border-color:var(--acc-line); color:var(--acc-hi); }
-.period .pd{ display:flex; align-items:center; gap:8px; flex-basis:100%; font-size:13.5px; color:var(--tx-3); }
-.period .pd .btn{ margin-left:auto; }
-.period .pd input{
-  width:150px; height:40px; padding:0 10px; border-radius:var(--r-sm); background:var(--card); border:1px solid var(--line-hi);
-  font-size:14px; font-weight:600; text-align:center;
+.period .pd{ display:flex; align-items:center; gap:8px; flex-basis:100%; font-size:14px; font-weight:600; color:var(--tx-3); }
+.pdate{
+  height:44px; min-width:170px; padding:0 14px; display:flex; align-items:center; gap:10px;
+  background:var(--card); border:1px solid var(--line-hi); border-radius:var(--r-sm);
+  font-size:15px; font-weight:700; color:var(--tx);
 }
-.period .pd .btn{ height:40px; padding:0 16px; }
+.pdate svg{ width:17px; height:17px; color:var(--tx-3); }
+.pdate.on{ border-color:var(--acc); box-shadow:0 0 0 1px var(--acc); }
+
+/* календарь: крупные дни под палец, выбранный период подсвечен */
+.cal{
+  position:fixed; z-index:300; width:336px; padding:10px 12px 12px;
+  background:var(--card); border:1px solid var(--line-hi); border-radius:var(--r-lg);
+  box-shadow:var(--sh-menu); animation:pop .12s ease-out;
+}
+.cal-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.cal-head b{ font-size:16px; font-weight:800; }
+.cal-head .ibtn{ width:44px; height:44px; color:var(--tx-2); }
+.cal-head .ibtn:active{ background:var(--card-act); }
+.cal-head .ibtn:disabled{ opacity:.3; }
+.cal-wd, .cal-days{ display:grid; grid-template-columns:repeat(7,1fr); }
+.cal-wd span{ text-align:center; font-size:11.5px; font-weight:700; color:var(--tx-3); padding:4px 0 6px; }
+.cal-wd span:nth-child(n+6){ color:var(--bad); }
+.cal-days button{
+  height:42px; margin:1px 0; font-size:15px; font-weight:600; color:var(--tx); border-radius:var(--r-xs);
+}
+.cal-days button:active{ background:var(--card-act); }
+.cal-days button.out{ visibility:hidden; }
+.cal-days button.today{ box-shadow:inset 0 0 0 1px var(--line-strong); }
+.cal-days button.in{ background:var(--acc-soft); border-radius:0; }
+.cal-days button.edge{ background:var(--acc); color:var(--acc-ink); font-weight:800; border-radius:var(--r-xs); }
+.cal-days button:disabled{ color:var(--tx-3); opacity:.4; }
+
 
 /* ------------------------- окно начислений пропуска ------------------------- */
 .modal.bens{ max-width:600px; }

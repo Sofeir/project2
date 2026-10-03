@@ -141,6 +141,7 @@ const close = id => {
   const v = $('#' + id);
   v.classList.add('hidden');
   syncPaying();
+  if (id === 'modalUsage') closeCal();   /* календарь живёт поверх окна — уходит вместе с ним */
   /* поле исчезло вместе с окном — виртуальная клавиатура не должна остаться */
   if (typeof VK !== 'undefined') VK.closeIfInside(v);
 };
@@ -1792,15 +1793,24 @@ function renderUsage(items, empty) {
 }
 
 /* ---- за период ---- */
+/* Даты выбирают в календаре, а не набирают: нажали «с» или «по» — под кнопкой
+   открылся месяц, нажали день — отчёт пересчитался. Будущие дни недоступны. */
+const PER = { from: null, to: null };
+const dayStart = d => new Date(d.getFullYear(), d.getMonth(), d.getDate());
+const isoOf = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const ruDate = d => d.toLocaleDateString('ru-RU');
+function renderPeriod() {
+  $('#usageFrom span').textContent = ruDate(PER.from);
+  $('#usageTo span').textContent = ruDate(PER.to);
+}
 function periodPreset(p) {
-  const to = new Date(), from = new Date();
+  const to = dayStart(new Date()), from = dayStart(new Date());
   if (p === 'yesterday') { from.setDate(from.getDate() - 1); to.setDate(to.getDate() - 1); }
   if (p === 'week') from.setDate(from.getDate() - 6);
   if (p === 'month') from.setDate(from.getDate() - 29);
-  $('#usageFrom').value = ruDate(from);
-  $('#usageTo').value = ruDate(to);
+  PER.from = from; PER.to = to;
   $$('#usagePeriod .pq').forEach(b => b.classList.toggle('on', b.dataset.p === p));
+  closeCal();
   loadUsagePeriod();
 }
 function openUsagePeriod() {
@@ -1809,12 +1819,12 @@ function openUsagePeriod() {
   periodPreset('today');
 }
 async function loadUsagePeriod() {
-  const fromText = $('#usageFrom').value, toText = $('#usageTo').value;
-  const from = isoDate(fromText), to = isoDate(toText);
-  if (!from || !to) return toast('Даты периода — в виде ДД.ММ.ГГГГ', 'warn');
+  renderPeriod();
+  const from = isoOf(PER.from), to = isoOf(PER.to);
+  const fromText = ruDate(PER.from), toText = ruDate(PER.to);
   const key = from + to;
-  _usage = { period: true, key, text: fromText === toText ? `за ${fromText}` : `с ${fromText} по ${toText}` };
-  $('#usageSub').textContent = fromText === toText ? fromText : `${fromText} — ${toText}`;
+  _usage = { period: true, key, text: from === to ? `за ${fromText}` : `с ${fromText} по ${toText}` };
+  $('#usageSub').textContent = from === to ? fromText : `${fromText} — ${toText}`;
   $('#usageList').innerHTML = `<div class="none">Загружаю…</div>`;
   try {
     const { items } = await API.usageRange(from, to);
@@ -1826,13 +1836,64 @@ async function loadUsagePeriod() {
   }
 }
 $('#usagePeriod').addEventListener('click', e => {
-  const b = e.target.closest('[data-p]'); if (b) periodPreset(b.dataset.p);
+  const q = e.target.closest('[data-p]'); if (q) return periodPreset(q.dataset.p);
+  const d = e.target.closest('[data-end]'); if (!d) return;
+  e.stopPropagation();
+  if (CAL.end === d.dataset.end && !$('#cal').classList.contains('hidden')) return closeCal();
+  openCal(d);
 });
-$('#btnUsageShow').addEventListener('click', () => {
-  $$('#usagePeriod .pq').forEach(b => b.classList.remove('on'));
-  if (typeof VK !== 'undefined') VK.close();
+
+/* календарь */
+const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+const CAL = { end: null, month: null };
+function openCal(btn) {
+  CAL.end = btn.dataset.end;
+  const d = PER[CAL.end];
+  CAL.month = new Date(d.getFullYear(), d.getMonth(), 1);
+  $$('#usagePeriod .pdate').forEach(b => b.classList.toggle('on', b === btn));
+  renderCal();
+  const c = $('#cal'), r = btn.getBoundingClientRect();
+  c.classList.remove('hidden');
+  const left = Math.min(r.left, innerWidth - c.offsetWidth - 12);
+  const below = r.bottom + 6 + c.offsetHeight < innerHeight;
+  Object.assign(c.style, { left: left + 'px', top: (below ? r.bottom + 6 : Math.max(12, r.top - 6 - c.offsetHeight)) + 'px' });
+}
+function closeCal() {
+  $('#cal').classList.add('hidden');
+  $$('#usagePeriod .pdate').forEach(b => b.classList.remove('on'));
+  CAL.end = null;
+}
+function renderCal() {
+  const m = CAL.month, today = dayStart(new Date());
+  $('#calTitle').textContent = `${MONTHS[m.getMonth()]} ${m.getFullYear()}`;
+  $('#cal [data-m="1"]').disabled = m.getFullYear() === today.getFullYear() && m.getMonth() === today.getMonth();
+  const lead = (m.getDay() + 6) % 7;               /* неделя с понедельника */
+  const days = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate();
+  const from = +PER.from, to = +PER.to;
+  let html = '';
+  for (let i = 0; i < lead; i++) html += '<button class="out" disabled></button>';
+  for (let n = 1; n <= days; n++) {
+    const d = new Date(m.getFullYear(), m.getMonth(), n), t = +d;
+    const cls = [t === +today ? 'today' : '', t > from && t < to ? 'in' : '', t === from || t === to ? 'edge' : ''].join(' ');
+    html += `<button class="${cls}" data-d="${t}" ${t > +today ? 'disabled' : ''}>${n}</button>`;
+  }
+  $('#calDays').innerHTML = html;
+}
+$('#cal').addEventListener('click', e => {
+  e.stopPropagation();
+  const mv = e.target.closest('[data-m]');
+  if (mv && !mv.disabled) { CAL.month.setMonth(CAL.month.getMonth() + Number(mv.dataset.m)); return renderCal(); }
+  const b = e.target.closest('[data-d]'); if (!b || b.disabled) return;
+  const d = new Date(Number(b.dataset.d));
+  /* «с» позже «по» (или наоборот) — второй конец переезжает следом */
+  if (CAL.end === 'from') { PER.from = d; if (d > PER.to) PER.to = d; }
+  else { PER.to = d; if (d < PER.from) PER.from = d; }
+  $$('#usagePeriod .pq').forEach(x => x.classList.remove('on'));
+  closeCal();
   loadUsagePeriod();
 });
+document.addEventListener('click', () => { if (CAL.end) closeCal(); });
+document.addEventListener('mousedown', e => { if (CAL.end && !e.target.closest('#cal, .pdate')) closeCal(); }, true);
 
 /* ---- за смену ---- */
 async function openUsage() {
