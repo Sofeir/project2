@@ -791,6 +791,8 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 }
 .pdate svg{ width:17px; height:17px; color:var(--tx-3); }
 .pdate.on{ border-color:var(--acc); box-shadow:0 0 0 1px var(--acc); }
+/* выбор даты подсвечивается рамкой .on; рамка фокуса после закрытия календаря не нужна — её обрезал край окна */
+.pdate:focus, .pdate:focus-visible{ outline:none; }
 
 /* календарь: крупные дни под палец, выбранный период подсвечен */
 .cal{

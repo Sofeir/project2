@@ -1863,7 +1863,7 @@ function openCal(btn) {
 }
 function closeCal() {
   $('#cal').classList.add('hidden');
-  $$('#usagePeriod .pdate').forEach(b => b.classList.remove('on'));
+  $$('#usagePeriod .pdate').forEach(b => { b.classList.remove('on'); b.blur(); });
   CAL.end = null;
 }
 function applyCal() {
