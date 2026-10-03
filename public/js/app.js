@@ -240,22 +240,9 @@ function setTheme(light) {
   try { localStorage.setItem(THEME_KEY, light ? 'light' : 'dark'); } catch (_) { /* тема просто не запомнится */ }
   renderTheme();
 }
-/* Светлая тема пока в трёх вариантах на выбор заказчика; вариант — тоже
-   свойство терминала. Пункт меню виден только в светлой теме */
-const LIGHT_KEY = 'asoft-pos-light';
-const LIGHT_VARS = { 1: 'Шалфей', 2: 'Песок', 3: 'Яркие плитки' };
-const lightVar = () => Number(document.documentElement.dataset.light) || 1;
-function setLightVar(v) {
-  if (v === 1) delete document.documentElement.dataset.light;
-  else document.documentElement.dataset.light = String(v);
-  try { localStorage.setItem(LIGHT_KEY, String(v)); } catch (_) { /* вариант просто не запомнится */ }
-  renderTheme();
-}
 function renderTheme() {
   $('#themeText').textContent = isLight() ? 'Поменять тему на тёмную' : 'Поменять тему на светлую';
   $('#themeIcon').setAttribute('href', isLight() ? '#i-moon' : '#i-sun');
-  $('#btnLightVar').classList.toggle('hidden', !isLight());
-  $('#lightVarText').textContent = `Светлая тема: ${lightVar()} из 3 · «${LIGHT_VARS[lightVar()]}»`;
 }
 renderTheme();
 /* Настройки кассы — в меню логотипа. Тема и СБП меняют работу кассы для всех
@@ -266,10 +253,6 @@ $('#menuBrand').addEventListener('click', e => {
   if (b.dataset.act === 'theme') return requireAdmin(() => {
     setTheme(!isLight());
     toast(isLight() ? 'Светлая тема' : 'Тёмная тема');
-  });
-  if (b.dataset.act === 'light') return requireAdmin(() => {
-    setLightVar(lightVar() % 3 + 1);
-    toast(`Светлая тема «${LIGHT_VARS[lightVar()]}»`);
   });
   if (b.dataset.act === 'sbp') return requireAdmin(async () => {
     try {

@@ -79,79 +79,83 @@
 }
 
 /* =========================== СВЕТЛАЯ ТЕМА ===============================
-   Не «белый лист с чёрным текстом»: минеральная палитра с лёгким
-   шалфейным оттенком в тон фирменному зелёному. Фон приложения —
-   серо-зелёный, панели — тёплый off-white, чистый белый только у карточек.
-   Текст — графит, не чёрный: меньше бликов и рези в глазах. Смысловые
-   цвета затемнены, чтобы на светлом держать контраст ≥4.5:1. */
+   «Светлый графит»: нейтральный серый без оттенка — та же касса, что
+   в тёмной теме, только светлее. Чисто белого нет: белый лист режет глаза.
+   Текст — глубокий графит, чтобы на сером фоне буквы читались чётко.
+   Смысловые цвета затемнены, чтобы на светлом держать контраст ≥4.5:1. */
 :root{ color-scheme:dark; }
 :root[data-theme="light"]{
   color-scheme:light;
 
-  --bg:        #E7EBE7;
-  --panel:     #F4F6F3;
-  --card:      #FDFEFC;
-  --card-hi:   #EEF2EE;
-  --card-act:  #E2E8E3;
-  --line:      #D8DED9;
-  --line-hi:   #C3CCC6;
-  --line-strong: #7B8782;
-  --veil:      rgba(26,36,32,.40);
+  --bg:        #AFB3B5;
+  --panel:     #C0C3C5;
+  --card:      #CDD0D1;
+  --card-hi:   #C3C6C8;
+  --card-act:  #B4B8BA;
+  --line:      #A3A7A9;
+  --line-hi:   #94989B;
+  --line-strong: #5E6366;
+  --veil:      rgba(20,24,26,.45);
 
-  --tx:        #18211E;
-  --tx-2:      #3E4A46;
-  --tx-3:      #5B6762;
+  --tx:        #15191B;
+  --tx-2:      #30363A;
+  --tx-3:      #434A4E;
 
-  --acc:       #0F8F62;
-  --acc-hi:    #0B7A53;
-  --acc-dim:   rgba(15,143,98,.18);
+  --acc:       #1A8459;
+  --acc-hi:    #0F6544;
+  --acc-dim:   rgba(26,132,89,.22);
   --acc-ink:   #FFFFFF;
-  --acc-soft:  rgba(15,143,98,.09);
-  --acc-line:  rgba(15,143,98,.34);
-  --acc-press: #096A48;
+  --acc-soft:  rgba(26,132,89,.16);
+  --acc-line:  rgba(15,101,68,.42);
+  --acc-press: #13714C;
 
-  --warn:      #A86400;
-  --warn-soft: rgba(214,140,20,.12);
-  --warn-line: rgba(168,100,0,.34);
+  --warn:      #7E520A;
+  --warn-soft: rgba(176,112,16,.16);
+  --warn-line: rgba(126,82,10,.40);
   --warn-ink:  #FFFFFF;
 
-  --bad:       #C2373A;
-  --bad-soft:  rgba(194,55,58,.08);
-  --bad-line:  rgba(194,55,58,.32);
+  --bad:       #9E2D2B;
+  --bad-soft:  rgba(158,45,43,.12);
+  --bad-line:  rgba(158,45,43,.38);
   --bad-ink:   #FFFFFF;
 
-  --m-card:    #2B67D6;
-  --m-card-hi: #2F72EA;
-  --m-qr:      #6C40D6;
-  --m-qr-hi:   #7A4FE6;
-  --m-cash:    #A86400;
+  --m-card:    #2152B0;
+  --m-card-hi: #2A5EC4;
+  --m-qr:      #5634B0;
+  --m-qr-hi:   #6140C2;
+  --m-cash:    #7E520A;
 
-  /* тени мягкие и цветные, а не чёрные пятна */
-  --sh-menu:  0 16px 36px -14px rgba(28,44,38,.28);
-  --sh-modal: 0 36px 80px -30px rgba(28,44,38,.42);
+  /* тени нейтральные, без чёрных пятен */
+  --sh-menu:  0 16px 36px -14px rgba(20,24,26,.40);
+  --sh-modal: 0 36px 80px -30px rgba(20,24,26,.55);
 }
 /* светлые всплывающие слои: та же форма, мягче тень */
-:root[data-theme="light"] .toast{ background:var(--card); box-shadow:0 12px 28px -14px rgba(28,44,38,.42); }
-:root[data-theme="light"] .vk[data-mode="fixed"]{ box-shadow:0 -20px 50px -30px rgba(28,44,38,.45); }
-/* пастельный круг эмблемы на светлом фоне получает тонкий контур */
-:root[data-theme="light"] .brand-emblem{ filter:drop-shadow(0 0 1px rgba(28,44,38,.35)) drop-shadow(0 2px 5px rgba(28,44,38,.12)); }
+:root[data-theme="light"] .toast{ background:var(--card); box-shadow:0 12px 28px -14px rgba(20,24,26,.5); }
+:root[data-theme="light"] .vk[data-mode="fixed"]{ box-shadow:0 -20px 50px -30px rgba(20,24,26,.5); }
 :root[data-theme="light"] .brand-name{ color:var(--tx); }
 /* панели отделяются от фона тонкой тенью — на светлом одних линий мало */
-:root[data-theme="light"] .topbar{ box-shadow:0 1px 0 var(--line), 0 6px 18px -14px rgba(28,44,38,.35); position:relative; z-index:2; }
-:root[data-theme="light"] .tile{ box-shadow:0 1px 2px rgba(28,44,38,.06); }
-:root[data-theme="light"] .tile.combo{
-  background:linear-gradient(155deg, rgba(196,140,40,.16), rgba(196,140,40,.05) 62%, var(--panel));
-  border-color:rgba(168,110,20,.32);
+:root[data-theme="light"] .topbar{ box-shadow:0 1px 0 var(--line), 0 6px 18px -14px rgba(20,24,26,.45); position:relative; z-index:2; }
+:root[data-theme="light"] .tile{ background:var(--card); box-shadow:0 1px 2px rgba(20,24,26,.08); }
+/* группы — тот же градиент, что в тёмной теме: цвет группы в углу плитки
+   уходит в цвет карточки. Чуть насыщеннее, чтобы не сливаться с серым фоном */
+:root[data-theme="light"] .tile.group{
+  background:linear-gradient(158deg, color-mix(in srgb, var(--c) 46%, var(--card)), var(--card) 82%);
+  border-color:color-mix(in srgb, var(--c) 48%, var(--line));
 }
-/* цвета групп подобраны под тёмный фон; на светлом метки и значки
-   затемняем, иначе жёлтый «ГАРНИР» почти не читается */
+@media (hover:hover){ :root[data-theme="light"] .tile.group:hover{ border-color:color-mix(in srgb, var(--c) 70%, var(--line)); } }
+:root[data-theme="light"] .tile.group .gi{ background:color-mix(in srgb, var(--c) 34%, var(--card)); color:color-mix(in srgb, var(--c) 55%, #15191B); }
+:root[data-theme="light"] .tile.group .cnt{ color:var(--tx-2); }
+:root[data-theme="light"] .tile.combo{
+  background:linear-gradient(158deg, rgba(196,140,40,.34), var(--card) 82%);
+  border-color:rgba(140,92,16,.45);
+}
+/* цвета групп подобраны под тёмный фон; на светлом метки затемняем */
 :root[data-theme="light"] .sr .tag,
-:root[data-theme="light"] .pk .tg{ filter:brightness(.62) saturate(1.25); }
-:root[data-theme="light"] .tile.group .gi{ color:color-mix(in srgb, var(--c) 62%, #1A2420); }
+:root[data-theme="light"] .pk .tg{ filter:brightness(.55) saturate(1.25); }
 :root[data-theme="light"] #screen-login{
   background:
-    radial-gradient(720px 460px at 22% 14%, rgba(15,143,98,.12), transparent 62%),
-    radial-gradient(620px 420px at 82% 88%, rgba(15,143,98,.07), transparent 60%),
+    radial-gradient(720px 460px at 22% 14%, rgba(26,132,89,.14), transparent 62%),
+    radial-gradient(620px 420px at 82% 88%, rgba(26,132,89,.08), transparent 60%),
     var(--bg);
 }
 
@@ -1505,66 +1509,3 @@ body.vk-fixed .veil:not(.right) .modal.tall{ height:100%; }
   *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
 }
 
-/* ===================== ВАРИАНТЫ СВЕТЛОЙ ТЕМЫ (на выбор) =====================
-   Три предложения вместо «белого листа». Общее у всех: нет чистого белого,
-   текст графитовый, а не чёрный, плитки групп залиты цветом заметно сильнее —
-   на светлом фоне бледный градиент тёмной темы выглядит грязным.
-   1 «Шалфей» — прохладный серо-зелёный, плитки с насыщенным градиентом.
-   2 «Песок»  — тёплый бумажный, плитки сплошной пастелью с цветной кромкой.
-   3 «Яркие плитки» — нейтрально-холодный фон, группы — яркие цветные блоки
-     с белым текстом, как кнопки на кассовых терминалах. */
-
-/* 1 — Шалфей (по умолчанию) */
-:root[data-theme="light"]{
-  --bg:#D9E0DB; --panel:#ECF0EC; --card:#F5F7F3; --card-hi:#E6ECE7; --card-act:#DAE2DC;
-  --line:#CBD4CE; --line-hi:#B5C0B9;
-  --tx:#26312D; --tx-2:#46534E; --tx-3:#5C6964;
-}
-:root[data-theme="light"] .tile{ background:var(--card); }
-:root[data-theme="light"] .tile.group{
-  background:linear-gradient(150deg, color-mix(in srgb, var(--c) 46%, var(--card)), color-mix(in srgb, var(--c) 14%, var(--card)) 72%);
-  border-color:color-mix(in srgb, var(--c) 50%, var(--line));
-}
-:root[data-theme="light"] .tile.group .gi{ background:color-mix(in srgb, var(--c) 30%, #fff); color:color-mix(in srgb, var(--c) 55%, #1A2420); }
-:root[data-theme="light"] .tile.group .cnt{ color:var(--tx-2); }
-:root[data-theme="light"] .tile.combo{
-  background:linear-gradient(150deg, rgba(214,158,52,.34), rgba(214,158,52,.10) 72%), var(--card);
-  border-color:rgba(168,110,20,.40);
-}
-
-/* 2 — Песок */
-:root[data-theme="light"][data-light="2"]{
-  --bg:#E2DCD0; --panel:#F0EBE2; --card:#F8F5EF; --card-hi:#EDE7DC; --card-act:#E2DACD;
-  --line:#D5CDBF; --line-hi:#C1B7A6;
-  --tx:#2F2A24; --tx-2:#524B42; --tx-3:#6A6257;
-  --acc:#1E8A5E; --acc-hi:#16774F; --acc-press:#11603F;
-}
-:root[data-theme="light"][data-light="2"] .tile.group{
-  background:color-mix(in srgb, var(--c) 30%, var(--card));
-  border-color:color-mix(in srgb, var(--c) 45%, var(--line));
-  box-shadow:inset 5px 0 0 color-mix(in srgb, var(--c) 78%, #2F2A24);
-}
-:root[data-theme="light"][data-light="2"] .tile.group .gi{ background:color-mix(in srgb, var(--c) 70%, #2F2A24); color:#fff; }
-:root[data-theme="light"][data-light="2"] .tile.combo{
-  background:color-mix(in srgb, #D8A64B 26%, var(--card));
-  box-shadow:inset 5px 0 0 #B07B1E;
-}
-
-/* 3 — Яркие плитки */
-:root[data-theme="light"][data-light="3"]{
-  --bg:#DDE3E9; --panel:#EEF1F4; --card:#F7F9FA; --card-hi:#E7ECF0; --card-act:#DCE3E9;
-  --line:#CDD5DC; --line-hi:#B6C1CA;
-  --tx:#22303A; --tx-2:#43525D; --tx-3:#5A6873;
-}
-:root[data-theme="light"][data-light="3"] .tile.group{
-  background:linear-gradient(145deg, color-mix(in srgb, var(--c) 80%, #1C2A33), color-mix(in srgb, var(--c) 58%, #1C2A33));
-  border-color:transparent; color:#fff;
-  box-shadow:0 6px 14px -8px color-mix(in srgb, var(--c) 60%, #1C2A33);
-}
-:root[data-theme="light"][data-light="3"] .tile.group .gi{ background:rgba(255,255,255,.22); color:#fff; }
-:root[data-theme="light"][data-light="3"] .tile.group .cnt{ color:rgba(255,255,255,.86); }
-@media (hover:hover){ :root[data-theme="light"][data-light="3"] .tile.group:hover{ border-color:transparent; filter:brightness(1.06); } }
-:root[data-theme="light"][data-light="3"] .tile.combo{
-  background:linear-gradient(145deg, rgba(214,158,52,.30), rgba(214,158,52,.12)), var(--card);
-  border-color:rgba(168,110,20,.45);
-}
