@@ -129,6 +129,39 @@
   --sh-menu:  0 16px 36px -14px rgba(20,24,26,.40);
   --sh-modal: 0 36px 80px -30px rgba(20,24,26,.55);
 }
+/* Светлые оттенки на выбор: меняется только «поверхность» — фон, панели,
+   карточки, линии и текст. Смысловые цвета (зелёный, янтарь, коралл)
+   общие. Карточки и кнопки лишь чуть светлее панели и в её же оттенке —
+   не белые пятна на сером. Тот же набор переменных красит превью в окне
+   выбора темы, поэтому превью всегда совпадает с настоящей темой. */
+:root[data-theme="light"][data-light="silver"], .th-prev[data-light="silver"]{
+  --bg:#C4C8CB; --panel:#D3D6D8; --card:#DCDFE1; --card-hi:#D0D3D6; --card-act:#C3C7CA;
+  --line:#B6BABD; --line-hi:#A6ABAF; --line-strong:#62686C;
+  --tx:#191E21; --tx-2:#343B3F; --tx-3:#495055;
+}
+:root[data-theme="light"][data-light="slate"], .th-prev[data-light="slate"]{
+  --bg:#C3CCD5; --panel:#D3DAE1; --card:#DCE2E8; --card-hi:#D0D7DE; --card-act:#C2CAD3;
+  --line:#B3BCC6; --line-hi:#A2ACB7; --line-strong:#5E6873;
+  --tx:#18212A; --tx-2:#33404E; --tx-3:#475463;
+}
+:root[data-theme="light"][data-light="mint"], .th-prev[data-light="mint"]{
+  --bg:#C5D1CB; --panel:#D5DFDA; --card:#DEE6E2; --card-hi:#D2DCD7; --card-act:#C4D0CA;
+  --line:#B4C1BA; --line-hi:#A4B2AB; --line-strong:#5F6D66;
+  --tx:#17221D; --tx-2:#324039; --tx-3:#46544D;
+}
+:root[data-theme="light"][data-light="pearl"], .th-prev[data-light="pearl"]{
+  --bg:#D0CFC9; --panel:#DEDDD7; --card:#E6E5DF; --card-hi:#DAD9D3; --card-act:#CDCCC5;
+  --line:#C0BFB8; --line-hi:#B0AFA7; --line-strong:#67665F;
+  --tx:#1E1E1A; --tx-2:#393933; --tx-3:#4F4F48;
+}
+:root[data-theme="light"][data-light="cloud"], .th-prev[data-light="cloud"]{
+  --bg:#D4DADF; --panel:#E2E6EA; --card:#E9EDF0; --card-hi:#DEE3E7; --card-act:#D2D8DD;
+  --line:#C6CDD3; --line-hi:#B5BEC6; --line-strong:#646F79;
+  --tx:#1A232B; --tx-2:#36424D; --tx-3:#4A5662;
+}
+.th-prev[data-light="graphite"]{ --bg:#AFB3B5; --panel:#C0C3C5; --card:#CDD0D1; --line:#A3A7A9; --tx:#15191B; }
+.th-prev[data-light="dark"]{ --bg:#171C1E; --panel:#1E2427; --card:#262D30; --line:#2C3437; --tx:#E8EEEC; }
+
 /* светлые всплывающие слои: та же форма, мягче тень */
 :root[data-theme="light"] .toast{ background:var(--card); box-shadow:0 12px 28px -14px rgba(20,24,26,.5); }
 :root[data-theme="light"] .vk[data-mode="fixed"]{ box-shadow:0 -20px 50px -30px rgba(20,24,26,.5); }
@@ -754,6 +787,34 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .pay .methods.no-sbp .m-card{ grid-column:1 / -1; }
 /* «Оплаты частями» нет (уже в частях или возврат) — наличные одни в строке, во всю ширину */
 .pay .methods.cash-wide .m-cash{ grid-column:1 / -1; }
+
+/* ------------------------------ выбор темы ------------------------------ */
+.modal.themes{ max-width:860px; }
+.themes-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+.th{
+  display:flex; flex-direction:column; gap:8px; padding:10px 10px 12px; text-align:left;
+  background:var(--card); border:2px solid var(--line); border-radius:var(--r-md); transition:border-color .1s;
+}
+.th:active{ transform:scale(.985); }
+.th.on{ border-color:var(--acc); background:var(--acc-soft); }
+.th b{ font-size:15px; font-weight:800; display:flex; align-items:center; gap:6px; }
+.th b svg{ width:16px; height:16px; color:var(--acc); display:none; }
+.th.on b svg{ display:block; }
+.th > span:last-child{ font-size:12px; color:var(--tx-3); line-height:1.35; }
+/* мини-экран кассы: чек слева, плитки групп и кнопка «Оплатить» */
+.th-prev{
+  display:grid; grid-template-columns:38% 1fr; gap:5px; height:92px; padding:5px; border-radius:var(--r-sm);
+  background:var(--bg); border:1px solid var(--line);
+}
+.th-prev .pc{ background:var(--panel); border-radius:6px; padding:5px; display:flex; flex-direction:column; gap:4px; }
+.th-prev .pc i{ height:11px; border-radius:3px; background:var(--card); border:1px solid var(--line); display:block; }
+.th-prev .pc i.pay{ margin-top:auto; height:15px; background:#22A374; border:none; }
+.th-prev .pg{ display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:1fr; gap:4px; }
+.th-prev .pg i{
+  border-radius:6px; display:block; border:1px solid color-mix(in srgb, var(--c) 45%, var(--line));
+  background:linear-gradient(158deg, color-mix(in srgb, var(--c) 46%, var(--card)), var(--card) 82%);
+}
+.th-prev[data-light="dark"] .pg i{ background:linear-gradient(158deg, color-mix(in srgb, var(--c) 17%, var(--panel)), var(--panel) 78%); }
 
 /* ------------------------- окно начислений пропуска ------------------------- */
 .modal.bens{ max-width:600px; }
