@@ -1844,8 +1844,8 @@ $('#usagePeriod').addEventListener('click', e => {
 });
 
 /* календарь: период выбирают двумя нажатиями в одном месяце — первое число
-   и последнее, дни между ними подсвечиваются, и отчёт сразу пересчитывается.
-   Один день — нажать его и «Готово». Нажатие мимо календаря — отмена. */
+   и последнее, дни между ними подсвечиваются. Отчёт строится только по «Готово»:
+   сам календарь не закрывается. Один день — нажать его и «Готово». */
 const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
 const CAL = { end: null, month: null, from: null, to: null, picking: false };
 function openCal(btn) {
@@ -1888,7 +1888,7 @@ function renderCal() {
   }
   $('#calDays').innerHTML = html;
   const one = +CAL.from === +CAL.to;
-  $('#calHint').textContent = CAL.picking ? `С ${ruDate(CAL.from)} — нажмите последний день или «Готово»`
+  $('#calHint').textContent = CAL.picking ? `С ${ruDate(CAL.from)} — нажмите последний день`
     : one ? ruDate(CAL.from) : `${ruDate(CAL.from)} — ${ruDate(CAL.to)}`;
 }
 $('#cal').addEventListener('click', e => {
@@ -1906,8 +1906,7 @@ $('#cal').addEventListener('click', e => {
   /* второе — конец периода; нажали раньше начала — меняем местами */
   if (d < CAL.from) { CAL.to = CAL.from; CAL.from = d; } else CAL.to = d;
   CAL.picking = false;
-  renderCal();
-  setTimeout(applyCal, 180);   /* даём увидеть выделенный период */
+  renderCal();                 /* календарь не закрывается сам — отчёт по «Готово» */
 });
 document.addEventListener('click', () => { if (CAL.end) closeCal(); });
 document.addEventListener('mousedown', e => { if (CAL.end && !e.target.closest('#cal, .pdate')) closeCal(); }, true);
