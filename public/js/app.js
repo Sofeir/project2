@@ -559,9 +559,12 @@ function renderCheck() {
         ${sel ? '' : qtyTag}
         <div class="row-sum num">${money(lineSum(r))}</div>
       </div>
-      ${sel ? `<div class="row-price">${r.weight ? `${money(r.price)} за кг` : `${money(r.price)} за ${r.unit || 'шт'}`}</div>
-      <div class="row-acts">
+      ${sel ? `<div class="row-bot">
+        <div class="row-price">${r.weight ? `${money(r.price)} за кг` : `${money(r.price)} за ${r.unit || 'шт'}`}</div>
         ${stepper}
+      </div>
+      <div class="row-acts">
+        <button data-act="qty" data-uid="${r.uid}"><svg><use href="#${r.weight ? 'i-scale' : 'i-plus'}"/></svg>${r.weight ? 'Указать вес' : 'Количество'}</button>
         ${r.weight ? '' : `<button class="half" data-act="half" data-uid="${r.uid}" aria-label="Половина порции">½</button>`}
         <button class="danger" data-act="del" data-uid="${r.uid}"><svg><use href="#i-trash"/></svg>Удалить</button>
       </div>` : ''}
