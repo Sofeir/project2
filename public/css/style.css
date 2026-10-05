@@ -263,10 +263,6 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .brand-btn.on{ background:var(--card); }
 .brand-btn:active{ background:var(--card-act); }
 /* только значок, без фона и рамки — как «Отложенные» и «Операции» */
-.topbar .setup-btn{ background:transparent; border:1px solid var(--line-hi); border-radius:50%; color:var(--tx-2); margin-right:6px; }
-@media (hover:hover){ .topbar .setup-btn:hover{ background:var(--card); color:var(--tx); border-color:var(--acc-line); } }
-.topbar .setup-btn:active{ background:var(--card-act); }
-.setup-btn svg{ width:18px; height:18px; }
 .sep{ width:1px; height:26px; background:var(--line); margin:0 10px; flex:none; }
 .spacer{ flex:1; }
 
@@ -297,6 +293,10 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .clock span{ font-size:11.5px; color:var(--tx-3); }
 
 .topbar .chip + .chip{ margin-left:6px; }
+/* «Касса №13» и под ней мелко — кассир смены */
+.chip.chip-reg{ flex-direction:column; align-items:flex-start; justify-content:center; gap:1px; height:40px; line-height:1.15; }
+.chip-reg b{ font-size:12.5px; font-weight:600; color:var(--tx-2); }
+.chip-reg small{ font-size:10.5px; font-weight:500; color:var(--tx-3); white-space:nowrap; }
 
 .ibtn{
   width:38px; height:38px; border-radius:var(--r-sm); color:var(--tx-3);
@@ -865,6 +865,10 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .bens-sum .bs.acc span, .bens-sum .bs.acc b{ color:var(--acc-hi); }
 .bens-sum .bs.warn{ background:var(--warn-soft); border-color:var(--warn-line); }
 .bens-sum .bs.warn span, .bens-sum .bs.warn b{ color:var(--warn); }
+/* справка по пропуску: три колонки — начисление, стоимость, доступно */
+.bens-list.info .bn-head, .bens-list.info .bn-row{ grid-template-columns:minmax(0,1fr) 110px 110px; }
+.bens-list.info .bn-head span:nth-child(2), .bens-list.info .bn-head span:nth-child(3){ text-align:center; }
+.bens-list.info .bn-head span:last-child{ text-align:center; }
 .modal.bens .m-foot{ border-top:none; }
 .modal.bens .m-foot .btn{ height:58px; }
 

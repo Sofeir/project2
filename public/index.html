@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800;900&display=swap">
-<link rel="stylesheet" href="css/style.css?v=20261004h">
+<link rel="stylesheet" href="css/style.css?v=20261005a">
 <!-- тему ставим до первой отрисовки, иначе светлая касса на миг мигнёт тёмной -->
 <script>try { const t = localStorage.getItem('asoft-pos-theme'); if (t && t !== 'dark') document.documentElement.dataset.theme = 'light'; } catch (_) {}</script>
 </head>
@@ -128,6 +128,8 @@
         <button data-act="out"><svg><use href="#i-out"/></svg><span><span class="mt">Изъять наличные</span><span class="mh">Инкассация</span></span></button>
         <button data-act="drawer"><svg><use href="#i-box"/></svg><span class="mt">Открыть денежный ящик</span></button>
         <button data-act="reports"><svg><use href="#i-shift"/></svg><span><span class="mt">Отчёты</span><span class="mh">Чеки смены, расход блюд</span></span></button>
+        <button data-act="bank"><svg><use href="#i-cash"/></svg><span><span class="mt">Банк</span><span class="mh">Сводный отчёт · закрытие дня</span></span></button>
+        <button data-act="hk"><svg><use href="#i-grip"/></svg><span><span class="mt">Настроить горячие клавиши</span><span class="mh">Группы и товары на витрине кассира</span></span></button>
         <div class="menu-sep"></div>
         <button data-act="z" class="danger"><svg><use href="#i-lock"/></svg><span><span class="mt">Закрыть смену</span><span class="mh">Z-отчёт с гашением</span></span></button>
       </div>
@@ -135,15 +137,8 @@
 
     <div class="spacer"></div>
 
-    <div class="drop" id="dropSetup">
-      <button class="ibtn setup-btn" id="btnSetup" title="Настройки кассы"><svg><use href="#i-grip"/></svg></button>
-      <div class="menu right hidden" id="menuSetup">
-        <button data-act="hk"><span><span class="mt">Настроить горячие клавиши</span><span class="mh">Группы и товары на витрине кассира</span></span></button>
-      </div>
-    </div>
-
     <div class="chip"><span class="dot"></span>ФН активен</div>
-    <div class="chip" id="topRegister">Касса №13</div>
+    <div class="chip chip-reg" id="topRegister"><b id="topRegisterNo">Касса №13</b><small id="topCashier">Кассир</small></div>
     <div class="clock">
       <b class="num" id="clockTime">--:--:--</b>
       <span id="clockMeta">Смена №33 · 0 чеков</span>
@@ -344,6 +339,27 @@
     <div class="m-foot">
       <button class="btn" data-close style="flex:1">Отмена</button>
       <button class="btn btn-primary" id="btnBensOk" style="flex:1.6">Продолжить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ СПРАВКА ПО ПРОПУСКУ ============================ -->
+<!-- Пропуск приложен вне оплаты (F8): только справка — что есть на пропуске.
+     Ничего не списывается; окно закрывают крестиком или «Выход». -->
+<div class="veil hidden" id="modalPassInfo">
+  <div class="modal bens">
+    <div class="m-head">
+      <div class="bens-owner">
+        <span class="pi"><svg><use href="#i-badge"/></svg></span>
+        <div><h3 id="infoOwner">—</h3><div class="hsub num" id="infoNumber">Пропуск</div></div>
+      </div>
+      <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="m-body">
+      <div class="bens-list info" id="infoList"></div>
+    </div>
+    <div class="m-foot">
+      <button class="btn btn-primary" data-close style="flex:1">Выход</button>
     </div>
   </div>
 </div>
@@ -784,11 +800,11 @@
 
 <div id="toasts"></div>
 
-<script src="js/seed.js?v=20261004h"></script>
-<script src="js/api.js?v=20261004h"></script>
-<script src="js/data.js?v=20261004h"></script>
-<script src="js/hotkeys.js?v=20261004h"></script>
-<script src="js/app.js?v=20261004h"></script>
-<script src="js/keyboard.js?v=20261004h"></script>
+<script src="js/seed.js?v=20261005a"></script>
+<script src="js/api.js?v=20261005a"></script>
+<script src="js/data.js?v=20261005a"></script>
+<script src="js/hotkeys.js?v=20261005a"></script>
+<script src="js/app.js?v=20261005a"></script>
+<script src="js/keyboard.js?v=20261005a"></script>
 </body>
 </html>

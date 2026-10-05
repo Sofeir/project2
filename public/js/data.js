@@ -11,7 +11,7 @@ let DISCOUNTS  = [{ id: 'none', name: 'Без скидки', percent: 0 }];
 
 /* PIN и рабочее место остаются на стороне терминала: это настройка кассы,
    а не данные номенклатуры. Номер кассы уточняется из открытой смены. */
-const CASHIER = { pin: '1234', register: 13 };
+const CASHIER = { pin: '1234', register: 13, name: 'Смирнова Е. В.' };
 const SHIFT   = { number: 0, openedAt: '--:--', openingCash: 0 };
 
 function applyCatalog(data) {

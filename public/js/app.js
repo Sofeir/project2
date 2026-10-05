@@ -206,7 +206,12 @@ function applyState(st) {
     discount: p.payload?.discount || null,
   }));
 
-  const reg = $('#topRegister'); if (reg) reg.textContent = `Касса №${CASHIER.register}`;
+  renderRegister();
+}
+/* «Касса №13» и под ней — кассир, который открыл смену */
+function renderRegister() {
+  $('#topRegisterNo').textContent = `Касса №${CASHIER.register}`;
+  $('#topCashier').textContent = CASHIER.name;
 }
 
 /* ------------------------- выпадающие меню ------------------------------ */
@@ -227,7 +232,6 @@ document.addEventListener('click', () => {
 bindDrop('btnShift', 'menuShift');
 bindDrop('opBadge', 'menuOps');
 bindDrop('btnCheckMore', 'menuCheck');
-bindDrop('btnSetup', 'menuSetup');
 bindDrop('btnBrand', 'menuBrand');
 
 /* ------------------------------- тема ----------------------------------- */
@@ -304,12 +308,6 @@ $('#menuOps').addEventListener('click', e => {
    касания во время смены. */
 let admBuf = '', admThen = null;
 
-$('#menuSetup').addEventListener('click', e => {
-  const b = e.target.closest('[data-act]'); if (!b) return;
-  b.blur();
-  if (b.dataset.act === 'hk') return requireAdmin(() => HK.openEditor());
-});
-
 /* СБП пока не подключена на всех кассах: администратор прячет кнопку,
    и тогда «Безнал» занимает всю строку */
 function renderSbp() {
@@ -352,9 +350,9 @@ function tick() {
 setInterval(tick, 1000); tick();
 
 /* ================================ ВХОД =================================== */
-/* В интерфейсе показываем только рабочее место — имя кассира не выводится */
+/* На экране входа — только рабочее место; кассир виден в шапке после входа */
 $('#loginRegister').textContent = `Касса №${CASHIER.register}`;
-$('#topRegister').textContent = `Касса №${CASHIER.register}`;
+renderRegister();
 
 function renderPin() {
   $$('#pinDots i').forEach((d, i) => d.classList.toggle('on', i < S.pin.length));
@@ -1121,18 +1119,33 @@ function passChanged() {
 /* ------------------------------- пропуск -------------------------------- */
 /* Ридера пропусков в прототипе нет: его заменяет клавиша F8 — «пропуск
    приложен». Каждое следующее нажатие прикладывает другой тестовый пропуск.
-   Пропуск сразу открывает отдельное окно начислений: кассир выбирает,
-   сколько штук каждого списать, и только по «Продолжить» возвращается
-   к оплате — уже с выбранным и суммой к доплате. */
+   В оплате пропуск открывает окно начислений: кассир выбирает, сколько штук
+   каждого списать, и только по «Продолжить» возвращается к оплате — уже
+   с выбранным и суммой к доплате. Вне оплаты пропуск даёт только справку:
+   что и сколько на нём доступно, без списания. */
 let _testPass = -1;
 async function attachPass(number) {
   try {
     const info = await API.pass(number);
-    if (sheetHidden()) return;
+    if (sheetHidden()) return openPassInfo(info);
     openBens(info, {});
   } catch (err) {
     toast(err.message, 'bad');
   }
+}
+function openPassInfo(info) {
+  $('#infoOwner').textContent = info.owner;
+  $('#infoNumber').textContent = 'Пропуск № ' + info.number;
+  $('#infoList').innerHTML = info.benefits.length ? `
+    <div class="bn-head"><span>Начисление</span><span>Стоимость</span><span>Доступно</span></div>` +
+    info.benefits.map(b => `
+      <div class="bn-row">
+        <div class="bn-name"><b>${b.name}</b></div>
+        <div class="bn-avail num">${money(b.price)}</div>
+        <div class="bn-avail num">${b.count}</div>
+      </div>`).join('')
+    : `<div class="bn-none">На пропуске нет начислений</div>`;
+  open('modalPassInfo');
 }
 
 const benefitPrice = id => ((typeof SEED !== 'undefined' && SEED.BENEFITS.find(b => b.id === id)) || { price: 0 }).price;
@@ -1194,15 +1207,11 @@ const sheetHidden = () => $('#sheetPay').classList.contains('hidden');
 document.addEventListener('keydown', e => {
   if (e.key !== 'F8') return;
   e.preventDefault();
-  if (e.repeat || paying || isRefund()) return;
+  if (e.repeat || paying || (isRefund() && !sheetHidden())) return;
   if ($('#screen-main').classList.contains('hidden')) return;
-  /* пропуск прикладывают к открытой оплате или прямо к набранному чеку */
+  /* пропуск прикладывают к открытой оплате или просто к кассе — за справкой */
   const top = topVeil();
   if (top && top.id !== 'sheetPay') return;
-  if (sheetHidden()) {
-    if (!S.cart.length) return toast('Чек пуст — сначала добавьте блюда', 'warn');
-    openPay();
-  }
   const list = SEED.PASSES;
   _testPass = (_testPass + 1) % list.length;
   attachPass(list[_testPass].number);
@@ -1958,6 +1967,8 @@ $('#menuShift').addEventListener('click', e => {
   const a = b.dataset.act;
   if (a === 'drawer') return toast('Денежный ящик открыт');
   if (a === 'reports') return open('modalReports');
+  if (a === 'hk') { b.blur(); return requireAdmin(() => HK.openEditor()); }
+  if (a === 'bank') return openReport('bank');
   if (a === 'in' || a === 'out') return openCash(a);
   if (a === 'x') return openReport('x');
   if (a === 'z') return openReport('z');
@@ -1998,8 +2009,8 @@ $('#btnCashOk').addEventListener('click', async () => {
 });
 
 function openReport(mode) {
-  const z = mode === 'z';
-  $('#repTitle').textContent = z ? 'Закрытие смены · Z-отчёт' : 'X-отчёт';
+  const z = mode === 'z', bank = mode === 'bank';
+  $('#repTitle').textContent = z ? 'Закрытие смены · Z-отчёт' : bank ? 'Банк · сводный отчёт' : 'X-отчёт';
   $('#repSub').textContent = `Смена №${S.shiftNo} · открыта в ${S.openedAt} · касса №${CASHIER.register}`;
   $('#repChecks').textContent = S.history.filter(h => h.type === 'sale').length;
   $('#repRevenue').textContent = money(revenue());
@@ -2019,7 +2030,7 @@ function openReport(mode) {
   $('#repVerdict').innerHTML = '';
   $('#repFoot').innerHTML = z
     ? `<button class="btn" data-close style="flex:1">Отмена</button><button class="btn btn-danger" id="btnZ" style="flex:1.4">Закрыть смену</button>`
-    : `<button class="btn" data-close style="flex:1"><svg><use href="#i-print"/></svg>Печать X-отчёта</button><button class="btn btn-primary" data-close style="flex:1">Готово</button>`;
+    : `<button class="btn" data-close style="flex:1"><svg><use href="#i-print"/></svg>${bank ? 'Печать отчёта' : 'Печать X-отчёта'}</button><button class="btn btn-primary" data-close style="flex:1">Готово</button>`;
   $$('#repFoot [data-close]').forEach(b => b.addEventListener('click', () => close('modalReport')));
   const zb = $('#btnZ');
   if (zb) zb.addEventListener('click', closeShift);
