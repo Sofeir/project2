@@ -131,6 +131,8 @@
 }
 /* «Тёплая»: те же панели и карточки, что у светлой, но фон за ними — тёплый серый */
 :root[data-theme="light"][data-light="warm"]{ --bg:#D5D5D3; }
+/* на экране входа зелёные пятна света на тёплом сером смотрятся грязно — фон ровный */
+:root[data-theme="light"][data-light="warm"] #screen-login{ background:var(--bg); }
 
 /* светлые всплывающие слои: та же форма, мягче тень */
 :root[data-theme="light"] .toast{ background:var(--card); box-shadow:0 12px 28px -14px rgba(20,24,26,.5); }
