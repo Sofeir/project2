@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800;900&display=swap">
-<link rel="stylesheet" href="css/style.css?v=20261005a">
+<link rel="stylesheet" href="css/style.css?v=20261005b">
 <!-- тему ставим до первой отрисовки, иначе светлая касса на миг мигнёт тёмной -->
 <script>try { const t = localStorage.getItem('asoft-pos-theme'); if (t && t !== 'dark') document.documentElement.dataset.theme = 'light'; } catch (_) {}</script>
 </head>
@@ -123,13 +123,13 @@
     <div class="drop" id="dropShift">
       <button class="tbtn" id="btnShift"><svg><use href="#i-shift"/></svg>Операции<svg class="chev"><use href="#i-chev"/></svg></button>
       <div class="menu hidden" id="menuShift">
+        <button data-act="hk"><svg><use href="#i-grip"/></svg><span><span class="mt">Настроить горячие клавиши</span><span class="mh">Группы и товары на витрине кассира</span></span></button>
         <button data-act="x"><svg><use href="#i-print"/></svg><span><span class="mt">X-отчёт</span><span class="mh">Промежуточный, смена не закрывается</span></span></button>
         <button data-act="in"><svg><use href="#i-in"/></svg><span><span class="mt">Внести наличные</span><span class="mh">Размен, довнесение</span></span></button>
         <button data-act="out"><svg><use href="#i-out"/></svg><span><span class="mt">Изъять наличные</span><span class="mh">Инкассация</span></span></button>
         <button data-act="drawer"><svg><use href="#i-box"/></svg><span class="mt">Открыть денежный ящик</span></button>
         <button data-act="reports"><svg><use href="#i-shift"/></svg><span><span class="mt">Отчёты</span><span class="mh">Чеки смены, расход блюд</span></span></button>
         <button data-act="bank"><svg><use href="#i-cash"/></svg><span><span class="mt">Банк</span><span class="mh">Сводный отчёт · закрытие дня</span></span></button>
-        <button data-act="hk"><svg><use href="#i-grip"/></svg><span><span class="mt">Настроить горячие клавиши</span><span class="mh">Группы и товары на витрине кассира</span></span></button>
         <div class="menu-sep"></div>
         <button data-act="z" class="danger"><svg><use href="#i-lock"/></svg><span><span class="mt">Закрыть смену</span><span class="mh">Z-отчёт с гашением</span></span></button>
       </div>
@@ -800,11 +800,11 @@
 
 <div id="toasts"></div>
 
-<script src="js/seed.js?v=20261005a"></script>
-<script src="js/api.js?v=20261005a"></script>
-<script src="js/data.js?v=20261005a"></script>
-<script src="js/hotkeys.js?v=20261005a"></script>
-<script src="js/app.js?v=20261005a"></script>
-<script src="js/keyboard.js?v=20261005a"></script>
+<script src="js/seed.js?v=20261005b"></script>
+<script src="js/api.js?v=20261005b"></script>
+<script src="js/data.js?v=20261005b"></script>
+<script src="js/hotkeys.js?v=20261005b"></script>
+<script src="js/app.js?v=20261005b"></script>
+<script src="js/keyboard.js?v=20261005b"></script>
 </body>
 </html>

@@ -1968,7 +1968,7 @@ $('#menuShift').addEventListener('click', e => {
   if (a === 'drawer') return toast('Денежный ящик открыт');
   if (a === 'reports') return open('modalReports');
   if (a === 'hk') { b.blur(); return requireAdmin(() => HK.openEditor()); }
-  if (a === 'bank') return openReport('bank');
+  if (a === 'bank') return reconcile();
   if (a === 'in' || a === 'out') return openCash(a);
   if (a === 'x') return openReport('x');
   if (a === 'z') return openReport('z');
@@ -2009,8 +2009,8 @@ $('#btnCashOk').addEventListener('click', async () => {
 });
 
 function openReport(mode) {
-  const z = mode === 'z', bank = mode === 'bank';
-  $('#repTitle').textContent = z ? 'Закрытие смены · Z-отчёт' : bank ? 'Банк · сводный отчёт' : 'X-отчёт';
+  const z = mode === 'z';
+  $('#repTitle').textContent = z ? 'Закрытие смены · Z-отчёт' : 'X-отчёт';
   $('#repSub').textContent = `Смена №${S.shiftNo} · открыта в ${S.openedAt} · касса №${CASHIER.register}`;
   $('#repChecks').textContent = S.history.filter(h => h.type === 'sale').length;
   $('#repRevenue').textContent = money(revenue());
@@ -2030,7 +2030,7 @@ function openReport(mode) {
   $('#repVerdict').innerHTML = '';
   $('#repFoot').innerHTML = z
     ? `<button class="btn" data-close style="flex:1">Отмена</button><button class="btn btn-danger" id="btnZ" style="flex:1.4">Закрыть смену</button>`
-    : `<button class="btn" data-close style="flex:1"><svg><use href="#i-print"/></svg>${bank ? 'Печать отчёта' : 'Печать X-отчёта'}</button><button class="btn btn-primary" data-close style="flex:1">Готово</button>`;
+    : `<button class="btn" data-close style="flex:1"><svg><use href="#i-print"/></svg>Печать X-отчёта</button><button class="btn btn-primary" data-close style="flex:1">Готово</button>`;
   $$('#repFoot [data-close]').forEach(b => b.addEventListener('click', () => close('modalReport')));
   const zb = $('#btnZ');
   if (zb) zb.addEventListener('click', closeShift);
@@ -2044,6 +2044,10 @@ $('#repRecount').addEventListener('input', e => {
     ? `<div class="verdict ok"><span>Расхождений нет</span><span class="num">${money(v)}</span></div>`
     : `<div class="verdict warn"><span>${diff > 0 ? 'Излишек' : 'Недостача'}</span><span class="num">${money(Math.abs(diff))}</span></div>`;
 });
+/* «Банк»: сверка итогов за день — смена остаётся открытой */
+function reconcile() {
+  ask('Сверка итогов', `Итоги смены будут сведены в сводный отчёт, выручка <b>${money(revenue())}</b>. Смена останется открытой.`, 'Сверить итоги', () => toast('Сверка итогов выполнена'));
+}
 function closeShift() {
   const counted = parseInt(($('#repRecount').value || '').replace(/\D/g, ''), 10);
   close('modalReport');
