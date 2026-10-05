@@ -261,13 +261,39 @@ function renderTheme() {
   $('#themeIcon').setAttribute('href', t.id === 'dark' ? '#i-moon' : '#i-sun');
   $('#themesGrid').innerHTML = THEMES.map(x => `
     <button class="th ${x.id === t.id ? 'on' : ''}" data-t="${x.id}">
-      <span class="th-prev" data-light="${x.id}">
-        <span class="pc"><i></i><i></i><i class="pay"></i></span>
-        <span class="pg"><i style="--c:#7C76AE"></i><i style="--c:#A9805C"></i><i style="--c:#5A82AA"></i><i style="--c:#5C9670"></i></span>
-      </span>
+      <img class="th-prev" src="${themePreview(x.id)}" width="160" height="92" alt="">
       <b>${x.name}<svg><use href="#i-check"/></svg></b>
       <span>${x.note}</span>
     </button>`).join('');
+}
+/* Мини-экран кассы — картинка (SVG), а не вёрстка: у картинки есть свой размер,
+   и она выглядит одинаково в любом браузере, не завися от раскладки вокруг. */
+const PREVIEW = {
+  dark:  { bg: '#171C1E', panel: '#1E2427', card: '#262D30', line: '#2C3437', tile: 17, base: 'panel' },
+  light: { bg: '#C3CCD5', panel: '#D3DAE1', card: '#DCE2E8', line: '#B3BCC6', tile: 46, base: 'card' },
+  warm:  { bg: '#D5D5D3', panel: '#D3DAE1', card: '#DCE2E8', line: '#B3BCC6', tile: 46, base: 'card' },
+};
+const PREVIEW_TILES = ['#7C76AE', '#A9805C', '#5A82AA', '#5C9670'];
+function mixHex(a, b, pa) {   // pa % цвета a, остальное — b
+  const n = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const [x, y] = [n(a), n(b)];
+  return '#' + x.map((v, i) => Math.round(v * pa / 100 + y[i] * (100 - pa) / 100).toString(16).padStart(2, '0')).join('');
+}
+function themePreview(id) {
+  const p = PREVIEW[id] || PREVIEW.dark;
+  const base = p[p.base];
+  const tiles = PREVIEW_TILES.map((c, i) => {
+    const x = 66 + (i % 2) * 44.5, y = 5 + Math.floor(i / 2) * 43;
+    return `<linearGradient id="g${i}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${mixHex(c, base, p.tile)}"/><stop offset=".82" stop-color="${base}"/></linearGradient>` +
+      `<rect x="${x}" y="${y}" width="40.5" height="39" rx="6" fill="url(#g${i})" stroke="${mixHex(c, p.line, 45)}"/>`;
+  }).join('');
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="92" viewBox="0 0 160 92">` +
+    `<rect x=".5" y=".5" width="159" height="91" rx="9.5" fill="${p.bg}" stroke="${p.line}"/>` +
+    `<rect x="5" y="5" width="56" height="82" rx="6" fill="${p.panel}"/>` +
+    `<rect x="10.5" y="10.5" width="45" height="11" rx="3" fill="${p.card}" stroke="${p.line}"/>` +
+    `<rect x="10.5" y="25.5" width="45" height="11" rx="3" fill="${p.card}" stroke="${p.line}"/>` +
+    `<rect x="10" y="67" width="46" height="15" rx="3" fill="#22A374"/>` + tiles + `</svg>`;
+  return 'data:image/svg+xml,' + encodeURIComponent(svg);
 }
 renderTheme();
 $('#themesGrid').addEventListener('click', e => {
