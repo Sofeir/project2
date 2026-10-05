@@ -1967,7 +1967,7 @@ $('#menuShift').addEventListener('click', e => {
   const a = b.dataset.act;
   if (a === 'drawer') return toast('Денежный ящик открыт');
   if (a === 'reports') return open('modalReports');
-  if (a === 'hk') { b.blur(); return requireAdmin(() => HK.openEditor()); }
+  if (a === 'hk') { b.blur(); return HK.openEditor(); }
   if (a === 'bank') return reconcile();
   if (a === 'in' || a === 'out') return openCash(a);
   if (a === 'x') return openReport('x');
