@@ -1971,7 +1971,7 @@ $('#menuShift').addEventListener('click', e => {
   if (a === 'bank') return reconcile();
   if (a === 'in' || a === 'out') return openCash(a);
   if (a === 'x') return openReport('x');
-  if (a === 'z') return openReport('z');
+  if (a === 'z') return closeShift();
 });
 
 function openCash(mode) {
