@@ -129,6 +129,9 @@
   --sh-menu:  0 16px 36px -14px rgba(20,24,26,.40);
   --sh-modal: 0 36px 80px -30px rgba(20,24,26,.55);
 }
+/* «Тёплая»: те же панели и карточки, что у светлой, но фон за ними — тёплый серый */
+:root[data-theme="light"][data-light="warm"]{ --bg:#D5D5D3; }
+
 /* светлые всплывающие слои: та же форма, мягче тень */
 :root[data-theme="light"] .toast{ background:var(--card); box-shadow:0 12px 28px -14px rgba(20,24,26,.5); }
 :root[data-theme="light"] .vk[data-mode="fixed"]{ box-shadow:0 -20px 50px -30px rgba(20,24,26,.5); }
@@ -1580,3 +1583,35 @@ body.vk-fixed .veil:not(.right) .modal.tall{ height:100%; }
 @media (prefers-reduced-motion: reduce){
   *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
 }
+
+/* ------------------------------ выбор темы ------------------------------ */
+.modal.themes{ max-width:640px; }
+.themes-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.th{
+  display:flex; flex-direction:column; gap:8px; padding:10px 10px 12px; text-align:left;
+  background:var(--card); border:2px solid var(--line); border-radius:var(--r-md); transition:border-color .1s;
+}
+.th:active{ transform:scale(.985); }
+.th.on{ border-color:var(--acc); background:var(--acc-soft); }
+.th b{ font-size:15px; font-weight:800; display:flex; align-items:center; gap:6px; }
+.th b svg{ width:16px; height:16px; color:var(--acc); display:none; }
+.th.on b svg{ display:block; }
+.th > span:last-child{ font-size:12px; color:var(--tx-3); line-height:1.35; }
+/* мини-экран кассы: чек слева, плитки групп и кнопка «Оплатить» */
+.th-prev{
+  display:grid; grid-template-columns:38% 1fr; gap:5px; height:92px; padding:5px; border-radius:var(--r-sm);
+  background:var(--bg); border:1px solid var(--line);
+}
+.th-prev .pc{ background:var(--panel); border-radius:6px; padding:5px; display:flex; flex-direction:column; gap:4px; }
+.th-prev .pc i{ height:11px; border-radius:3px; background:var(--card); border:1px solid var(--line); display:block; }
+.th-prev .pc i.pay{ margin-top:auto; height:15px; background:#22A374; border:none; }
+.th-prev .pg{ display:grid; grid-template-columns:1fr 1fr; grid-auto-rows:1fr; gap:4px; }
+.th-prev .pg i{
+  border-radius:6px; display:block; border:1px solid color-mix(in srgb, var(--c) 45%, var(--line));
+  background:linear-gradient(158deg, color-mix(in srgb, var(--c) 46%, var(--card)), var(--card) 82%);
+}
+/* превью задаёт свои цвета: оно не зависит от темы, в которой открыто окно */
+.th-prev[data-light="dark"]{ --bg:#171C1E; --panel:#1E2427; --card:#262D30; --line:#2C3437; --tx:#E8EEEC; }
+.th-prev[data-light="light"]{ --bg:#C3CCD5; --panel:#D3DAE1; --card:#DCE2E8; --line:#B3BCC6; --tx:#18212A; }
+.th-prev[data-light="warm"]{ --bg:#D5D5D3; --panel:#D3DAE1; --card:#DCE2E8; --line:#B3BCC6; --tx:#18212A; }
+.th-prev[data-light="dark"] .pg i{ background:linear-gradient(158deg, color-mix(in srgb, var(--c) 17%, var(--panel)), var(--panel) 78%); }

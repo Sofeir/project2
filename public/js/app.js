@@ -236,29 +236,50 @@ bindDrop('btnBrand', 'menuBrand');
 
 /* ------------------------------- тема ----------------------------------- */
 /* Тёмная — по умолчанию. Тема — свойство терминала (в светлом зале удобнее
-   светлая), поэтому хранится в браузере кассы, а не в данных смены. */
+   светлая), поэтому хранится в браузере кассы, а не в данных смены.
+   Светлых две: они различаются только фоном за панелями. */
 const THEME_KEY = 'asoft-pos-theme';
-const isLight = () => document.documentElement.dataset.theme === 'light';
-function setTheme(light) {
-  if (light) document.documentElement.dataset.theme = 'light';
-  else delete document.documentElement.dataset.theme;
-  try { localStorage.setItem(THEME_KEY, light ? 'light' : 'dark'); } catch (_) { /* тема просто не запомнится */ }
+const THEMES = [
+  { id: 'dark',  name: 'Тёмная',  note: 'Графит, как по умолчанию' },
+  { id: 'light', name: 'Светлая', note: 'Серо-голубая, прохладная' },
+  { id: 'warm',  name: 'Тёплая',  note: 'Светлая, фон тёплый серый' },
+];
+const themeId = () => document.documentElement.dataset.theme === 'light' ? (document.documentElement.dataset.light === 'warm' ? 'warm' : 'light') : 'dark';
+function setTheme(id) {
+  const root = document.documentElement;
+  if (id === 'dark') { delete root.dataset.theme; delete root.dataset.light; }
+  else {
+    root.dataset.theme = 'light';
+    if (id === 'warm') root.dataset.light = 'warm'; else delete root.dataset.light;
+  }
+  try { localStorage.setItem(THEME_KEY, id); } catch (_) { /* тема просто не запомнится */ }
   renderTheme();
 }
 function renderTheme() {
-  $('#themeText').textContent = isLight() ? 'Поменять тему на тёмную' : 'Поменять тему на светлую';
-  $('#themeIcon').setAttribute('href', isLight() ? '#i-moon' : '#i-sun');
+  const t = THEMES.find(x => x.id === themeId()) || THEMES[0];
+  $('#themeText').textContent = `${t.name} · PIN администратора`;
+  $('#themeIcon').setAttribute('href', t.id === 'dark' ? '#i-moon' : '#i-sun');
+  $('#themesGrid').innerHTML = THEMES.map(x => `
+    <button class="th ${x.id === t.id ? 'on' : ''}" data-t="${x.id}">
+      <span class="th-prev" data-light="${x.id}">
+        <span class="pc"><i></i><i></i><i class="pay"></i></span>
+        <span class="pg"><i style="--c:#7C76AE"></i><i style="--c:#A9805C"></i><i style="--c:#5A82AA"></i><i style="--c:#5C9670"></i></span>
+      </span>
+      <b>${x.name}<svg><use href="#i-check"/></svg></b>
+      <span>${x.note}</span>
+    </button>`).join('');
 }
 renderTheme();
+$('#themesGrid').addEventListener('click', e => {
+  const b = e.target.closest('[data-t]'); if (!b) return;
+  setTheme(b.dataset.t);
+});
 /* Настройки кассы — в меню логотипа. Тема и СБП меняют работу кассы для всех
    смен, поэтому обе закрыты PIN администратора, как и правка витрины */
 $('#menuBrand').addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   b.blur();
-  if (b.dataset.act === 'theme') return requireAdmin(() => {
-    setTheme(!isLight());
-    toast(isLight() ? 'Светлая тема' : 'Тёмная тема');
-  });
+  if (b.dataset.act === 'theme') return requireAdmin(() => open('modalThemes'));
   if (b.dataset.act === 'sbp') return requireAdmin(async () => {
     try {
       S.sbp = (await API.setSettings({ sbp: !S.sbp })).sbp;
