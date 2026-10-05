@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800;900&display=swap">
-<link rel="stylesheet" href="css/style.css?v=20261005d">
+<link rel="stylesheet" href="css/style.css?v=20261005f">
 <!-- тему ставим до первой отрисовки, иначе светлая касса на миг мигнёт тёмной -->
 <script>try { const t = localStorage.getItem('asoft-pos-theme'); if (t && t !== 'dark') document.documentElement.dataset.theme = 'light'; } catch (_) {}</script>
 </head>
@@ -123,7 +123,7 @@
     <div class="drop" id="dropShift">
       <button class="tbtn" id="btnShift"><svg><use href="#i-shift"/></svg>Операции<svg class="chev"><use href="#i-chev"/></svg></button>
       <div class="menu hidden" id="menuShift">
-        <button data-act="hk"><svg><use href="#i-grip"/></svg><span><span class="mt">Настроить горячие клавиши</span><span class="mh">Группы и товары на витрине кассира</span></span></button>
+        <button data-act="hk"><svg><use href="#i-grip"/></svg><span><span class="mt">Горячие клавиши</span><span class="mh">Настроить, принять, передать</span></span></button>
         <button data-act="x"><svg><use href="#i-print"/></svg><span><span class="mt">X-отчёт</span><span class="mh">Промежуточный, смена не закрывается</span></span></button>
         <button data-act="in"><svg><use href="#i-in"/></svg><span><span class="mt">Внести наличные</span><span class="mh">Размен, довнесение</span></span></button>
         <button data-act="out"><svg><use href="#i-out"/></svg><span><span class="mt">Изъять наличные</span><span class="mh">Инкассация</span></span></button>
@@ -484,6 +484,60 @@
   </div>
 </div>
 
+<!-- ============================ ГОРЯЧИЕ КЛАВИШИ ============================ -->
+<!-- Промежуточное окно: настройка витрины и перенос её между кассами -->
+<div class="veil hidden" id="modalHk">
+  <div class="modal">
+    <div class="m-head">
+      <div><h3>Горячие клавиши</h3><div class="hsub">Выберите, что сделать</div></div>
+      <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="m-body">
+      <div class="rep-opts" id="hkOpts">
+        <button class="rep-opt" data-h="edit"><span class="ri"><svg><use href="#i-pencil"/></svg></span><span class="rt"><b>Настроить горячие клавиши</b><span>Группы и товары на витрине кассира</span></span><svg class="mc"><use href="#i-chev"/></svg></button>
+        <button class="rep-opt" data-h="import"><span class="ri"><svg><use href="#i-in"/></svg></span><span class="rt"><b>Принять горячие клавиши</b><span>Загрузить готовую витрину с другого компьютера</span></span><svg class="mc"><use href="#i-chev"/></svg></button>
+        <button class="rep-opt" data-h="export"><span class="ri"><svg><use href="#i-out"/></svg></span><span class="rt"><b>Передать горячие клавиши</b><span>Сохранить витрину этой кассы в файл</span></span><svg class="mc"><use href="#i-chev"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ ПРИЁМ ГОРЯЧИХ КЛАВИШ ============================ -->
+<div class="veil hidden" id="modalHkImport">
+  <div class="modal">
+    <div class="m-head">
+      <div><h3>Принять горячие клавиши</h3><div class="hsub">Витрина с другого компьютера</div></div>
+      <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="m-body">
+      <input type="file" id="hkFile" accept=".json,application/json" hidden>
+      <button class="hk-pick" id="hkPick" type="button">
+        <span class="ri"><svg><use href="#i-in"/></svg></span>
+        <span class="rt"><b id="hkPickTitle">Выбрать файл</b><span id="hkPickSub">Файл витрины, сохранённый на другой кассе</span></span>
+      </button>
+      <div id="hkPreview" class="hidden">
+        <div class="stats hk-stats">
+          <div class="stat"><div class="k">Групп</div><div class="v num" id="hkpGroups">0</div></div>
+          <div class="stat acc"><div class="k">Блюд</div><div class="v num" id="hkpItems">0</div></div>
+        </div>
+        <p class="note" id="hkpNames"></p>
+        <p class="note hk-warn hidden" id="hkpSkipped"></p>
+        <div class="hk-mode">
+          <div class="hk-cap">Что сделать с текущей витриной</div>
+          <div class="seg" id="hkMode">
+            <button type="button" class="on" data-m="replace">Заменить текущую</button>
+            <button type="button" data-m="add">Добавить к текущей</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn" data-close style="flex:1">Отмена</button>
+      <button class="btn btn-primary" id="btnHkImport" style="flex:1.4" disabled>Принять</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============================ ПОДТВЕРЖДЕНИЕ ============================ -->
 <div class="veil hidden" id="modalAsk">
   <div class="modal slim">
@@ -800,11 +854,11 @@
 
 <div id="toasts"></div>
 
-<script src="js/seed.js?v=20261005d"></script>
-<script src="js/api.js?v=20261005d"></script>
-<script src="js/data.js?v=20261005d"></script>
-<script src="js/hotkeys.js?v=20261005d"></script>
-<script src="js/app.js?v=20261005d"></script>
-<script src="js/keyboard.js?v=20261005d"></script>
+<script src="js/seed.js?v=20261005f"></script>
+<script src="js/api.js?v=20261005f"></script>
+<script src="js/data.js?v=20261005f"></script>
+<script src="js/hotkeys.js?v=20261005f"></script>
+<script src="js/app.js?v=20261005f"></script>
+<script src="js/keyboard.js?v=20261005f"></script>
 </body>
 </html>

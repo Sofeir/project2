@@ -1772,6 +1772,77 @@ $('#modalCorrPick').addEventListener('click', e => {
   if (e.target.closest('[data-close]') || e.target === $('#modalCorrPick')) setOp('sale');
 });
 
+/* ========================== ГОРЯЧИЕ КЛАВИШИ: МЕНЮ ========================== */
+/* Три действия: настроить витрину здесь, принять готовую с другой кассы,
+   передать свою файлом */
+$('#hkOpts').addEventListener('click', e => {
+  const b = e.target.closest('[data-h]'); if (!b) return;
+  close('modalHk');
+  if (b.dataset.h === 'edit') HK.openEditor();
+  if (b.dataset.h === 'import') openHkImport();
+  if (b.dataset.h === 'export') toast(`Файл сохранён: ${HK.exportFile()}`, 'ok', { ms: 3200 });
+});
+
+/* Приём: файл выбирают, окно показывает, что в нём, и только по «Принять»
+   витрина меняется. Блюда, которых нет в каталоге этой кассы, пропускаются —
+   об этом сказано заранее. */
+const HKI = { parsed: null, mode: 'replace' };
+function openHkImport() {
+  HKI.parsed = null; HKI.mode = 'replace';
+  $('#hkFile').value = '';
+  $('#hkPickTitle').textContent = 'Выбрать файл';
+  $('#hkPickSub').textContent = 'Файл витрины, сохранённый на другой кассе';
+  $('#hkPreview').classList.add('hidden');
+  $('#btnHkImport').disabled = true;
+  setHkMode('replace');
+  open('modalHkImport');
+}
+function setHkMode(m) {
+  HKI.mode = m;
+  $$('#hkMode button').forEach(x => x.classList.toggle('on', x.dataset.m === m));
+}
+$('#hkPick').addEventListener('click', () => $('#hkFile').click());
+$('#hkMode').addEventListener('click', e => {
+  const b = e.target.closest('[data-m]'); if (b) setHkMode(b.dataset.m);
+});
+$('#hkFile').addEventListener('change', async e => {
+  const file = e.target.files[0]; if (!file) return;
+  try {
+    const p = HK.parseFile(await file.text());
+    HKI.parsed = p;
+    $('#hkPickTitle').textContent = file.name;
+    $('#hkPickSub').textContent = [p.register ? `Касса №${p.register}` : '', p.exportedAt ? new Date(p.exportedAt).toLocaleDateString('ru-RU') : '', 'нажмите, чтобы выбрать другой']
+      .filter(Boolean).join(' · ');
+    $('#hkpGroups').textContent = p.groups;
+    $('#hkpItems').textContent = p.count;
+    $('#hkpNames').textContent = p.top.length ? 'Группы: ' + p.top.join(', ') : 'В файле нет групп — только блюда на главном экране';
+    const sk = $('#hkpSkipped');
+    sk.classList.toggle('hidden', !p.skipped);
+    sk.textContent = `Не найдено в каталоге этой кассы и будет пропущено: ${p.skipped}`;
+    $('#hkPreview').classList.remove('hidden');
+    $('#btnHkImport').disabled = !(p.count || p.groups);
+  } catch (err) {
+    HKI.parsed = null;
+    $('#hkPreview').classList.add('hidden');
+    $('#btnHkImport').disabled = true;
+    toast(err.message, 'bad');
+  }
+});
+$('#btnHkImport').addEventListener('click', () => {
+  const p = HKI.parsed; if (!p) return;
+  const go = async () => {
+    try {
+      await HK.applyFile(p, HKI.mode);
+      close('modalHkImport');
+      toast(HKI.mode === 'add' ? 'Горячие клавиши добавлены' : 'Горячие клавиши приняты');
+    } catch (err) {
+      toast('Не принято: ' + err.message, 'bad');
+    }
+  };
+  if (HKI.mode === 'replace') ask('Заменить витрину?', 'Текущие горячие клавиши этой кассы будут заменены принятыми. Вернуть прежнюю витрину будет нельзя.', 'Заменить', go);
+  else go();
+});
+
 /* ================================ ОТЧЁТЫ ================================= */
 /* Чеки смены и расход блюд собраны в одно окно «Отчёты»: в меню операций
    один пункт, а выбор — уже в окне */
@@ -1967,7 +2038,7 @@ $('#menuShift').addEventListener('click', e => {
   const a = b.dataset.act;
   if (a === 'drawer') return toast('Денежный ящик открыт');
   if (a === 'reports') return open('modalReports');
-  if (a === 'hk') { b.blur(); return HK.openEditor(); }
+  if (a === 'hk') { b.blur(); return open('modalHk'); }
   if (a === 'bank') return reconcile();
   if (a === 'in' || a === 'out') return openCash(a);
   if (a === 'x') return openReport('x');
