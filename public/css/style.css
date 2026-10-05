@@ -1580,27 +1580,3 @@ body.vk-fixed .veil:not(.right) .modal.tall{ height:100%; }
 @media (prefers-reduced-motion: reduce){
   *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
 }
-
-
-/* ------------------------- перенос горячих клавиш ------------------------ */
-.hk-pick{
-  display:flex; align-items:center; gap:14px; width:100%; min-height:72px; padding:10px 16px 10px 12px; text-align:left;
-  background:var(--card); border:1px dashed var(--line-hi); border-radius:var(--r-md);
-}
-.hk-pick:active{ background:var(--card-act); }
-@media (hover:hover){ .hk-pick:hover{ background:var(--card-hi); border-color:var(--acc-line); } }
-.hk-pick .ri{
-  width:46px; height:46px; flex:none; border-radius:var(--r-sm); background:var(--panel); border:1px solid var(--line);
-  display:flex; align-items:center; justify-content:center; color:var(--acc);
-}
-.hk-pick .ri svg{ width:22px; height:22px; }
-.hk-pick .rt{ flex:1; min-width:0; }
-.hk-pick .rt b{ display:block; font-size:16px; font-weight:700; overflow-wrap:anywhere; }
-.hk-pick .rt span{ display:block; font-size:13px; color:var(--tx-3); margin-top:2px; }
-#hkPreview{ margin-top:16px; }
-.hk-stats{ margin-bottom:12px; }
-.hk-warn{ color:var(--warn); margin-top:8px; }
-.hk-mode{ margin-top:16px; }
-.hk-cap{ font-size:11.5px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:var(--tx-3); margin-bottom:8px; }
-.hk-mode .seg{ display:grid; grid-template-columns:1fr 1fr; }
-.hk-mode .seg button{ justify-content:center; padding:0 8px; }

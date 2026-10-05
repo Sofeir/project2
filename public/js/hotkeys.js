@@ -194,79 +194,6 @@ const HK = (() => {
   }
 
 
-  /* ====================== ПЕРЕНОС МЕЖДУ КАССАМИ ============================ */
-  /* Витрину переносят файлом: на одной кассе «Передать» сохраняет его,
-     на другой «Принять» читает. В файле у блюда лежит и номер, и название:
-     номера на разных кассах могут не совпасть, тогда блюдо ищется по названию. */
-  const FILE_FORMAT = 'asoft-pos-hotkeys';
-  const FILE_VERSION = 1;
-  /* имена приходят из файла и попадают в разметку — убираем всё, что её ломает */
-  const cleanName = v => String(v == null ? '' : v).replace(/[<>&"'`]/g, '').trim().slice(0, 60);
-
-  function exportFile() {
-    const strip = list => list.map(n => n.kind === 'group'
-      ? { kind: 'group', name: n.name, color: n.color, items: strip(n.items) }
-      : { kind: 'item', pid: n.pid, name: (prod(n.pid) || {}).name || '' });
-    const d = new Date();
-    const pad = n => String(n).padStart(2, '0');
-    const stamp = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-    const blob = new Blob([JSON.stringify({
-      format: FILE_FORMAT, version: FILE_VERSION, exportedAt: d.toISOString(),
-      register: CASHIER.register, items: strip(data.items),
-    }, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `goryachie-klavishi-kassa${CASHIER.register}-${stamp}.json`;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    return a.download;
-  }
-
-  /* Разбор файла: проверяем форму, сопоставляем блюда с каталогом этой кассы.
-     Возвращает готовое дерево и счётчики для окна приёма. */
-  function parseFile(text) {
-    let f;
-    try { f = JSON.parse(text); } catch (_) { throw new Error('Файл не читается — это не файл горячих клавиш'); }
-    if (!f || f.format !== FILE_FORMAT || !Array.isArray(f.items)) throw new Error('Это не файл горячих клавиш ASOFT POS');
-    if (f.version > FILE_VERSION) throw new Error('Файл сохранён более новой версией кассы');
-
-    const byName = new Map(PRODUCTS.map(p => [p.name.toLowerCase(), p]));
-    let skipped = 0, count = 0;
-    const walk = (list, depth) => {
-      if (!Array.isArray(list)) throw new Error('В файле повреждена структура витрины');
-      const out = [];
-      list.forEach(n => {
-        if (!n || typeof n !== 'object') return;
-        if (n.kind === 'group') {
-          if (depth > MAX_DEPTH) throw new Error(`В файле больше ${MAX_DEPTH} уровней групп — такую витрину принять нельзя`);
-          const color = /^#[0-9a-fA-F]{6}$/.test(n.color) ? n.color : COLORS[0];
-          out.push(group(cleanName(n.name) || 'Без названия', color, walk(n.items || [], depth + 1)));
-        } else if (n.kind === 'item') {
-          const p = prod(String(n.pid)) || byName.get(cleanName(n.name).toLowerCase());
-          if (p) { out.push(item(p.id)); count++; } else skipped++;
-        }
-      });
-      return out;
-    };
-    const items = walk(f.items, 1);
-    return {
-      items, count, skipped,
-      groups: allGroups({ items }).length,
-      top: items.filter(n => n.kind === 'group').map(n => n.name),
-      register: f.register || null,
-      exportedAt: f.exportedAt || null,
-    };
-  }
-
-  /* mode: 'replace' — принятая витрина вместо текущей, 'add' — после текущих групп */
-  async function applyFile(parsed, mode) {
-    const items = mode === 'add' ? clone(data.items).concat(parsed.items) : parsed.items;
-    const res = await API.saveHotkeys(items);   // глубину и нумерацию проверяет хранилище
-    data = { items: res.items || [] };
-    path = [];
-    if (S.view === 'hk') renderCashier();
-  }
-
   /* ============================ РЕЖИМ НАСТРОЙКИ =========================== */
   function snapshot() {
     undoStack.push(JSON.stringify(draft));
@@ -796,7 +723,7 @@ const HK = (() => {
   return {
     async init() { bind(); await load(); },
     renderCashier, onGridClick, up, goRoot,
-    openEditor, exportFile, parseFile, applyFile,
+    openEditor,
     exit: () => closeEditor(),
     isEditing: () => !document.getElementById('hkEditor').classList.contains('hidden'),
     hasPath: () => path.length > 0,
