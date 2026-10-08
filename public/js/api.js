@@ -46,8 +46,20 @@ const API = (() => {
      Вторая версия пропусков хранит начисления штуками, а не рублями:
      старые остатки в рублях не переводятся, пропуска берутся заново */
   const PASSES_VER = 2;
+  const MENU_VER = 2;
   function normalize(d) {
     if (!Array.isArray(d.passes) || d.passesVer !== PASSES_VER) { d.passes = clone(SEED.PASSES); d.passesVer = PASSES_VER; }
+    /* Меню дополняется новыми группами и блюдами из seed.js; существующие не трогаем */
+    if (d.menuVer !== MENU_VER) {
+      SEED.CATEGORIES.forEach(c => { if (!d.categories.some(x => x.id === c.id)) d.categories.push(clone(c)); });
+      SEED.PRODUCTS.forEach(sp => {
+        const have = d.products.find(x => x.name === sp.name);
+        if (have) { if (sp.sub && !have.sub) have.sub = sp.sub; return; }
+        const n = d.products.reduce((m, x) => Math.max(m, parseInt(String(x.id).replace(/\D/g, ''), 10) || 0), 0) + 1;
+        d.products.push({ ...sp, id: 'p' + n, active: true });
+      });
+      d.menuVer = MENU_VER;
+    }
     if (!d.settings || typeof d.settings !== 'object') d.settings = {};
     if (typeof d.settings.sbp !== 'boolean') d.settings.sbp = true;
     return d;
@@ -61,7 +73,7 @@ const API = (() => {
       try { db = JSON.parse(raw); } catch (_) { db = null; }
     }
     if (!db || !Array.isArray(db.shifts)) { db = seeded(); save(); }
-    else if (!Array.isArray(db.passes) || !db.settings || db.passesVer !== PASSES_VER) { normalize(db); save(); }
+    else if (!Array.isArray(db.passes) || !db.settings || db.passesVer !== PASSES_VER || db.menuVer !== MENU_VER) { normalize(db); save(); }
     return db;
   }
 
@@ -100,7 +112,7 @@ const API = (() => {
     return {
       categories: d.categories.map(c => ({ id: c.id, name: c.name, short: c.short, color: c.color })),
       products: d.products.filter(p => p.active !== false)
-        .map(p => ({ id: p.id, name: p.name, price: p.price, unit: p.unit, cat: p.cat, hit: !!p.hit, weight: !!p.weight })),
+        .map(p => ({ id: p.id, name: p.name, price: p.price, unit: p.unit, cat: p.cat, sub: p.sub || '', hit: !!p.hit, weight: !!p.weight })),
       discounts: d.discounts.map(x => ({ id: x.id, name: x.name, percent: x.percent })),
     };
   }

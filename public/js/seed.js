@@ -21,17 +21,19 @@ const SEED = (() => {
     { id: 'konditer', name: 'Кондитерская', short: 'ДЕСЕРТ',    color: '#C98FAE' },
     { id: 'drink',    name: 'Напитки',      short: 'НАПИТОК',   color: '#7BA9D8' },
     { id: 'hleb',     name: 'Хлеб',         short: 'ХЛЕБ',      color: '#B3A184' },
+    { id: 'svezh',    name: 'Свежая вкусная выпечка', short: 'СВЕЖЕЕ', color: '#E8A0A0' },
     { id: 'bufet',    name: 'Буфет',        short: 'БУФЕТ',     color: '#9B95CC' },
   ];
 
   let _pid = 0;
-  /** name, price, unit, cat, flags: {hit} */
+  /** name, price, unit, cat, flags: {hit, sub} — sub: подгруппа внутри группы */
   function p(name, price, unit, cat, flags) {
     flags = flags || {};
     return {
       id: 'p' + (++_pid),
       name: name, price: price, unit: unit, cat: cat,
       hit: !!flags.hit,
+      sub: flags.sub || '',
       weight: unit === 'кг',
     };
   }
@@ -110,6 +112,9 @@ const SEED = (() => {
     p('Брускета с томатом 80г', 95, 'шт', 'zakuska'),
     p('Сырная тарелка 100г', 210, 'порц', 'zakuska'),
     p('Икра кабачковая 100г', 60, 'порц', 'zakuska'),
+
+    /* --- Свежая вкусная выпечка --- */
+    p('Красная булочка с сахарной посыпкой, с маком и малиновым джемом', 65, 'шт', 'svezh', { sub: 'Кондитерские нежные изделия' }),
 
     /* --- Выпечка --- */
     p('Беляш по-уральски 105г', 55, 'шт', 'vypechka', { hit: true }),

@@ -527,7 +527,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .search-res{
   position:absolute; top:calc(100% + 8px); left:0; right:0; z-index:50; padding:8px;
   max-height:390px; overflow-y:auto;
-  display:grid; grid-template-columns:minmax(0,1fr) auto auto auto; column-gap:36px; row-gap:6px; align-content:start;
+  display:grid; grid-template-columns:minmax(200px,1fr) auto fit-content(170px) fit-content(190px); column-gap:36px; row-gap:6px; align-content:start;
   background:var(--card); border:1px solid var(--line-hi); border-radius:var(--r-md); box-shadow:var(--sh-menu);
 }
 .sr{
@@ -541,7 +541,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .sr .p{ font-size:15px; font-weight:700; white-space:nowrap; text-align:right; }
 .sr .tag, .sr .sub{ font-size:15px; font-weight:700; line-height:1.2; letter-spacing:0; text-transform:none; text-align:left; }
 .sr .sub{ color:var(--tx-2); }
-.sr .tag, .sr .sub{ max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.sr .tag, .sr .sub{ min-width:0; overflow-wrap:anywhere; }  /* длинное имя группы переносится, а не распирает колонку */
 /* узкий экран кассы (1024): колонки уже и ближе, чтобы названия не переносились лишний раз */
 @media (max-width:1199px){
   .search-res{ column-gap:14px; }
