@@ -1305,8 +1305,9 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   height:auto; min-height:0; padding:12px 14px;
   display:grid; grid-template-columns:auto minmax(0,1fr); column-gap:12px; align-items:start;
 }
-.tile.group .gi{ width:24px; height:24px; border-radius:7px; }
-.tile.group .gi svg{ width:14px; height:14px; }
+.tile.group{ --gi:24px; }  /* размер значка: fitGroupIcons() (app.js) увеличивает его, когда соседи растянули плитку */
+.tile.group .gi{ width:var(--gi); height:var(--gi); border-radius:calc(var(--gi) * .29); }
+.tile.group .gi svg{ width:calc(var(--gi) * .58); height:calc(var(--gi) * .58); }
 .tile.group .nm{ margin:0; font-size:16px; line-height:1.25; -webkit-line-clamp:4; align-self:center; }
 .tile.group.edit{ padding-right:46px; }
 .hk-section{

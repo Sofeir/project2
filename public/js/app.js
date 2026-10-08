@@ -509,6 +509,17 @@ $('#grid').addEventListener('click', e => {
   addProduct(b.dataset.id);
 });
 
+/* Плитку группы могут растянуть соседи по ряду (карточки блюд выше): значок растёт вместе с ней.
+   Сначала сбрасываем все значки к базовому размеру, чтобы замер не зависел от прошлого прохода. */
+function fitGroupIcons() {
+  const tiles = $$('.tile.group');
+  tiles.forEach(t => t.style.removeProperty('--gi'));
+  const sizes = tiles.map(t => Math.min(48, Math.max(24, Math.round(t.getBoundingClientRect().height * 0.36))));
+  tiles.forEach((t, i) => { if (sizes[i] > 24) t.style.setProperty('--gi', sizes[i] + 'px'); });
+}
+['grid', 'hkGrid'].forEach(id => new MutationObserver(fitGroupIcons).observe(document.getElementById(id), { childList: true }));
+window.addEventListener('resize', fitGroupIcons);
+
 /* ================================ ПОИСК ================================== */
 const sInput = $('#searchInput');
 const sRes = $('#searchRes');
