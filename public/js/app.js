@@ -514,7 +514,7 @@ $('#grid').addEventListener('click', e => {
 function fitGroupIcons() {
   const tiles = $$('.tile.group');
   tiles.forEach(t => t.style.removeProperty('--gi'));
-  const sizes = tiles.map(t => Math.min(48, Math.max(24, Math.round(t.getBoundingClientRect().height * 0.36))));
+  const sizes = tiles.map(t => Math.min(36, Math.max(24, Math.round(t.getBoundingClientRect().height * 0.28))));
   tiles.forEach((t, i) => { if (sizes[i] > 24) t.style.setProperty('--gi', sizes[i] + 'px'); });
 }
 ['grid', 'hkGrid'].forEach(id => new MutationObserver(fitGroupIcons).observe(document.getElementById(id), { childList: true }));
