@@ -1301,7 +1301,8 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   background:color-mix(in srgb, var(--c) 22%, transparent); color:var(--c);
 }
 .tile.group .gi svg{ width:17px; height:17px; }
-.tile.group .nm{ font-size:16px; -webkit-line-clamp:2; margin-top:9px; }
+.tile.group{ height:auto; min-height:120px; }  /* длинное имя группы растягивает плитку, а не обрезается */
+.tile.group .nm{ font-size:16px; -webkit-line-clamp:3; margin:9px 0 8px; }
 .tile.group .cnt{ margin-top:auto; font-size:12px; font-weight:600; color:var(--tx-3); }
 .hk-section{
   grid-column:1/-1; display:flex; align-items:center; gap:10px; margin:4px 2px 0;
