@@ -526,10 +526,11 @@ function renderSearch() {
   sRes.innerHTML = found.length
     ? found.map((p, i) => {
         const c = catOf(p.cat);
+        const sub = p.sub ? `<span class="sub">${p.sub}</span>` : '';
         return `<div class="sr" data-id="${p.id}">
-          <span class="tag" style="color:${c.color}">${c.short}</span>
           <span class="n">${p.name}</span>
-          <span class="p num">${money(p.price)}</span></div>`;
+          <span class="p num">${money(p.price)}</span>
+          <span class="gr"><span class="tag" style="color:${c.color}">${c.name}</span>${sub}</span></div>`;
       }).join('')
     : `<div class="sr-none">Ничего не найдено по запросу «${sInput.value.trim()}»</div>`;
   sRes.classList.remove('hidden');

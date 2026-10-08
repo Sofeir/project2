@@ -22,6 +22,7 @@ function applyCatalog(data) {
     price: Number(p.price),
     unit: p.unit,
     cat: p.cat,
+    sub: p.sub || '',
     hit: !!p.hit,
     weight: !!p.weight,
   }));
