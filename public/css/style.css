@@ -527,11 +527,11 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .search-res{
   position:absolute; top:calc(100% + 8px); left:0; right:0; z-index:50; padding:8px;
   max-height:390px; overflow-y:auto;
-  display:grid; grid-template-columns:1fr; align-content:start; gap:6px;
+  display:grid; grid-template-columns:fit-content(60%) auto minmax(0,1fr); column-gap:28px; row-gap:6px; align-content:start;
   background:var(--card); border:1px solid var(--line-hi); border-radius:var(--r-md); box-shadow:var(--sh-menu);
 }
 .sr{
-  display:grid; grid-template-columns:minmax(0,1fr) 84px minmax(0,190px); align-items:center; gap:16px;
+  display:grid; grid-column:1/-1; grid-template-columns:subgrid; align-items:center;
   padding:10px 14px; border-radius:var(--r-xs);
 }
 .sr{ background:color-mix(in srgb, var(--card) 50%, var(--card-hi)); border:1px solid var(--line); cursor:pointer; transition:background .1s, border-color .1s; }

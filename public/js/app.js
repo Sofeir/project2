@@ -526,7 +526,7 @@ function renderSearch() {
   sRes.innerHTML = found.length
     ? found.map((p, i) => {
         const c = catOf(p.cat);
-        const sub = p.sub ? `<span class="sub">${p.sub}</span>` : '';
+        const sub = `<span class="sub">${p.sub || c.name}</span>`;  // подгрупп пока нет — дублируем группу
         return `<div class="sr" data-id="${p.id}">
           <span class="n">${p.name}</span>
           <span class="p num">${money(p.price)}</span>
