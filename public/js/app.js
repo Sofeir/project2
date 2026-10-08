@@ -479,16 +479,13 @@ function renderGrid() {
   if (S.view === 'hk') return HK.renderCashier();
   catCrumbs();
   if (!S.cat) {
-    const n = c => PRODUCTS.filter(p => p.cat === c).length;
-    const tile = (id, name, color, cnt) => `<button class="tile group" data-cat="${id}" style="--c:${color}">
+    const tile = (id, name, color) => `<button class="tile group" data-cat="${id}" style="--c:${color}">
       <span class="gi"><svg><use href="#i-folder"/></svg></span>
       <span class="nm">${name}</span>
-      <span class="cnt">${cnt} ${plural(cnt, 'позиция', 'позиции', 'позиций')}</span>
     </button>`;
-    const hits = PRODUCTS.filter(p => p.hit).length;
     $('#grid').innerHTML = `<div class="hk-section">Группы</div>` +
-      tile('hits', 'Ходовые', 'var(--acc)', hits) +
-      CATEGORIES.map(c => tile(c.id, c.name, c.color, n(c.id))).join('');
+      tile('hits', 'Ходовые', 'var(--acc)') +
+      CATEGORIES.map(c => tile(c.id, c.name, c.color)).join('');
     return;
   }
   const items = (S.cat === 'hits' ? PRODUCTS.filter(p => p.hit) : PRODUCTS.filter(p => p.cat === S.cat)).slice().sort(byRu);

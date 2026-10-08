@@ -149,7 +149,6 @@
 }
 @media (hover:hover){ :root[data-theme="light"] .tile.group:hover{ border-color:color-mix(in srgb, var(--c) 70%, var(--line)); } }
 :root[data-theme="light"] .tile.group .gi{ background:color-mix(in srgb, var(--c) 34%, var(--card)); color:color-mix(in srgb, var(--c) 55%, #15191B); }
-:root[data-theme="light"] .tile.group .cnt{ color:var(--tx-2); }
 :root[data-theme="light"] .tile.combo{
   background:linear-gradient(158deg, rgba(196,140,40,.34), var(--card) 82%);
   border-color:rgba(140,92,16,.45);
@@ -1302,14 +1301,13 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 }
 .tile.group .gi svg{ width:17px; height:17px; }
 .tile.group{
-  /* значок слева, справа от него название и число позиций; длинное имя растягивает плитку по высоте */
+  /* значок слева, название справа от него по центру; длинное имя растягивает плитку по высоте */
   height:auto; min-height:0; padding:12px 14px;
-  display:grid; grid-template-columns:auto minmax(0,1fr); grid-template-rows:auto auto;
-  column-gap:12px; align-content:start; align-items:start;
+  display:grid; grid-template-columns:auto minmax(0,1fr); column-gap:12px; align-items:start;
 }
-.tile.group .gi{ grid-row:1 / span 2; align-self:start; }
-.tile.group .nm{ grid-column:2; margin:0; font-size:16px; line-height:1.25; -webkit-line-clamp:4; align-self:start; }
-.tile.group .cnt{ grid-column:2; margin:3px 0 0; font-size:12px; font-weight:600; color:var(--tx-3); align-self:start; }
+.tile.group .gi{ width:24px; height:24px; border-radius:7px; }
+.tile.group .gi svg{ width:14px; height:14px; }
+.tile.group .nm{ margin:0; font-size:16px; line-height:1.25; -webkit-line-clamp:4; align-self:center; }
 .tile.group.edit{ padding-right:46px; }
 .hk-section{
   grid-column:1/-1; display:flex; align-items:center; gap:10px; margin:4px 2px 0;

@@ -111,15 +111,12 @@ const HK = (() => {
   }
   function tileGroup(g, o) {
     o = o || {};
-    const n = countAll(g);
-    const subs = g.items.filter(x => x.kind === 'group').length;
     const cls = 'tile group' + (o.edit ? ' edit' : '');
     const at = o.edit ? `data-nid="${g.id}" draggable="true"` : `data-gid="${g.id}"`;
     return `<button class="${cls}" ${at} style="--c:${g.color}">
       ${o.extra || ''}
       <span class="gi"><svg><use href="#i-folder"/></svg></span>
       <span class="nm">${g.name}</span>
-      <span class="cnt">${subs ? subs + ' ' + plural(subs, 'группа', 'группы', 'групп') + ' · ' : ''}${n} ${plural(n, 'позиция', 'позиции', 'позиций')}</span>
     </button>`;
   }
   function renderCrumbs() {
