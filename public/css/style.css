@@ -1562,6 +1562,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   font-size:14px; font-weight:600;
 }
 @media (hover:hover){ .vk-key.fn:hover{ background:var(--card); color:var(--tx); } }
+.vk-key.fn.bk{ font-size:28px; font-weight:500; }  /* ⌫ — значок, а не подпись: крупнее остальных служебных */
 .vk-key.w15{ flex-basis:calc(var(--vk-kw) * 1.5 + var(--vk-gap) * .5); }
 .vk-key.on{ background:var(--acc-soft); border-color:var(--acc); color:var(--acc-hi); }
 

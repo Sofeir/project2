@@ -85,7 +85,7 @@ const VK = (() => {
       return `<button class="vk-key" data-k="${k}">${ch}</button>`;
     }
     const f = k.fn;
-    const cls = ['vk-key', 'fn', f === 'shift' && shift ? 'on' : '', wide || 'w15'].filter(Boolean).join(' ');
+    const cls = ['vk-key', 'fn', f === 'shift' && shift ? 'on' : '', f === 'back' ? 'bk' : '', wide || 'w15'].filter(Boolean).join(' ');
     return `<button class="${cls}" data-k="${f}">${FN_LABEL[f]}</button>`;
   }
 
