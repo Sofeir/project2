@@ -526,12 +526,12 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .search-res{
   position:absolute; top:calc(100% + 8px); left:0; right:0; z-index:50; padding:8px;
   max-height:390px; overflow-y:auto;
-  display:grid; grid-template-columns:minmax(200px,1fr) auto fit-content(170px) fit-content(190px); column-gap:36px; row-gap:6px; align-content:start;
+  display:grid; grid-template-columns:minmax(200px,1fr) auto fit-content(190px) fit-content(210px); column-gap:12px; row-gap:6px; align-content:start;
   background:var(--card); border:1px solid var(--line-hi); border-radius:var(--r-md); box-shadow:var(--sh-menu);
 }
 .sr{
   display:grid; grid-column:1/-1; grid-template-columns:subgrid; align-items:center;
-  padding:10px 14px; border-radius:var(--r-xs);
+  padding:10px 8px 10px 14px; border-radius:var(--r-xs);
 }
 .sr{ background:color-mix(in srgb, var(--card) 50%, var(--card-hi)); border:1px solid var(--line); cursor:pointer; transition:background .1s, border-color .1s; }
 .sr:hover, .sr.hi{ background:var(--card-act); border-color:var(--line-hi); }
@@ -543,8 +543,8 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .sr .tag, .sr .sub{ min-width:0; overflow-wrap:anywhere; }  /* длинное имя группы переносится, а не распирает колонку */
 /* узкий экран кассы (1024): колонки уже и ближе, чтобы названия не переносились лишний раз */
 @media (max-width:1199px){
-  .search-res{ column-gap:14px; }
-  .sr{ padding:10px 12px; }
+  .search-res{ column-gap:10px; grid-template-columns:minmax(200px,1fr) auto fit-content(130px) fit-content(150px); }
+  .sr{ padding:10px 8px 10px 12px; }
   .sr .n, .sr .p, .sr .tag, .sr .sub{ font-size:14px; }
 }
 .sr-none{ grid-column:1/-1; padding:22px; text-align:center; color:var(--tx-3); font-size:14px; }
@@ -1303,7 +1303,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .tile.group{
   /* значок слева, название справа от него по центру; длинное имя растягивает плитку по высоте */
   height:auto; min-height:0; padding:12px 14px;
-  display:grid; grid-template-columns:auto minmax(0,1fr); column-gap:12px; align-items:start;
+  display:grid; grid-template-columns:auto minmax(0,1fr); column-gap:12px; align-items:center;
 }
 .tile.group{ --gi:24px; }  /* размер значка: fitGroupIcons() (app.js) увеличивает его, когда соседи растянули плитку */
 .tile.group .gi{ width:var(--gi); height:var(--gi); border-radius:calc(var(--gi) * .29); }
@@ -1566,6 +1566,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .vk-key.on{ background:var(--acc-soft); border-color:var(--acc); color:var(--acc-hi); }
 
 .vk-bottom .vk-key{ flex:0 0 auto; padding:0 22px; }
+.vk-bottom .vk-key.pt{ padding:0; flex:0 0 var(--vk-kw); font-size:22px; }
 .vk-bottom .space{ flex:1 1 auto; font-size:14px; font-weight:600; color:var(--tx-2); }
 .vk-bottom .done{
   background:var(--acc); border-color:var(--acc); color:var(--acc-ink);

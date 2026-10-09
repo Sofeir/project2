@@ -25,7 +25,7 @@ const VK = (() => {
     ru: {
       cols: 12,
       rows: [
-        ['1','2','3','4','5','6','7','8','9','0','-'],
+        ['/','1','2','3','4','5','6','7','8','9','0','-'],
         ['й','ц','у','к','е','н','г','ш','щ','з','х','ъ'],
         ['ф','ы','в','а','п','р','о','л','д','ж','э','ё'],
         [B('shift'),'я','ч','с','м','и','т','ь','б','ю',B('back')],
@@ -34,7 +34,7 @@ const VK = (() => {
     en: {
       cols: 12,
       rows: [
-        ['1','2','3','4','5','6','7','8','9','0','-'],
+        ['/','1','2','3','4','5','6','7','8','9','0','-'],
         ['q','w','e','r','t','y','u','i','o','p'],
         ['a','s','d','f','g','h','j','k','l'],
         [B('shift'),'z','x','c','v','b','n','m',B('back')],
@@ -98,7 +98,8 @@ const VK = (() => {
     /* Поле может попросить символ, которого нет в раскладке: например, номеру
        документа-основания нужна дробь. Такие клавиши встают в ряд цифр —
        он короче остальных, и место там есть. */
-    const extra = (target.dataset.vkExtra || '').split('').filter(Boolean);
+    const extra = (target.dataset.vkExtra || '').split('').filter(Boolean)
+      .filter(ch => name === 'num' || !L.rows.some(r => r.includes(ch)));   // «/» уже есть в раскладке
     const num = name === 'num';
     /* У цифрового блока все ряды ровно по три клавиши: дополнительный символ
        (запятая) встаёт слева от нуля, а «Очистить» переезжает к «Готово». */
@@ -116,6 +117,8 @@ const VK = (() => {
          </div>`
       : `<div class="vk-row vk-bottom">
            <button class="vk-key fn" data-k="lang">${lang === 'ru' ? 'ENG' : 'РУС'}</button>
+           <button class="vk-key pt" data-k=".">.</button>
+           <button class="vk-key pt" data-k=",">,</button>
            <button class="vk-key space" data-k="space">Пробел</button>
            <button class="vk-key fn" data-k="clear">Очистить</button>
            <button class="vk-key done" data-k="done">Готово</button>
