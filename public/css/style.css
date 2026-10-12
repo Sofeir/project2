@@ -1432,26 +1432,36 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 
 /* ------------------------- подбор товаров ------------------------------- */
 .pick{ display:flex; flex-direction:column; min-height:0; flex:1; }
-.pick-search{ position:relative; margin-bottom:12px; flex:none; }
+.pick-search{ position:relative; margin-bottom:8px; flex:none; }
 .pick-search input{
-  width:100%; height:50px; padding:0 16px 0 46px; user-select:text; cursor:text;
+  width:100%; height:46px; padding:0 16px 0 46px; user-select:text; cursor:text;
   background:var(--card); border:1px solid var(--line-hi); border-radius:var(--r-md);
   color:var(--tx); font-size:15px;
 }
 .pick-search input::placeholder{ color:var(--tx-3); }
 .pick-search .si{ position:absolute; left:16px; top:50%; transform:translateY(-50%); color:var(--tx-3); }
 
-.pick-tabs{ display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:2px; flex:none; }
-.pick-tabs button{
-  height:34px; padding:0 13px; border-radius:var(--r-pill); flex:none;
-  background:var(--card); border:1px solid var(--line); font-size:12.5px; font-weight:600; color:var(--tx-2);
+/* левый столбец: группы и подгруппы; свой скролл, чтобы список справа не терял высоту */
+.pick-cols{ flex:1; display:flex; gap:14px; min-height:0; }
+.pick-side{
+  flex:none; width:196px; overflow-y:auto; display:flex; flex-direction:column; gap:3px;
+  padding:0 8px 0 0; border-right:1px solid var(--line);
 }
-.pick-tabs button:hover{ color:var(--tx); }
-.pick-tabs button.on{ background:var(--acc-soft); border-color:var(--acc-line); color:var(--acc-hi); font-weight:700; }
+.pick-side button{
+  display:flex; align-items:center; justify-content:space-between; gap:8px; text-align:left;
+  min-height:44px; padding:6px 10px; border-radius:var(--r-sm); border:1px solid transparent; flex:none;
+  font-size:13.5px; font-weight:600; color:var(--tx-2); line-height:1.2;
+}
+.pick-side button .n{ font-size:11.5px; font-weight:700; color:var(--tx-3); flex:none; }
+.pick-side button.s{ margin-left:14px; min-height:38px; font-size:12.5px; font-weight:500; }
+@media (hover:hover){ .pick-side button:hover{ background:var(--card); color:var(--tx); } }
+.pick-side button.on{ background:var(--acc-soft); border-color:var(--acc-line); color:var(--acc-hi); font-weight:700; }
+.pick-main{ flex:1; min-width:0; display:flex; flex-direction:column; }
 
 /* список ужимается вслед за окном: подвал с кнопкой «Добавить»
    должен оставаться видимым даже на низком экране с клавиатурой */
 .pick-list{ flex:1 1 0; overflow-y:auto; margin:0 -6px; padding:0 6px; min-height:90px; }
+.pickwide .pk{ padding:8px 12px; }
 .pk{
   display:flex; align-items:center; gap:13px; padding:11px 12px; border-radius:var(--r-sm);
   border:1px solid transparent; width:100%; text-align:left;
@@ -1479,6 +1489,12 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .pick-foot .cnt b{ color:var(--acc-hi); }
 
 .modal.tall{ max-width:660px; height:86vh; }
+.modal.tall.pickwide{ max-width:940px; }
+.pickwide .m-head{ padding:10px 18px 8px 22px; }
+.pickwide .m-head > div:first-child{ display:flex; align-items:baseline; gap:12px; min-width:0; }
+.pickwide .m-head .hsub{ margin-top:0; }
+.pickwide .m-body{ padding:12px 22px 14px; }
+.pickwide .pick-foot{ padding-top:10px; margin-top:10px; }
 .modal.tall .m-body{ display:flex; flex-direction:column; min-height:0; flex:1; }
 
 /* строка выбора «куда добавить» */

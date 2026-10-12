@@ -573,18 +573,22 @@
 
 <!-- ============================ ПОДБОР ТОВАРОВ ============================ -->
 <div class="veil hidden" id="modalPick">
-  <div class="modal tall">
+  <div class="modal tall pickwide">
     <div class="m-head">
       <div><h3>Добавить товары</h3><div class="hsub" id="pickDest">—</div></div>
       <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
     </div>
     <div class="m-body pick">
-      <div class="pick-search">
-        <svg class="si"><use href="#i-search"/></svg>
-        <input type="text" id="pickInput" placeholder="Название блюда — например, «капучино»" autocomplete="off" spellcheck="false">
+      <div class="pick-cols">
+        <div class="pick-side" id="pickTabs"></div>
+        <div class="pick-main">
+          <div class="pick-search">
+            <svg class="si"><use href="#i-search"/></svg>
+            <input type="text" id="pickInput" placeholder="Название блюда — например, «капучино»" autocomplete="off" spellcheck="false">
+          </div>
+          <div class="pick-list" id="pickList"></div>
+        </div>
       </div>
-      <div class="pick-tabs" id="pickTabs"></div>
-      <div class="pick-list" id="pickList"></div>
       <div class="pick-foot">
         <span class="cnt">Выбрано: <b id="pickCount">0</b></span>
         <div class="spacer"></div>

@@ -446,16 +446,14 @@ const HK = (() => {
   /* --------------------------- подбор товаров ----------------------------- */
   let pickSel = new Set();
   let pickCat = 'all';
+  let pickSub = '';   // подгруппа внутри выбранной группы; '' — вся группа
 
   function openPicker() {
-    pickSel = new Set(); pickCat = 'all';
+    pickSel = new Set(); pickCat = 'all'; pickSub = '';
     const cur = nodeByPath(draft, editPath);
     document.getElementById('pickDest').textContent = 'В группу: ' +
       (editPath.length ? editPath.map(id => findNode(draft, id).name).join(' › ') : 'Все группы (первый экран)');
     document.getElementById('pickInput').value = '';
-    document.getElementById('pickTabs').innerHTML =
-      `<button class="on" data-c="all">Все</button>` +
-      CATEGORIES.map(c => `<button data-c="${c.id}">${c.name}</button>`).join('');
     renderPicker();
     open('modalPick');
     setTimeout(() => document.getElementById('pickInput').focus(), 60);
@@ -464,10 +462,28 @@ const HK = (() => {
     const q = document.getElementById('pickInput').value.trim().toLowerCase();
     return PRODUCTS.filter(p =>
       (pickCat === 'all' || p.cat === pickCat) &&
+      (!pickSub || p.sub === pickSub) &&
       (!q || p.name.toLowerCase().includes(q))
     );
   }
+  /* левый столбец: группы, у выбранной группы раскрываются её подгруппы */
+  function renderPickSide() {
+    const cnt = {}, subs = {};
+    PRODUCTS.forEach(p => {
+      cnt[p.cat] = (cnt[p.cat] || 0) + 1;
+      if (p.sub) { (subs[p.cat] = subs[p.cat] || {})[p.sub] = (subs[p.cat][p.sub] || 0) + 1; }
+    });
+    const esc = t => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    const btn = (c, sub, label, n, cls) =>
+      `<button class="${cls}${pickCat === c && pickSub === sub ? ' on' : ''}" data-c="${c}" data-s="${esc(sub)}"><span class="l">${label}</span><span class="n">${n}</span></button>`;
+    document.getElementById('pickTabs').innerHTML =
+      btn('all', '', 'Все', PRODUCTS.length, 'g') +
+      CATEGORIES.map(c => btn(c.id, '', c.name, cnt[c.id] || 0, 'g') +
+        (pickCat === c.id && subs[c.id]
+          ? Object.keys(subs[c.id]).map(sn => btn(c.id, sn, sn, subs[c.id][sn], 's')).join('') : '')).join('');
+  }
   function renderPicker() {
+    renderPickSide();
     const cur = nodeByPath(draft, editPath);
     const here = new Set(cur.items.filter(n => n.kind === 'item').map(n => n.pid));
     const list = pickerResults();
@@ -690,8 +706,7 @@ const HK = (() => {
     document.getElementById('pickInput').addEventListener('input', renderPicker);
     document.getElementById('pickTabs').addEventListener('click', e => {
       const b = e.target.closest('[data-c]'); if (!b) return;
-      pickCat = b.dataset.c;
-      document.querySelectorAll('#pickTabs button').forEach(x => x.classList.toggle('on', x.dataset.c === pickCat));
+      pickCat = b.dataset.c; pickSub = b.dataset.s || '';
       renderPicker();
     });
     document.getElementById('pickList').addEventListener('click', e => {
