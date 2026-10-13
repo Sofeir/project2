@@ -732,8 +732,6 @@ $('#menuCheck').addEventListener('click', e => {
 });
 
 /* ============================ КОЛИЧЕСТВО / ВЕС =========================== */
-const WEIGHT_PRESETS = [100, 150, 200, 250, 300, 500];
-
 function openQtyForNew(p) {
   S.qty = { uid: null, buf: '', mode: 'weight', pending: p };
   showQty(p.name, p.price, 'weight');
@@ -744,24 +742,20 @@ function openQtyForRow(r) {
 }
 function showQty(name, price, mode) {
   S.qty.price = price;
-  $('#qtyKeys').classList.toggle('dec', mode !== 'weight');
   $('#qtyTitle').textContent = mode === 'weight' ? 'Вес позиции' : 'Количество';
   $('#qtyItem').textContent = name;
   $('#qtyLabel').textContent = mode === 'weight' ? 'Вес' : 'Количество';
-  const pre = $('#qtyPresets');
-  pre.classList.toggle('hidden', mode !== 'weight');
   $('#btnScale').classList.remove('hidden');   // взвесить можно любую позицию
-  if (mode === 'weight') pre.innerHTML = WEIGHT_PRESETS.map(g => `<button data-g="${g}">${g}${nbsp}г</button>`).join('');
   renderQty();
   open('modalQty');
 }
+/* вес и количество вводятся одинаково — числом с запятой; вес в килограммах, до трёх знаков */
 function qtyValue() {
-  if (S.qty.mode === 'weight') return parseInt(S.qty.buf || '0', 10) / 1000;
   return parseFloat((S.qty.buf || '0').replace(',', '.')) || 0;
 }
 function renderQty() {
   const v = qtyValue();
-  $('#qtyVal').textContent = S.qty.mode === 'weight' ? kg(v * 1000) + nbsp + 'кг' : (S.qty.buf === '' ? '—' : S.qty.buf);
+  $('#qtyVal').textContent = S.qty.buf === '' ? '—' : S.qty.buf + (S.qty.mode === 'weight' ? nbsp + 'кг' : '');
   $('#qtySum').textContent = money(v * S.qty.price);
   $('#btnQtyOk').disabled = v <= 0;
 }
@@ -772,18 +766,13 @@ $('#btnScale').addEventListener('click', async () => {
   try {
     const w = await API.scale();
     if (!w.stable) return toast('Вес не установился, повторите', 'warn');
-    /* весовая позиция набирается в граммах, штучная — числом с двумя знаками (кг) */
-    S.qty.buf = S.qty.mode === 'weight' ? String(w.grams) : (w.grams / 1000).toFixed(2).replace('.', ',');
+    S.qty.buf = (w.grams / 1000).toFixed(S.qty.mode === 'weight' ? 3 : 2).replace('.', ',');
     renderQty();
   } catch (err) {
     toast('Весы недоступны: ' + err.message, 'bad');
   } finally {
     b.disabled = false; t.textContent = 'Взвесить';
   }
-});
-$('#qtyPresets').addEventListener('click', e => {
-  const b = e.target.closest('[data-g]'); if (!b) return;
-  S.qty.buf = b.dataset.g; renderQty();
 });
 $('#qtyKeys').addEventListener('click', e => {
   const b = e.target.closest('[data-k]'); if (!b) return;
@@ -793,13 +782,12 @@ function qtyKey(k) {
   if (k === 'clear') S.qty.buf = '';
   else if (k === 'back') S.qty.buf = S.qty.buf.slice(0, -1);
   else if (k === ',') {
-    if (S.qty.mode === 'weight' || S.qty.buf.includes(',')) return;
+    if (S.qty.buf.includes(',')) return;
     S.qty.buf = (S.qty.buf || '0') + ',';
   }
-  else if (S.qty.mode === 'weight') { if (S.qty.buf.length < 5) S.qty.buf = (S.qty.buf + k).replace(/^0+(?=\d)/, ''); }
   else {
     const [whole, frac] = (S.qty.buf + k).split(',');
-    if (whole.length > 4 || (frac !== undefined && frac.length > 2)) return;
+    if (whole.length > 4 || (frac !== undefined && frac.length > (S.qty.mode === 'weight' ? 3 : 2))) return;
     S.qty.buf = (S.qty.buf + k).replace(/^0+(?=\d)/, '');
   }
   renderQty();

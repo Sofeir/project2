@@ -644,13 +644,6 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .scale-btn{ width:100%; height:48px; margin-bottom:10px; color:var(--acc-hi); border-color:var(--acc-line); background:var(--acc-soft); }
 .scale-btn:hover{ background:var(--acc-dim); }
 .scale-btn:disabled{ opacity:.6; }
-.quick{ display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px; }
-.quick button{
-  height:44px; border-radius:var(--r-sm); background:var(--card); border:1px solid var(--line);
-  font-size:14px; font-weight:600; color:var(--tx-2); transition:all .1s;
-}
-@media (hover:hover){ .quick button:hover{ background:var(--card-hi); color:var(--tx); border-color:var(--line-hi); } }
-.quick button:active{ transform:scale(.97); }
 
 .io{
   display:flex; align-items:center; justify-content:space-between; gap:14px;
@@ -678,12 +671,10 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .keys button:active, .keys button.press{ background:var(--card-act); transform:scale(.97); }
 .keys button.aux{ color:var(--tx-2); font-size:15px; font-weight:600; }
 .keys button.aux svg{ width:22px; height:22px; }
-/* окно количества: в нижнем ряду четыре клавиши, поэтому сетка на 12 долей;
-   в режиме веса запятая скрыта и ряд снова из трёх */
+/* окно количества и веса: в нижнем ряду четыре клавиши, поэтому сетка на 12 долей */
 #qtyKeys{ grid-template-columns:repeat(12,1fr); }
 #qtyKeys button{ grid-column:span 4; }
-#qtyKeys.dec button:nth-child(n+10){ grid-column:span 3; }
-#qtyKeys:not(.dec) .comma{ display:none; }
+#qtyKeys button:nth-child(n+10){ grid-column:span 3; }
 
 .pulse{
   width:44px; height:44px; margin:0 auto 14px; border-radius:50%;

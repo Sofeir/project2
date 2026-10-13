@@ -456,7 +456,6 @@ const HK = (() => {
     document.getElementById('pickInput').value = '';
     renderPicker();
     open('modalPick');
-    setTimeout(() => document.getElementById('pickInput').focus(), 60);
   }
   function pickerResults() {
     const q = document.getElementById('pickInput').value.trim().toLowerCase();
@@ -488,11 +487,9 @@ const HK = (() => {
     const here = new Set(cur.items.filter(n => n.kind === 'item').map(n => n.pid));
     const list = pickerResults();
     document.getElementById('pickList').innerHTML = list.length ? list.map(p => {
-      const c = catOf(p.cat);
       const added = here.has(p.id);
       return `<button class="pk ${pickSel.has(p.id) ? 'on' : ''} ${added ? 'dis' : ''}" data-p="${p.id}" ${added ? 'disabled' : ''}>
         <span class="cb"><svg><use href="#i-check"/></svg></span>
-        <span class="tg" style="color:${c.color}">${c.short}</span>
         <span class="nm">${p.name}</span>
         ${added ? '<span class="added">уже в группе</span>' : `<span class="pr num">${money(p.price)}</span>`}
       </button>`;
@@ -524,7 +521,6 @@ const HK = (() => {
       const n = PRODUCTS.filter(p => p.cat === c.id).length;
       return `<button class="pk ${catSel.has(c.id) ? 'on' : ''}" data-c="${c.id}">
         <span class="cb"><svg><use href="#i-check"/></svg></span>
-        <span class="tg" style="color:${c.color}">${c.short}</span>
         <span class="nm">${c.name}</span>
         <span class="added">${n} ${plural(n, 'позиция', 'позиции', 'позиций')}</span>
       </button>`;
