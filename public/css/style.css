@@ -1374,6 +1374,12 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .chv svg{ width:16px; height:16px; }
 .chv.open{ transform:none; }
 .chv.leaf{ visibility:hidden; }
+/* значок группы — папка в цвете группы; подгруппа обозначена цветным квадратом (.cd) */
+.fi{
+  width:24px; height:24px; border-radius:7px; flex:none; display:flex; align-items:center; justify-content:center;
+  background:color-mix(in srgb, var(--c, var(--tx-3)) 22%, transparent); color:var(--c, var(--tx-3));
+}
+.fi svg{ width:14px; height:14px; }
 .tr .cd{ width:9px; height:9px; border-radius:3px; background:var(--c, var(--tx-3)); flex:none; }
 .tr .nm{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .tr .cnt{ font-size:12px; font-weight:600; color:var(--tx-3); flex:none; }

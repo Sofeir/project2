@@ -269,7 +269,7 @@ const HK = (() => {
             style="padding-left:${10 + lvl * 18}px; --c:${g.color}">
           <span class="grip"><svg><use href="#i-grip"/></svg></span>
           <span class="chv${kids ? (open ? ' open' : '') : ' leaf'}"><svg><use href="#i-chev"/></svg></span>
-          <span class="cd"></span>
+          ${lvl === 1 ? '<span class="fi"><svg><use href="#i-folder"/></svg></span>' : '<span class="cd"></span>'}
           <span class="nm">${g.name}</span>
           <span class="cnt">${countAll(g)}</span>
         </button>`;
