@@ -1340,7 +1340,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .hk-top h2{ font-size:17px; }
 .hk-top .sub{ font-size:12.5px; color:var(--tx-3); margin-top:1px; }
 .mode-badge{
-  display:flex; align-items:center; gap:7px; height:30px; padding:0 13px; border-radius:var(--r-pill);
+  display:flex; align-items:center; gap:8px; min-height:42px; max-width:136px; padding:6px 18px 6px 16px; border-radius:var(--r-pill); flex:none; line-height:1.2;
   background:var(--warn-soft); border:1px solid var(--warn-line); color:var(--warn);
   font-size:12px; font-weight:700;
 }
