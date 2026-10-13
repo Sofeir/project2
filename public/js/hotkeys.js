@@ -251,8 +251,10 @@ const HK = (() => {
   function renderEditor() { syncTopButtons(); renderTree(); renderEditGrid(); renderEditCrumbs(); }
 
   /* ------------------------------- дерево --------------------------------- */
+  const treeOpen = new Set();   // раскрытые группы дерева
   function renderTree() {
     const cur = editPath[editPath.length - 1] || 'root';
+    editPath.slice(0, -1).forEach(id => treeOpen.add(id));   // путь к выбранной группе всегда виден
     let html = `<button class="tr ${cur === 'root' ? 'on' : ''}" data-gid="root" style="padding-left:10px">
       <span class="grip" style="visibility:hidden"><svg><use href="#i-grip"/></svg></span>
       <span class="cd" style="--c:var(--acc)"></span>
@@ -261,14 +263,17 @@ const HK = (() => {
     </button>`;
     const walk = (node, lvl) => {
       node.items.filter(n => n.kind === 'group').forEach(g => {
+        const kids = g.items.some(n => n.kind === 'group');
+        const open = treeOpen.has(g.id);
         html += `<button class="tr ${cur === g.id ? 'on' : ''}" data-gid="${g.id}" draggable="true"
             style="padding-left:${10 + lvl * 18}px; --c:${g.color}">
           <span class="grip"><svg><use href="#i-grip"/></svg></span>
+          <span class="chv${kids ? (open ? ' open' : '') : ' leaf'}"><svg><use href="#i-chev"/></svg></span>
           <span class="cd"></span>
           <span class="nm">${g.name}</span>
           <span class="cnt">${countAll(g)}</span>
         </button>`;
-        walk(g, lvl + 1);
+        if (open) walk(g, lvl + 1);
       });
     };
     walk({ items: draft.items }, 1);
@@ -445,11 +450,55 @@ const HK = (() => {
 
   /* --------------------------- подбор товаров ----------------------------- */
   let pickSel = new Set();
-  let pickCat = 'all';
-  let pickSub = '';   // подгруппа внутри выбранной группы; '' — вся группа
+  let pickKey = 'all';          // выбранный узел левого столбца
+  const pickOpen = new Set();   // раскрытые узлы (группы с подгруппами)
+
+  /* В каталоге пока нет вложенных групп, поэтому верхний уровень собран из разделов меню —
+     так же, как стартовая витрина. Группы вне разделов остаются на верхнем уровне. */
+  const PICK_SECTIONS = [
+    ['Обеды', ['combo', 'soup', 'hot', 'garnir']],
+    ['Салаты и закуски', ['salat', 'zakuska']],
+    ['Выпечка', ['vypechka', 'konditer', 'svezh']],
+    ['Буфет и хлеб', ['bufet', 'hleb']],
+  ];
+  function pickTree() {
+    const cnt = {}, subs = {};
+    PRODUCTS.forEach(p => {
+      cnt[p.cat] = (cnt[p.cat] || 0) + 1;
+      if (p.sub) { const m = subs[p.cat] = subs[p.cat] || {}; m[p.sub] = (m[p.sub] || 0) + 1; }
+    });
+    const catNode = c => ({
+      key: 'c:' + c.id, label: c.name, count: cnt[c.id] || 0, test: p => p.cat === c.id,
+      kids: Object.keys(subs[c.id] || {}).map(sn => ({
+        key: 'u:' + c.id + '|' + sn, label: sn, count: subs[c.id][sn],
+        test: p => p.cat === c.id && p.sub === sn, kids: [],
+      })),
+    });
+    const top = [{ key: 'all', label: 'Все', count: PRODUCTS.length, test: () => true, kids: [] }];
+    const done = new Set();
+    CATEGORIES.forEach(c => {
+      const sec = PICK_SECTIONS.find(x => x[1].includes(c.id));
+      if (!sec) { top.push(catNode(c)); return; }
+      if (done.has(sec[0])) return;
+      done.add(sec[0]);
+      const cats = CATEGORIES.filter(x => sec[1].includes(x.id));
+      top.push({
+        key: 's:' + sec[0], label: sec[0], count: cats.reduce((n, x) => n + (cnt[x.id] || 0), 0),
+        test: p => sec[1].includes(p.cat), kids: cats.map(catNode),
+      });
+    });
+    return top;
+  }
+  function pickFind(nodes, key) {
+    for (const n of nodes) {
+      if (n.key === key) return n;
+      const r = pickFind(n.kids, key); if (r) return r;
+    }
+    return null;
+  }
 
   function openPicker() {
-    pickSel = new Set(); pickCat = 'all'; pickSub = '';
+    pickSel = new Set(); pickKey = 'all'; pickOpen.clear();
     const cur = nodeByPath(draft, editPath);
     document.getElementById('pickDest').textContent = 'В группу: ' +
       (editPath.length ? editPath.map(id => findNode(draft, id).name).join(' › ') : 'Все группы (первый экран)');
@@ -460,26 +509,21 @@ const HK = (() => {
   function pickerResults() {
     const q = document.getElementById('pickInput').value.trim().toLowerCase();
     return PRODUCTS.filter(p =>
-      (pickCat === 'all' || p.cat === pickCat) &&
-      (!pickSub || p.sub === pickSub) &&
+      (pickFind(pickTree(), pickKey) || { test: () => true }).test(p) &&
       (!q || p.name.toLowerCase().includes(q))
     );
   }
-  /* левый столбец: группы, у выбранной группы раскрываются её подгруппы */
+  /* левый столбец: дерево групп; нажатие на группу выбирает её и раскрывает/сворачивает подгруппы */
   function renderPickSide() {
-    const cnt = {}, subs = {};
-    PRODUCTS.forEach(p => {
-      cnt[p.cat] = (cnt[p.cat] || 0) + 1;
-      if (p.sub) { (subs[p.cat] = subs[p.cat] || {})[p.sub] = (subs[p.cat][p.sub] || 0) + 1; }
-    });
     const esc = t => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-    const btn = (c, sub, label, n, cls) =>
-      `<button class="${cls}${pickCat === c && pickSub === sub ? ' on' : ''}" data-c="${c}" data-s="${esc(sub)}"><span class="l">${label}</span><span class="n">${n}</span></button>`;
-    document.getElementById('pickTabs').innerHTML =
-      btn('all', '', 'Все', PRODUCTS.length, 'g') +
-      CATEGORIES.map(c => btn(c.id, '', c.name, cnt[c.id] || 0, 'g') +
-        (pickCat === c.id && subs[c.id]
-          ? Object.keys(subs[c.id]).map(sn => btn(c.id, sn, sn, subs[c.id][sn], 's')).join('') : '')).join('');
+    const row = (n, lvl) => {
+      const open = pickOpen.has(n.key);
+      return `<button class="pt l${lvl}${pickKey === n.key ? ' on' : ''}" data-key="${esc(n.key)}">
+        <span class="chv${n.kids.length ? (open ? ' open' : '') : ' leaf'}"><svg><use href="#i-chev"/></svg></span>
+        <span class="l">${n.label}</span><span class="n">${n.count}</span></button>` +
+        (open ? n.kids.map(k => row(k, lvl + 1)).join('') : '');
+    };
+    document.getElementById('pickTabs').innerHTML = pickTree().map(n => row(n, 0)).join('');
   }
   function renderPicker() {
     renderPickSide();
@@ -598,6 +642,9 @@ const HK = (() => {
       const r = e.target.closest('[data-gid]'); if (!r) return;
       const id = r.dataset.gid;
       editPath = id === 'root' ? [] : (pathTo(draft, id) || []).concat(id);
+      /* нажатие на группу с подгруппами раскрывает их, повторное — сворачивает */
+      const g = id === 'root' ? null : findNode(draft, id);
+      if (g && g.items.some(n => n.kind === 'group')) treeOpen.has(id) ? treeOpen.delete(id) : treeOpen.add(id);
       renderEditor();
     });
     tree.addEventListener('dragstart', e => {
@@ -701,8 +748,11 @@ const HK = (() => {
     /* подбор товаров */
     document.getElementById('pickInput').addEventListener('input', renderPicker);
     document.getElementById('pickTabs').addEventListener('click', e => {
-      const b = e.target.closest('[data-c]'); if (!b) return;
-      pickCat = b.dataset.c; pickSub = b.dataset.s || '';
+      const b = e.target.closest('[data-key]'); if (!b) return;
+      const key = b.dataset.key;
+      const n = pickFind(pickTree(), key);
+      pickKey = key;
+      if (n && n.kids.length) pickOpen.has(key) ? pickOpen.delete(key) : pickOpen.add(key);
       renderPicker();
     });
     document.getElementById('pickList').addEventListener('click', e => {
