@@ -13,7 +13,9 @@ npm-debug.log*
 Thumbs.db
 
 # локальные инструменты и деплой
-.claude/
+.claude/*
+!.claude/hooks/
+!.claude/settings.json
 .playwright-mcp/
 .wrangler/
 *.docx
