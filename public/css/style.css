@@ -971,6 +971,17 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .term-t{ font-size:17px; font-weight:700; margin-top:6px; }
 .term-h{ font-size:13.5px; color:var(--tx-3); margin-top:4px; }
 
+/* открытие смены: ожидание пульсирует, готовность — зелёная галочка */
+.os-warn{
+  margin-top:16px; padding:11px 14px; border-radius:var(--r-sm); text-align:left;
+  background:var(--warn-soft); border:1px solid var(--warn-line); color:var(--warn);
+  font-size:13.5px; font-weight:600; line-height:1.45;
+}
+.pulse.wait{ animation:osPulse 1.6s ease-in-out infinite; }
+@keyframes osPulse{ 0%,100%{ box-shadow:0 0 0 0 var(--acc-soft); } 50%{ box-shadow:0 0 0 12px transparent; } }
+.pulse.done{ background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }
+@media (prefers-reduced-motion: reduce){ .pulse.wait{ animation:none; } }
+
 /* --------------------------- КАРТОЧКА ЧЕКА ------------------------------ */
 .lc.tap{ cursor:pointer; }
 .lc.tap:active{ background:var(--card-hi); }

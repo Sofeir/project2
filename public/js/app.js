@@ -7,6 +7,8 @@
 const S = {
   pin: '',
   shiftId: null,
+  shiftOpened: true,    // false между Z-отчётом и открытием новой смены на ККТ
+  shiftOpening: false,
   shiftNo: SHIFT.number,
   openedAt: SHIFT.openedAt,
   openingCash: SHIFT.openingCash,
@@ -430,7 +432,8 @@ async function enter() {
   renderAll();
   /* За время простоя смену мог изменить другой терминал — берём свежий снимок */
   try { applyState(await API.state()); renderAll(); } catch (_) { /* покажем то, что есть */ }
-  toast(`Смена №${S.shiftNo} открыта`);
+  if (S.shiftOpened) toast(`Смена №${S.shiftNo} открыта`);
+  else toast('Смена не открыта: Операции → Открыть смену', 'warn', { ms: 3200 });
 }
 $('#btnLogout').addEventListener('click', () => {
   ask('Завершить сеанс?', 'Смена останется открытой. Незавершённый чек будет отложен автоматически.', 'Завершить', () => {
@@ -2009,6 +2012,41 @@ $('#btnUsagePrint').addEventListener('click', () => {
   toast(_usage.period ? `Расход блюд ${_usage.text} отправлен на печать` : `Расход блюд за смену №${_usage.number} отправлен на печать`);
 });
 
+/* ============================ ОТКРЫТИЕ СМЕНЫ ============================= */
+/* Пока ККТ отвечает, окно нельзя закрыть: кассиры принимают ожидание за зависание
+   и перезагружают кассу, а фискальник от этого уходит в сбой. Поэтому в окне
+   нет кнопок, а текст прямо просит ничего не выключать. */
+async function openShiftFlow() {
+  if (S.shiftOpening) return;
+  if (S.shiftOpened) return toast('Смена уже открыта', 'warn');
+  S.shiftOpening = true;
+  const pulse = $('#osPulse');
+  pulse.classList.add('wait'); pulse.classList.remove('done');
+  $('#osIcon').setAttribute('href', '#i-unlock');
+  $('#osTitle').textContent = 'Идёт открытие смены';
+  $('#osText').textContent = 'Ожидайте открытия смены';
+  $('#osWarn').classList.remove('hidden');
+  open('modalOpenShift');
+  try {
+    applyState(await API.openShift());
+    S.shiftOpened = true;
+    pulse.classList.remove('wait'); pulse.classList.add('done');
+    $('#osIcon').setAttribute('href', '#i-check');
+    $('#osTitle').textContent = 'Смена открыта';
+    $('#osText').textContent = `Смена №${S.shiftNo} открыта, можно работать`;
+    $('#osWarn').classList.add('hidden');
+    renderAll();
+    await new Promise(r => setTimeout(r, 3000));
+    close('modalOpenShift');
+    toast(`Смена №${S.shiftNo} открыта`);
+  } catch (err) {
+    close('modalOpenShift');
+    toast('Смена не открыта: ' + err.message, 'bad');
+  } finally {
+    S.shiftOpening = false;
+  }
+}
+
 /* ============================ ДЕНЬГИ И СМЕНА ============================= */
 /* Все суммы смены посчитаны в хранилище (js/api.js) — здесь только чтение снимка. */
 const revenue    = () => S.totals.revenue;
@@ -2026,6 +2064,7 @@ $('#menuShift').addEventListener('click', e => {
   if (a === 'in' || a === 'out') return openCash(a);
   if (a === 'x') return openReport('x');
   if (a === 'z') return closeShift();
+  if (a === 'open') return openShiftFlow();
 });
 
 function openCash(mode) {
@@ -2110,6 +2149,7 @@ function closeShift() {
       const res = await API.closeShift(Number.isFinite(counted) ? counted : null);
       applyState(res);
       S.cart = []; S.discount = null; S.sel = null;
+      S.shiftOpened = false;   // новая смена заведена в хранилище, но на ККТ ещё не открыта
       $('#screen-main').classList.add('hidden');
       $('#screen-login').classList.remove('hidden');
       $('#loginTitle').textContent = 'Смена закрыта';

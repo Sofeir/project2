@@ -46,6 +46,7 @@
   <symbol id="i-in" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M8 11l4 4 4-4"/><path d="M4 19h16"/></symbol>
   <symbol id="i-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4"/><path d="M8 8l4-4 4 4"/><path d="M4 19h16"/></symbol>
   <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10" width="15" height="10" rx="2.5"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/></symbol>
+  <symbol id="i-unlock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4.5" y="10" width="15" height="10" rx="2.5"/><path d="M8 10V7.5a4 4 0 0 1 7.6-1.7"/></symbol>
   <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H7"/><path d="M11 7l-5 5 5 5"/></symbol>
   <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5a2 2 0 0 1 2-2h3.2l2 2.4h7.8a2 2 0 0 1 2 2v7.6a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/></symbol>
   <symbol id="i-folder-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.5a2 2 0 0 1 2-2h3.2l2 2.4h7.8a2 2 0 0 1 2 2v7.6a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/></symbol>
@@ -123,6 +124,7 @@
     <div class="drop" id="dropShift">
       <button class="tbtn" id="btnShift"><svg><use href="#i-shift"/></svg>Операции<svg class="chev"><use href="#i-chev"/></svg></button>
       <div class="menu hidden" id="menuShift">
+        <button data-act="open"><svg><use href="#i-unlock"/></svg><span><span class="mt">Открыть смену</span><span class="mh">Проверка и открытие на ККТ</span></span></button>
         <button data-act="hk"><svg><use href="#i-grip"/></svg><span><span class="mt">Горячие клавиши</span><span class="mh">Настроить, принять, передать</span></span></button>
         <button data-act="x"><svg><use href="#i-print"/></svg><span><span class="mt">X-отчёт</span><span class="mh">Промежуточный, смена не закрывается</span></span></button>
         <button data-act="in"><svg><use href="#i-in"/></svg><span><span class="mt">Внести наличные</span><span class="mh">Размен, довнесение</span></span></button>
@@ -748,6 +750,19 @@
     <div class="m-foot">
       <button class="btn" data-close style="flex:1">Отмена</button>
       <button class="btn btn-danger" id="btnCkReturn" style="flex:1.4">Оформить возврат</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================== ОТКРЫТИЕ СМЕНЫ ========================== -->
+<!-- Без кнопок и без закрытия по клику мимо: пока ККТ отвечает, кассу трогать нельзя -->
+<div class="veil hidden" id="modalOpenShift" data-lock>
+  <div class="modal slim">
+    <div class="m-body term">
+      <div class="pulse wait" id="osPulse"><svg><use id="osIcon" href="#i-unlock"/></svg></div>
+      <div class="term-t" id="osTitle">Идёт открытие смены</div>
+      <div class="term-h" id="osText">Ожидайте открытия смены</div>
+      <div class="os-warn" id="osWarn">Не выключайте компьютер и кассовый аппарат (ККТ), не закрывайте программу и не перезагружайте кассу. Открытие может занять несколько минут.</div>
     </div>
   </div>
 </div>

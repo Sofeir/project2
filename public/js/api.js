@@ -544,6 +544,9 @@ const API = (() => {
     unpark:      id   => run(() => unpark(id)),
 
     closeShift:  cash => run(() => closeShift(cash)),
+    /* Открытие смены на ККТ. Пока устройства нет — ждём так же, как ждала бы касса
+       (ключи, обмен с ФН); реальный драйвер подключается здесь и возвращает снимок смены. */
+    openShift:   ()   => new Promise(r => setTimeout(r, 3000)).then(shiftState),
     shifts:      ()   => run(shifts),
     usage:       id   => run(() => usage(id)),
     usageRange:  (from, to) => run(() => usageRange(from, to)),
