@@ -7,7 +7,7 @@
 const S = {
   pin: '',
   shiftId: null,
-  shiftOpened: true,    // false между Z-отчётом и открытием новой смены на ККТ
+  shiftOpened: false,   // смена открыта на ККТ; вход по PIN её не открывает, только кнопка в «Операциях»
   shiftOpening: false,
   shiftNo: SHIFT.number,
   openedAt: SHIFT.openedAt,
@@ -165,12 +165,19 @@ function ask(title, text, yesLabel, onYes) {
   open('modalAsk');
 }
 
+/* Какая смена открыта на ККТ, помнит терминал: после перезагрузки страницы касса
+   не должна «забывать» открытую смену, а новая смена после Z-отчёта открытой не считается. */
+const OPENED_KEY = 'asoft-pos-shift-opened';
+const openedShiftId = () => { try { return localStorage.getItem(OPENED_KEY); } catch (_) { return null; } };
+const markShiftOpened = id => { try { localStorage.setItem(OPENED_KEY, String(id)); } catch (_) { /* не запомнится — откроют заново */ } };
+
 /* ------------------------- состояние смены ------------------------------ */
 /* Любая операция, меняющая смену, возвращает из хранилища её полный снимок.
    Экран не пересчитывает итоги сам — все суммы считаются в одном месте. */
 function applyState(st) {
   if (!st) return;
   S.shiftId     = st.shift.id;
+  S.shiftOpened = openedShiftId() === String(st.shift.id);
   S.shiftNo     = st.shift.number;
   S.openedAt    = st.shift.openedAt;
   S.openingCash = st.shift.openingCash;
@@ -432,8 +439,7 @@ async function enter() {
   renderAll();
   /* За время простоя смену мог изменить другой терминал — берём свежий снимок */
   try { applyState(await API.state()); renderAll(); } catch (_) { /* покажем то, что есть */ }
-  if (S.shiftOpened) toast(`Смена №${S.shiftNo} открыта`);
-  else toast('Смена не открыта: Операции → Открыть смену', 'warn', { ms: 3200 });
+  if (!S.shiftOpened) toast('Смена не открыта. Откройте её: Операции → Открыть смену', 'warn', { ms: 3600 });
 }
 $('#btnLogout').addEventListener('click', () => {
   ask('Завершить сеанс?', 'Смена останется открытой. Незавершённый чек будет отложен автоматически.', 'Завершить', () => {
@@ -441,7 +447,7 @@ $('#btnLogout').addEventListener('click', () => {
     $('#screen-main').classList.add('hidden');
     $('#screen-login').classList.remove('hidden');
     $('#loginTitle').textContent = 'Сеанс завершён';
-    $('#loginSub').textContent = `Смена №${S.shiftNo} открыта в ${S.openedAt}. Введите PIN-код для продолжения`;
+    $('#loginSub').textContent = (S.shiftOpened ? `Смена №${S.shiftNo} открыта в ${S.openedAt}. ` : '') + 'Введите PIN-код кассира, чтобы продолжить';
   });
 });
 
@@ -2028,8 +2034,9 @@ async function openShiftFlow() {
   $('#osWarn').classList.remove('hidden');
   open('modalOpenShift');
   try {
-    applyState(await API.openShift());
-    S.shiftOpened = true;
+    const st = await API.openShift();
+    markShiftOpened(st.shift.id);
+    applyState(st);
     pulse.classList.remove('wait'); pulse.classList.add('done');
     $('#osIcon').setAttribute('href', '#i-check');
     $('#osTitle').textContent = 'Смена открыта';
@@ -2149,11 +2156,10 @@ function closeShift() {
       const res = await API.closeShift(Number.isFinite(counted) ? counted : null);
       applyState(res);
       S.cart = []; S.discount = null; S.sel = null;
-      S.shiftOpened = false;   // новая смена заведена в хранилище, но на ККТ ещё не открыта
       $('#screen-main').classList.add('hidden');
       $('#screen-login').classList.remove('hidden');
       $('#loginTitle').textContent = 'Смена закрыта';
-      $('#loginSub').textContent = `Z-отчёт напечатан. Смена №${res.closed.number} закрыта, выручка ${money(res.closed.totals.revenue)}. Введите PIN-код, чтобы начать новую`;
+      $('#loginSub').textContent = `Z-отчёт напечатан. Смена №${res.closed.number} закрыта, выручка ${money(res.closed.totals.revenue)}. Введите PIN-код кассира, чтобы войти`;
       renderAll();
     } catch (err) {
       toast('Смена не закрыта: ' + err.message, 'bad');
