@@ -156,6 +156,9 @@ const API = (() => {
   }
 
   const isIncome = kind => kind === 'sale' || kind === 'correction_sale';
+  /* Чек, напечатанный до оплаты, ждёт денег; аннулированный чек и его возврат — не выручка.
+     У старых чеков статуса нет — они оплачены. */
+  const counted = c => !['awaiting', 'cancelled', 'void'].includes(c.status);
   /* прочая оплата — не деньги покупателя: списание и нефискальный расчёт */
   const OTHER_METHODS = ['writeoff', 'nonfiscal'];
   const benefitName = id => (SEED.BENEFITS.find(b => b.id === id) || { name: id }).name;
@@ -170,6 +173,7 @@ const API = (() => {
     }
     return {
       id: c.id, number: c.number, kind: c.kind, total: c.total, change: c.change_sum || 0,
+      status: c.status || 'paid', discountId: c.discount_id || null,
       source_number: c.source_number ?? null,
       subtotal: c.subtotal, discount_percent: c.discount_percent || 0, discount_sum: c.discount_sum || 0,
       correction_type: c.correction_type ?? null, doc_date: isoToRu(c.doc_date), doc_number: c.doc_number ?? null,
@@ -198,7 +202,8 @@ const API = (() => {
 
     let revenue = 0, returns = 0, cash = 0, cashless = 0, pass = 0, other = 0;
     const passBy = {};
-    mine.forEach(c => {
+    const mineCounted = mine.filter(counted);
+    mineCounted.forEach(c => {
       revenue += isIncome(c.kind) ? c.total : -c.total;
       if (!isIncome(c.kind)) returns += c.total;
       c.payments.forEach(p => {
@@ -227,7 +232,7 @@ const API = (() => {
       parked: d.parked.filter(p => p.shift_id === shift.id)
         .map(p => ({ id: p.id, no: p.number, total: p.total, count: p.positions, time: hhmm(p.created_at), payload: clone(p.payload || {}) })),
       totals: {
-        checks: mine.filter(c => c.kind === 'sale').length,
+        checks: mineCounted.filter(c => c.kind === 'sale').length,
         revenue: money(revenue),
         returns: money(returns),
         cash: money(cash),
@@ -258,6 +263,7 @@ const API = (() => {
     if (!items.length) throw new Error('Чек без позиций');
     const payments = Array.isArray(body.payments) ? body.payments : [];
     if (!payments.length) throw new Error('Не указан способ оплаты');
+    const awaiting = !!body.awaiting && kind === 'sale';
     const byPass = payments.filter(p => p.m === 'pass');
     if (byPass.length && kind !== 'sale') throw new Error('Возврат на пропуск — только по чеку продажи');
     if (byPass.length && !body.pass) throw new Error('Пропуск не приложен');
@@ -309,7 +315,7 @@ const API = (() => {
           if (!ben || !(qty > 0)) throw new Error(`Некорректное начисление «${benefitName(p.kind)}»`);
           if (qty > left) throw new Error(`На пропуске не хватает начисления «${benefitName(p.kind)}»: осталось ${left} шт`);
           const sum = money(Math.min(qty * ben.price, rest));
-          card.balances[p.kind] = left - qty;
+          if (!awaiting) card.balances[p.kind] = left - qty;
           c.payments.push({ m: 'pass', kind: p.kind, qty, amount: sum, vat: null, vatSum: null });
           rest = money(rest - sum);
           return;
@@ -318,6 +324,7 @@ const API = (() => {
         }
         rest = money(rest - amount);
       });
+      if (awaiting) c.status = 'awaiting';
       d.checks.push(c);
     });
     return shiftState();
@@ -329,6 +336,7 @@ const API = (() => {
       const shift = currentShift(d);
       const src = d.checks.find(c => c.shift_id === shift.id && c.number === sourceNumber && c.kind === 'sale');
       if (!src) throw new Error(`Чек продажи № ${sourceNumber} в текущей смене не найден`);
+      if (src.status && src.status !== 'paid') throw new Error(`Чек № ${sourceNumber} не оплачен — возврат невозможен`);
       if (d.checks.some(c => c.shift_id === shift.id && c.kind === 'return' && c.source_number === sourceNumber)) {
         throw new Error(`По чеку № ${sourceNumber} возврат уже оформлен`);
       }
@@ -404,6 +412,51 @@ const API = (() => {
     return saleOrReturn(body);
   }
 
+  /* Чек напечатан до оплаты (настройка «Чек до оплаты»): деньги принимают отдельным шагом */
+  function printCheck(body) {
+    return new Promise(r => setTimeout(r, 1800))   // печать на ККТ; реальный драйвер подключается здесь
+      .then(() => postCheck({ ...body, kind: 'sale', awaiting: true }));
+  }
+  function awaitingCheck(d, number) {
+    const c = d.checks.find(x => x.shift_id === currentShift(d).id && x.number === Number(number) && x.status === 'awaiting');
+    if (!c) throw new Error(`Чек № ${number} не ждёт оплаты`);
+    return c;
+  }
+  function payCheck(number, change) {
+    tx(d => {
+      const c = awaitingCheck(d, number);
+      const passPays = c.payments.filter(p => p.m === 'pass');
+      if (passPays.length) {
+        const card = c.pass && d.passes.find(x => x.number === c.pass.number);
+        if (!card) throw new Error('Пропуск не найден');
+        passPays.forEach(p => {
+          const left = Math.floor(card.balances[p.kind] || 0);
+          if (p.qty > left) throw new Error(`На пропуске не хватает начисления «${benefitName(p.kind)}»: осталось ${left} шт`);
+        });
+        passPays.forEach(p => { card.balances[p.kind] = Math.floor(card.balances[p.kind] || 0) - p.qty; });
+      }
+      c.status = 'paid';
+      c.change_sum = money(change || 0);
+      c.paid_at = now();
+    });
+    return shiftState();
+  }
+  /* Деньги не принимались, поэтому «возврат» — только документ: в выручке его нет */
+  function cancelCheck(number) {
+    tx(d => {
+      const c = awaitingCheck(d, number);
+      c.status = 'cancelled';
+      const v = blankCheck(d, currentShift(d), 'return');
+      Object.assign(v, {
+        subtotal: c.subtotal, discount_id: c.discount_id, discount_percent: c.discount_percent, discount_sum: c.discount_sum,
+        total: c.total, source_number: c.number, items: clone(c.items), payments: clone(c.payments),
+        pass: c.pass ? clone(c.pass) : null, status: 'void',
+      });
+      d.checks.push(v);
+    });
+    return shiftState();
+  }
+
   /* =========================== НАЛИЧНЫЕ В КАССЕ =========================== */
   function cashOp({ kind, amount, reason } = {}) {
     if (!['in', 'out'].includes(kind)) throw new Error('Неизвестная операция с наличными');
@@ -450,7 +503,7 @@ const API = (() => {
   function usageOf(pick) {
     const d = load();
     const acc = new Map();
-    d.checks.filter(c => pick(c) && (c.kind === 'sale' || c.kind === 'return')).forEach(c => {
+    d.checks.filter(c => counted(c) && pick(c) && (c.kind === 'sale' || c.kind === 'return')).forEach(c => {
       const sign = c.kind === 'sale' ? 1 : -1;
       c.items.forEach(i => {
         const k = i.name + '\u0000' + i.unit;
@@ -467,6 +520,8 @@ const API = (() => {
 
   function closeShift(counted) {
     const state = shiftState();
+    const open = state.checks.find(c => c.status === 'awaiting');
+    if (open) throw new Error(`Есть неоплаченный чек № ${pad4(open.number)}: примите оплату или аннулируйте его`);
     const closed = tx(d => {
       const shift = currentShift(d);
       shift.closed_at = now();
@@ -500,7 +555,8 @@ const API = (() => {
   function setSettings(patch) {
     return tx(d => {
       if (patch && typeof patch.sbp === 'boolean') d.settings.sbp = patch.sbp;
-      return clone(d.settings);
+      if (patch && typeof patch.receiptFirst === 'boolean') d.settings.receiptFirst = patch.receiptFirst;
+      return { receiptFirst: false, ...clone(d.settings) };
     });
   }
 
@@ -555,7 +611,10 @@ const API = (() => {
     scale,
 
     pass:        n    => run(() => passInfo(n)),
-    settings:    ()   => run(() => clone(load().settings)),
+    settings:    ()   => run(() => ({ receiptFirst: false, ...clone(load().settings) })),
+    printCheck:  p    => run(() => printCheck(p)),
+    payCheck:    (no, change) => run(() => payCheck(no, change)),
+    cancelCheck: no   => run(() => cancelCheck(no)),
     setSettings: p    => run(() => setSettings(p)),
 
     hotkeys:     ()    => run(() => ({ items: clone(load().hotkeys) })),

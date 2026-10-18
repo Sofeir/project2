@@ -977,6 +977,13 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   background:var(--warn-soft); border:1px solid var(--warn-line); color:var(--warn);
   font-size:13.5px; font-weight:600; line-height:1.45;
 }
+.rdy{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:0 16px; }
+.rdy .pulse{ width:64px; height:64px; margin-bottom:14px; }
+.rdy .pulse svg{ width:28px; height:28px; }
+.rdy-t{ font-size:18px; font-weight:700; }
+.rdy-h{ font-size:14px; color:var(--tx-3); margin-top:6px; line-height:1.45; max-width:320px; }
+/* чек напечатан — закрыть окно нельзя, только принять оплату или аннулировать чек */
+.pay.locked .m-head .ibtn{ visibility:hidden; }
 .pulse.wait{ animation:osPulse 1.6s ease-in-out infinite; }
 @keyframes osPulse{ 0%,100%{ box-shadow:0 0 0 0 var(--acc-soft); } 50%{ box-shadow:0 0 0 12px transparent; } }
 .pulse.done{ background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }

@@ -115,6 +115,7 @@
       <div class="menu hidden" id="menuBrand">
         <button data-act="theme"><svg><use id="themeIcon" href="#i-sun"/></svg><span><span class="mt">Поменять тему</span><span class="mh" id="themeText">Тёмная · PIN администратора</span></span></button>
         <button data-act="sbp"><svg><use href="#i-qr"/></svg><span><span class="mt">Оплата по СБП</span><span class="mh" id="sbpState">Включена</span></span></button>
+        <button data-act="rcpt"><svg><use href="#i-print"/></svg><span><span class="mt">Чек до оплаты</span><span class="mh" id="rcptState">Отключен</span></span></button>
       </div>
     </div>
     <div class="sep"></div>
@@ -268,6 +269,15 @@
           </div>
         </div>
         <div class="refund-note hidden" id="refundNote">Выдайте покупателю деньги выбранным способом. При возврате на карту терминал попросит приложить её.</div>
+      </div>
+
+      <!-- шаг «чек до оплаты»: способы выбраны, чек ещё не напечатан или напечатан и ждёт денег -->
+      <div class="pay-step hidden" id="stepReady">
+        <div class="rdy">
+          <div class="pulse"><svg><use id="rdyIconUse" href="#i-print"/></svg></div>
+          <div class="rdy-t" id="rdyTitle">Способы оплаты выбраны</div>
+          <div class="rdy-h" id="rdyText">Сначала распечатайте чек, затем примите оплату.</div>
+        </div>
       </div>
 
       <!-- шаг 2: сумма — наличные целиком или одна часть -->
@@ -763,6 +773,18 @@
       <div class="term-t" id="osTitle">Идёт открытие смены</div>
       <div class="term-h" id="osText">Ожидайте открытия смены</div>
       <div class="os-warn" id="osWarn">Не выключайте компьютер и кассовый аппарат (ККТ), не закрывайте программу и не перезагружайте кассу. Открытие может занять несколько минут.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ ПЕЧАТЬ ЧЕКА ============================ -->
+<div class="veil hidden" id="modalPrint" data-lock>
+  <div class="modal slim">
+    <div class="m-body term">
+      <div class="pulse wait"><svg><use href="#i-print"/></svg></div>
+      <div class="term-t">Печать чека</div>
+      <div class="term-h">Ожидайте, чек печатается</div>
+      <div class="os-warn">Не выключайте компьютер и кассовый аппарат (ККТ), не открывайте крышку принтера.</div>
     </div>
   </div>
 </div>

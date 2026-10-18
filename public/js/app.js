@@ -32,6 +32,7 @@ const S = {
   lastSale: null,
   op: 'sale',        // продажа | ret-items | corr-sale | corr-return
   sbp: true,         // оплата по СБП включена в настройках кассы
+  receiptFirst: false,   // «Чек до оплаты»: сначала печатается чек, потом принимается оплата
 };
 
 let _uid = 0;
@@ -201,6 +202,8 @@ function applyState(st) {
     } : null,
     payments: (c.payments || []).map(p => ({ m: p.m, kind: p.kind || null, qty: p.qty || null, amount: Number(p.amount), vat: p.vat })),
     pass: c.pass || null,
+    status: c.status || 'paid',
+    discountId: c.discountId || null,
   }));
 
   S.cashOps = st.cashOps.map(o => ({ type: o.type, amount: Number(o.amount), time: o.time }));
@@ -315,6 +318,15 @@ $('#menuBrand').addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   b.blur();
   if (b.dataset.act === 'theme') return requireAdmin(() => open('modalThemes'));
+  if (b.dataset.act === 'rcpt') return requireAdmin(async () => {
+    try {
+      S.receiptFirst = (await API.setSettings({ receiptFirst: !S.receiptFirst })).receiptFirst;
+      renderReceiptFirst();
+      toast(S.receiptFirst ? 'Чек до оплаты включён' : 'Чек до оплаты отключён', S.receiptFirst ? 'ok' : 'warn');
+    } catch (err) {
+      toast(err.message, 'bad');
+    }
+  });
   if (b.dataset.act === 'sbp') return requireAdmin(async () => {
     try {
       S.sbp = (await API.setSettings({ sbp: !S.sbp })).sbp;
@@ -366,6 +378,9 @@ let admBuf = '', admThen = null;
 
 /* СБП пока не подключена на всех кассах: администратор прячет кнопку,
    и тогда «Безнал» занимает всю строку */
+function renderReceiptFirst() {
+  $('#rcptState').textContent = S.receiptFirst ? 'Включён · нажмите, чтобы отключить' : 'Отключён · нажмите, чтобы включить';
+}
 function renderSbp() {
   $('#sbpState').textContent = S.sbp ? 'Включена · нажмите, чтобы отключить' : 'Отключена · нажмите, чтобы включить';
   $('#methods [data-m="qr"]').classList.toggle('hidden', !S.sbp);
@@ -440,6 +455,7 @@ async function enter() {
   /* За время простоя смену мог изменить другой терминал — берём свежий снимок */
   try { applyState(await API.state()); renderAll(); } catch (_) { /* покажем то, что есть */ }
   if (!S.shiftOpened) toast('Смена не открыта. Откройте её: Операции → Открыть смену', 'warn', { ms: 3600 });
+  resumeAwaiting();
 }
 $('#btnLogout').addEventListener('click', () => {
   ask('Завершить сеанс?', 'Смена останется открытой. Незавершённый чек будет отложен автоматически.', 'Завершить', () => {
@@ -951,7 +967,9 @@ const pad4 = n => String(n).padStart(4, '0');
    amount — клавиатура: сколько дали наличными или сумма очередной части.
    В режиме «частями» части копятся в splits, пока не закроют весь чек. */
 const paidSum   = () => S.pay.splits.reduce((s, x) => s + x.amount, 0);
-const remainSum = () => Math.max(0, round2(total() - passSum() - paidSum()));
+const remainSum = () => (S.pay.collect ? S.pay.collect.cash : Math.max(0, round2(total() - passSum() - paidSum())));
+/* «Чек до оплаты» действует на продажи; возврат блюд идёт как раньше */
+const receiptFirst = () => S.receiptFirst && !isRefund();
 
 /* Начисления пропуска списываются штуками — столько, сколько кассир выбрал
    в окне начислений. Сумма — номинал × штуки, но не больше остатка чека:
@@ -980,7 +998,9 @@ const payGot    = () => (S.pay.buf === '' ? remainSum() : entered());
 $('#btnPay').addEventListener('click', openPay);
 function openPay() {
   if (!S.cart.length) return;
-  S.pay = { step: 'choose', parts: false, method: null, buf: '', splits: [], pass: null, other: false, sending: null };
+  S.pay = { step: 'choose', parts: false, method: null, buf: '', splits: [], pass: null, other: false, sending: null,
+    stage: null, plan: [], check: null, collect: null };
+  setLocked(false);
   const ret = isRefund();
   $('#payTitle').textContent = ret ? 'Возврат блюд' : 'Оплата чека';
   $('#sheetPay').classList.toggle('refund', ret);
@@ -996,7 +1016,7 @@ function payStep(step) {
 }
 
 $('#methods').addEventListener('click', e => {
-  const b = e.target.closest('[data-m]'); if (!b || b.disabled || paying) return;
+  const b = e.target.closest('[data-m]'); if (!b || b.disabled || paying || S.pay.stage) return;
   const m = b.dataset.m;
   if (m === 'parts') { S.pay.parts = true; return payStep('choose'); }
   /* «Прочая оплата» раскрывается на месте: списание или нефискальная */
@@ -1004,12 +1024,18 @@ $('#methods').addEventListener('click', e => {
   S.pay.method = m;
   const rem = remainSum();
   if (isRefund()) return finishPay([{ m, amount: rem }], 0);
-  /* карта, СБП и прочая оплата целиком — без клавиатуры, сразу на проведение */
-  if (!S.pay.parts && m !== 'cash') return finishPay(passParts().concat([{ m, amount: rem }]), 0);
+  /* карта, СБП и прочая оплата целиком — без клавиатуры, сразу на проведение;
+     при «чеке до оплаты» так же и наличные: сколько дали, спросим при приёме денег */
+  if (!S.pay.parts && (m !== 'cash' || receiptFirst())) return submitPay(passParts().concat([{ m, amount: rem }]), 0);
   payStep('amount');
 });
 
 $('#btnPayBack').addEventListener('click', () => {
+  if (paying || printing) return;
+  if (S.pay.stage === 'printed') {
+    if (S.pay.collect) { S.pay.collect = null; S.pay.method = null; return payStep('choose'); }
+    return cancelPrinted();
+  }
   if (S.pay.step === 'amount') return payStep('choose');
   if (S.pay.other) { S.pay.other = false; return renderPay(); }
   /* из «частями» назад к обычному выбору: ничего ещё не списано, части сбрасываем */
@@ -1018,20 +1044,24 @@ $('#btnPayBack').addEventListener('click', () => {
 });
 
 function renderPay() {
+  if (S.pay.stage && !S.pay.collect) return renderStage();
   const ret = isRefund();
   const P = S.pay, rem = remainSum();
   const amount = P.step === 'amount';
+  $('#stepReady').classList.add('hidden');
   $('.pay').dataset.step = P.step;
   $('#stepChoose').classList.toggle('hidden', amount);
   $('#stepAmount').classList.toggle('hidden', !amount);
 
   const pass = !ret && P.pass;
-  $('#payBoxLabel').textContent = ret ? 'К возврату'
+  $('#payBoxLabel').textContent = P.collect ? 'Принять наличными'
+    : ret ? 'К возврату'
     : pass && passSum() > 0 ? 'Доплатить' : P.splits.length ? 'Осталось оплатить' : 'Итого к оплате';
   $('#payTotal').textContent = money(rem);
 
   const back = $('#btnPayBack'), btn = $('#btnPayConfirm');
   back.textContent = amount || P.parts || P.other ? 'Назад' : 'Отмена';
+  back.classList.remove('btn-danger');
   renderPaySide();
 
   if (!amount) {
@@ -1094,7 +1124,7 @@ function renderPay() {
   const partial = P.parts && got > 0 && got < rem;
   btn.disabled = paying || got <= 0 || (!P.parts && got < rem) || (!cash && got > rem);
   /* сдачу видно в строке выше, на кнопке длинная надпись не помещается рядом с ящиком */
-  if (!paying) btn.textContent = partial ? 'Добавить часть' : 'Провести оплату';
+  if (!paying) btn.textContent = partial ? 'Добавить часть' : P.collect ? 'Принять оплату' : 'Провести оплату';
 }
 
 /* ------------------------- боковая панель оплаты ------------------------- */
@@ -1103,7 +1133,7 @@ function renderPay() {
 function renderPaySide() {
   const P = S.pay, ret = isRefund();
   const pass = !ret && P.pass;
-  const parts = passParts();
+  const parts = P.stage ? [] : passParts();
 
   $('.ps-head').textContent = ret ? 'Выбрано к возврату' : 'Выбрано к оплате';
   $('#psPass').classList.toggle('hidden', !pass);
@@ -1116,6 +1146,7 @@ function renderPaySide() {
   const rows = [];
   const sending = P.sending;
   if (sending) sending.forEach(p => rows.push({ p }));
+  else if (P.stage) P.plan.forEach(p => rows.push({ p }));
   else {
     parts.forEach(p => rows.push({ p }));
     P.splits.forEach((p, i) => rows.push({ p, rm: i }));
@@ -1146,15 +1177,20 @@ function renderPaySide() {
   $('#psRestLabel').textContent = ret ? 'К возврату' : rest > 0 ? 'Доплатить' : 'Оплачено полностью';
   $('#psRest').textContent = ret ? money(sum) : rest > 0 ? money(rest) : '';
   $('#psRestBox').classList.toggle('done', !ret && rest <= 0);
+  if (P.stage) {
+    $('#psRestLabel').textContent = P.stage === 'printed' ? 'Ожидает оплаты' : 'К печати';
+    $('#psRest').textContent = money(sum);
+    $('#psRestBox').classList.remove('done');
+  }
 }
 
 /* нажатие на карточку владельца — вернуться к выбору начислений */
 $('#psOwnerCard').addEventListener('click', e => {
-  if (e.target.closest('#btnPassOff') || paying || !S.pay.pass) return;
+  if (e.target.closest('#btnPassOff') || paying || !S.pay.pass || S.pay.stage) return;
   openBens(S.pay.pass, S.pay.pass.sel);
 });
 $('#btnPassOff').addEventListener('click', () => {
-  if (paying) return;
+  if (paying || S.pay.stage) return;
   S.pay.pass = null;
   passChanged();
   toast('Пропуск убран', 'warn');
@@ -1178,6 +1214,7 @@ function passChanged() {
    что и сколько на нём доступно, без списания. */
 let _testPass = -1;
 async function attachPass(number) {
+  if (!sheetHidden() && S.pay.stage) return toast('Чек уже напечатан: пропуск менять нельзя', 'warn');
   try {
     const info = await API.pass(number);
     if (sheetHidden()) return openPassInfo(info);
@@ -1280,7 +1317,7 @@ function payKey(k) {
   renderPay();
 }
 $('#psList').addEventListener('click', e => {
-  const b = e.target.closest('[data-rm]'); if (!b || paying) return;
+  const b = e.target.closest('[data-rm]'); if (!b || paying || S.pay.stage) return;
   S.pay.splits.splice(+b.dataset.rm, 1);
   renderPay();
 });
@@ -1303,9 +1340,12 @@ function dismissChange() {
 
 $('#btnPayConfirm').addEventListener('click', () => {
   const P = S.pay;
+  if (P.stage === 'ready') return printReceipt();
+  if (P.collect) return collectPay(Math.max(0, round2(payGot() - remainSum())));
+  if (P.stage === 'printed') return acceptPayment();
   if (P.step !== 'amount') {
     /* пропуск закрыл весь чек — проводим без доплаты */
-    if (!isRefund() && passCovers()) finishPay(passParts().concat(P.splits), 0);
+    if (!isRefund() && passCovers()) submitPay(passParts().concat(P.splits), 0);
     return;
   }
   const rem = remainSum(), m = P.method, got = payGot();
@@ -1318,7 +1358,7 @@ $('#btnPayConfirm').addEventListener('click', () => {
     return payStep('choose');
   }
   const change = m === 'cash' ? Math.max(0, round2(got - rem)) : 0;
-  finishPay(passParts().concat(P.splits, [{ m, amount: rem }]), change);
+  submitPay(passParts().concat(P.splits, [{ m, amount: rem }]), change);
 });
 
 /* Чек считается пробитым только после записи в хранилище: пока запись не прошла,
@@ -1343,27 +1383,9 @@ async function finishPay(parts, change) {
       }
     }
     btn.textContent = ret ? 'Оформляю возврат…' : 'Провожу оплату…';
-    const body = {
-      items: S.cart.map(r => ({ id: r.id, name: r.name, price: r.price, unit: r.unit, qty: r.qty })),
-      discountId: S.discount ? S.discount.id : null,
-      payments: parts,
-      pass: parts.some(p => p.m === 'pass') ? S.pay.pass.number : null,
-      change,
-    };
+    const body = cartBody(parts, change);
     const st = ret ? await API.refundItems(body) : await API.sale(body);
-
-    applyState(st);
-    S.lastSale = st.checks[0];
-
-    close('sheetPay');
-    setOp('sale');
-
-    S.cart = []; S.sel = null; S.discount = null;
-    HK.goRoot();   /* следующий покупатель начинает с первого экрана витрины */
-    renderAll();
-    /* плашку — после очистки чека: пока в чеке позиции, сдача сразу бы убиралась */
-    if (change > 0) showChange(change);
-    else showPaid(ret ? 'Возврат оформлен' : 'Оплата проведена', ret);
+    completeSale(st, change, ret);
   } catch (err) {
     toast((ret ? 'Возврат не проведён: ' : 'Чек не проведён: ') + err.message, 'bad');
   } finally {
@@ -1372,6 +1394,178 @@ async function finishPay(parts, change) {
     btn.textContent = label;
     if (!$('#sheetPay').classList.contains('hidden')) renderPay();
   }
+}
+
+/* Тело чека для хранилища: позиции, скидка, оплаты */
+function cartBody(parts, change) {
+  return {
+    items: S.cart.map(r => ({ id: r.id, name: r.name, price: r.price, unit: r.unit, qty: r.qty })),
+    discountId: S.discount ? S.discount.id : null,
+    payments: parts,
+    pass: parts.some(p => p.m === 'pass') ? S.pay.pass.number : null,
+    change,
+  };
+}
+/* Чек пробит и оплачен: окно оплаты уходит, чек обнуляется для следующего покупателя */
+function completeSale(st, change, ret) {
+  applyState(st);
+  S.lastSale = st.checks.find(c => c.kind === (ret ? 'return' : 'sale') && c.status !== 'void') || st.checks[0];
+  setLocked(false);
+  close('sheetPay');
+  setOp('sale');
+
+  S.cart = []; S.sel = null; S.discount = null;
+  HK.goRoot();   /* следующий покупатель начинает с первого экрана витрины */
+  renderAll();
+  /* плашку — после очистки чека: пока в чеке позиции, сдача сразу бы убиралась */
+  if (change > 0) showChange(change);
+  else showPaid(ret ? 'Возврат оформлен' : 'Оплата проведена', ret);
+}
+
+/* ============================ ЧЕК ДО ОПЛАТЫ ============================== */
+/* Настройка «Чек до оплаты»: способы выбраны → печатается чек → принимается оплата.
+   До печати окно закрывается обычной «Отменой»; после печати чек уже есть в ККТ,
+   поэтому окно держится, пока оплата не принята или чек не аннулирован. */
+let printing = false;
+
+function setLocked(on) {
+  $('.pay').classList.toggle('locked', on);
+  if (on) $('#sheetPay').dataset.lock = ''; else delete $('#sheetPay').dataset.lock;
+}
+
+function submitPay(parts, change) {
+  return receiptFirst() ? goReady(parts) : finishPay(parts, change);
+}
+function goReady(parts) {
+  const P = S.pay;
+  P.plan = parts.filter(p => p.amount > 0);
+  P.splits = P.plan.filter(p => p.m !== 'pass');
+  P.parts = false; P.other = false; P.method = null; P.buf = '';
+  P.stage = 'ready'; P.step = 'choose';
+  renderPay();
+}
+
+function renderStage() {
+  const P = S.pay, printed = P.stage === 'printed';
+  $('.pay').dataset.step = 'ready';
+  $('#stepChoose').classList.add('hidden');
+  $('#stepAmount').classList.add('hidden');
+  $('#stepReady').classList.remove('hidden');
+  $('#payBoxLabel').textContent = printed ? 'Ожидает оплаты' : 'Итого к оплате';
+  $('#payTotal').textContent = money(total());
+
+  const back = $('#btnPayBack'), btn = $('#btnPayConfirm');
+  back.textContent = printed ? 'Аннулировать чек' : 'Отменить';
+  back.classList.toggle('btn-danger', printed);
+  btn.classList.remove('ghost');
+  btn.disabled = paying || printing;
+  if (!paying) btn.textContent = printed ? 'Принять оплату' : 'Распечатать чек';
+  $('#btnDrawer').classList.add('hidden');
+  $('.pay-foot').classList.remove('drawer');
+
+  $('#rdyIconUse').setAttribute('href', printed ? '#i-card' : '#i-print');
+  $('#rdyTitle').textContent = printed ? `Чек № ${pad4(P.check)} распечатан` : 'Способы оплаты выбраны';
+  $('#rdyText').textContent = printed
+    ? 'Чек ждёт оплаты. Примите деньги от покупателя или аннулируйте чек.'
+    : 'Сначала распечатайте чек, затем примите оплату.';
+  renderPaySide();
+}
+
+async function printReceipt() {
+  if (printing || paying) return;
+  const P = S.pay;
+  printing = true;
+  renderPay();
+  open('modalPrint');
+  try {
+    const st = await API.printCheck(cartBody(P.plan, 0));
+    applyState(st);
+    const c = st.checks.find(x => x.status === 'awaiting');
+    P.check = c.number;
+    P.stage = 'printed';
+    $('#payCheckNo').textContent = '№ ' + pad4(c.number);
+    setLocked(true);
+    toast(`Чек № ${pad4(c.number)} распечатан · ждёт оплаты`, 'warn', { ms: 2600 });
+  } catch (err) {
+    toast('Чек не распечатан: ' + err.message, 'bad');
+  } finally {
+    printing = false;
+    close('modalPrint');
+    renderPay();
+  }
+}
+
+/* Наличные: сначала сколько дали и сдача, потом остальное через терминал */
+function acceptPayment() {
+  const P = S.pay;
+  const cash = round2(P.plan.filter(p => p.m === 'cash').reduce((s, p) => s + p.amount, 0));
+  if (cash > 0) {
+    P.collect = { cash }; P.method = 'cash'; P.step = 'amount'; P.buf = '';
+    return renderPay();
+  }
+  return collectPay(0);
+}
+async function collectPay(change) {
+  if (paying) return;
+  const P = S.pay;
+  const btn = $('#btnPayConfirm'), label = btn.textContent;
+  paying = true;
+  btn.disabled = true;
+  try {
+    for (const p of P.plan) {
+      if (p.amount > 0 && !NO_TERMINAL.includes(p.m) && !(await terminal(p.m, p.amount, false))) {
+        toast('Оплата прервана · чек ждёт оплаты', 'warn');
+        P.collect = null; P.method = null; P.step = 'choose'; P.buf = '';
+        return;
+      }
+    }
+    btn.textContent = 'Провожу оплату…';
+    completeSale(await API.payCheck(P.check, change), change, false);
+  } catch (err) {
+    toast('Оплата не проведена: ' + err.message, 'bad');
+  } finally {
+    paying = false;
+    btn.textContent = label;
+    if (!$('#sheetPay').classList.contains('hidden')) renderPay();
+  }
+}
+
+function cancelPrinted() {
+  const no = S.pay.check;
+  ask('Аннулировать чек?', `Чек № ${pad4(no)} на <b>${money(total())}</b> будет аннулирован. Оплата не принималась, деньги покупателю не возвращаются.`, 'Аннулировать чек', async () => {
+    try {
+      applyState(await API.cancelCheck(no));
+      setLocked(false);
+      close('sheetPay');
+      renderAll();
+      toast(`Чек № ${pad4(no)} аннулирован`, 'warn');
+    } catch (err) {
+      toast('Чек не аннулирован: ' + err.message, 'bad');
+    }
+  });
+}
+
+/* Чек напечатан, но страницу перезагрузили или вышли — оплату нужно довести до конца */
+function resumeAwaiting() {
+  const h = S.history.find(x => x.type === 'sale' && x.status === 'awaiting');
+  if (!h || S.cart.length) return;
+  S.cart = h.items.map(i => ({
+    uid: ++_uid, id: i.id, name: i.name, price: i.price, unit: i.unit,
+    weight: !!(PRODUCTS.find(p => p.id === i.id) || {}).weight, qty: i.qty,
+  }));
+  S.discount = (h.discountId && DISCOUNTS.find(d => d.id === h.discountId)) || null;
+  setOp('sale');
+  openPay();
+  const P = S.pay;
+  P.plan = h.payments.map(p => ({ m: p.m, kind: p.kind, qty: p.qty, price: p.m === 'pass' ? benefitPrice(p.kind) : undefined, amount: p.amount }));
+  P.splits = P.plan.filter(p => p.m !== 'pass');
+  P.pass = h.pass ? { owner: h.pass.owner, number: h.pass.number, benefits: [], sel: {} } : null;
+  P.check = h.no;
+  P.stage = 'printed';
+  $('#payCheckNo').textContent = '№ ' + pad4(h.no);
+  setLocked(true);
+  renderPay();
+  toast(`Чек № ${pad4(h.no)} напечатан, но не оплачен`, 'warn', { ms: 3200 });
 }
 
 /* «Оплата проведена» — не окно, а та же плашка сверху: кассир не тратит время
@@ -1420,6 +1614,8 @@ const DOC_NAME = {
   correction_return: 'Коррекция возврата',
 };
 const minus = t => t === 'return' || t === 'correction_return';
+const STATUS_NAME = { awaiting: 'ожидает оплаты', cancelled: 'аннулирован' };
+const docName = h => (h.status === 'void' ? 'Аннулирование' : DOC_NAME[h.type] || 'Чек');
 const isReturned = no => S.history.some(h => h.type === 'return' && h.src === no);
 /* «Пропуск (Компенсация, ЛПП), Наличные» — пропуск одной записью с начислениями */
 const payNames = h => {
@@ -1429,20 +1625,20 @@ const payNames = h => {
 };
 
 function renderHistory() {
-  const sales = S.history.filter(h => h.type === 'sale');
+  const sales = S.history.filter(h => h.type === 'sale' && h.status === 'paid');
   $('#histSub').textContent = `${sales.length} ${plural(sales.length, 'чек', 'чека', 'чеков')} · выручка ${money(revenue())}`;
   $('#historyList').innerHTML = S.history.length ? S.history.map(h => `
     <div class="lc tap" data-open="${h.no}">
       <div>
-        <div class="t1 num">${DOC_NAME[h.type] || 'Чек'} № ${pad4(h.no)}</div>
+        <div class="t1 num">${docName(h)} № ${pad4(h.no)}${STATUS_NAME[h.status] ? ` · <span style="color:var(--warn)">${STATUS_NAME[h.status]}</span>` : ''}</div>
         <div class="t2">${h.time} · ${h.doc
           ? `${h.doc.ref ? 'по ' + h.doc.ref : 'за ' + (h.doc.opDate || h.doc.date)} · ${h.doc.type === 'order' ? 'предписание' : 'самостоятельно'} № ${h.doc.no}`
           : `${h.items.length} поз.`} · ${payNames(h)}</div>
       </div>
-      <div class="sum num" ${minus(h.type) ? 'style="color:var(--bad)"' : ''}>${minus(h.type) ? '−' : ''}${money(h.total)}</div>
+      <div class="sum num" ${minus(h.type) && h.status !== 'void' ? 'style="color:var(--bad)"' : ''}>${minus(h.type) && h.status !== 'void' ? '−' : ''}${money(h.total)}</div>
       <div class="acts">
         <button data-copy="${h.no}">Копия</button>
-        ${h.type === 'sale' && !isReturned(h.no) ? `<button class="danger" data-ret="${h.no}">Возврат</button>` : ''}
+        ${h.type === 'sale' && h.status === 'paid' && !isReturned(h.no) ? `<button class="danger" data-ret="${h.no}">Возврат</button>` : ''}
       </div>
     </div>`).join('') : `<div class="none">В этой смене ещё не было чеков</div>`;
 }
@@ -1460,7 +1656,7 @@ $('#historyList').addEventListener('click', e => {
    и теми же суммами, какими платил покупатель. Поэтому сначала он видит
    сам чек — позиции и оплаты, — и только потом подтверждает возврат. */
 function renderReturnList() {
-  const sales = S.history.filter(h => h.type === 'sale');
+  const sales = S.history.filter(h => h.type === 'sale' && h.status === 'paid');
   $('#returnList').innerHTML = sales.length ? sales.map(h => {
     const done = isReturned(h.no);
     return `
@@ -1487,7 +1683,7 @@ function openCheckCard(no) {
   const h = S.history.find(x => x.no === no); if (!h) return;
   _card = h;
   const done = h.type === 'sale' && isReturned(no);
-  $('#ckTitle').textContent = `${DOC_NAME[h.type] || 'Чек'} № ${pad4(no)}`;
+  $('#ckTitle').textContent = `${docName(h)} № ${pad4(no)}`;
   $('#ckSub').textContent = h.doc
     ? `${h.time} · ${h.doc.ref ? 'по ' + h.doc.ref : 'за ' + (h.doc.opDate || h.doc.date)} · ${TAX_NAME[h.doc.tax] || ''} · основание № ${h.doc.no} от ${h.doc.date}`
     : `${h.time} · смена №${S.shiftNo}${done ? ' · возврат уже оформлен' : ''}${h.src ? ` · по чеку № ${pad4(h.src)}` : ''}`;
@@ -1508,7 +1704,7 @@ function openCheckCard(no) {
     <div class="ck-pay"><svg><use href="#${METHOD_ICON[p.m] || 'i-card'}"/></svg><span>${payLabel(p)}${p.vat ? ` · ${VAT_NAME[p.vat]}` : ''}</span><b class="num">${money(p.amount)}</b></div>`).join('') +
     (h.change ? `<div class="ck-pay mute"><span>Сдача</span><b class="num">${money(h.change)}</b></div>` : '');
 
-  $('#btnCkReturn').classList.toggle('hidden', h.type !== 'sale' || done);
+  $('#btnCkReturn').classList.toggle('hidden', h.type !== 'sale' || done || h.status !== 'paid');
   open('modalCheck');
 }
 
@@ -2112,7 +2308,7 @@ function openReport(mode) {
   const z = mode === 'z';
   $('#repTitle').textContent = z ? 'Закрытие смены · Z-отчёт' : 'X-отчёт';
   $('#repSub').textContent = `Смена №${S.shiftNo} · открыта в ${S.openedAt} · касса №${CASHIER.register}`;
-  $('#repChecks').textContent = S.history.filter(h => h.type === 'sale').length;
+  $('#repChecks').textContent = S.history.filter(h => h.type === 'sale' && h.status === 'paid').length;
   $('#repRevenue').textContent = money(revenue());
   $('#repCash').textContent = money(byMethod('cash'));
   $('#repCashless').textContent = money(byMethod('cashless'));
@@ -2149,6 +2345,7 @@ function reconcile() {
   ask('Сверка итогов', `Итоги смены будут сведены в сводный отчёт, выручка <b>${money(revenue())}</b>. Смена останется открытой.`, 'Сверить итоги', () => toast('Сверка итогов выполнена'));
 }
 function closeShift() {
+  if (S.history.some(h => h.status === 'awaiting')) return toast('Есть неоплаченный чек: примите оплату или аннулируйте его', 'warn');
   const counted = parseInt(($('#repRecount').value || '').replace(/\D/g, ''), 10);
   close('modalReport');
   ask('Закрыть смену?', `Будет напечатан Z-отчёт, выручка <b>${money(revenue())}</b> зафиксирована. Открыть новую смену можно сразу после закрытия.`, 'Закрыть смену', async () => {
@@ -2174,8 +2371,11 @@ async function boot() {
   try {
     applyCatalog(await API.catalog());
     applyState(await API.state());
-    S.sbp = (await API.settings()).sbp;
+    const cfg = await API.settings();
+    S.sbp = cfg.sbp;
+    S.receiptFirst = cfg.receiptFirst;
     renderSbp();
+    renderReceiptFirst();
     await HK.init();
     setView('hk');
     renderAll();
