@@ -41,7 +41,10 @@ function Publish-Repo($root) {
     git commit -m "auto: session changes $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
     if ($LASTEXITCODE -ne 0) { throw "git commit failed in $root" }
 
-    git push origin main
+    # Пушим текущую ветку, а не жёстко main: работа может идти в feature-ветке (правило проекта: в main только через PR).
+    $branch = (git rev-parse --abbrev-ref HEAD).Trim()
+    if (-not $branch -or $branch -eq 'HEAD') { throw "detached HEAD in $root, push skipped" }
+    git push -u origin $branch
     if ($LASTEXITCODE -ne 0) { throw "git push failed in $root" }
     Write-Log "pushed: $root"
 }
@@ -58,7 +61,8 @@ try {
     }
 
     $roots = @()
-    foreach ($candidate in @((Join-Path $PSScriptRoot '..\..'), $data.cwd)) {
+    # Третий путь: отдельный клон сайта, куда сессия из kassa project тоже вносит правки.
+    foreach ($candidate in @((Join-Path $PSScriptRoot '..\..'), $data.cwd, 'C:\projects\website-for-semen')) {
         $root = Find-RepoRoot $candidate
         if ($root -and ($roots -notcontains $root)) { $roots += $root }
     }
