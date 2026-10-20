@@ -35,6 +35,16 @@ function Publish-Repo($root) {
         return
     }
 
+    # In repos with the auto-merge workflow never commit straight to main: use a fresh branch,
+    # the workflow checks it and merges it into main by itself.
+    $current = (git rev-parse --abbrev-ref HEAD).Trim()
+    if ($current -eq 'main' -and (Test-Path -LiteralPath (Join-Path $root '.github\workflows\auto-merge.yml'))) {
+        $newBranch = "auto/session-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+        git checkout -b $newBranch
+        if ($LASTEXITCODE -ne 0) { throw "git checkout -b failed in $root" }
+        Write-Log "main protected, new branch: $newBranch in $root"
+    }
+
     git add -A
     if ($LASTEXITCODE -ne 0) { throw "git add failed in $root" }
 
