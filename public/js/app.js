@@ -1054,10 +1054,9 @@ function renderPay() {
   $('#stepAmount').classList.toggle('hidden', !amount);
 
   const pass = !ret && P.pass;
-  $('#payBoxLabel').textContent = P.collect ? 'Принять наличными'
-    : ret ? 'К возврату'
-    : pass && passSum() > 0 ? 'Доплатить' : P.splits.length ? 'Осталось оплатить' : 'Итого к оплате';
-  $('#payTotal').textContent = money(rem);
+  /* сумма чека не меняется по ходу оплаты: сколько осталось доплатить — в панели справа */
+  $('#payBoxLabel').textContent = P.collect ? 'Принять наличными' : ret ? 'К возврату' : 'Итого';
+  $('#payTotal').textContent = money(P.collect ? rem : total());
 
   const back = $('#btnPayBack'), btn = $('#btnPayConfirm');
   back.textContent = amount || P.parts || P.other ? 'Назад' : 'Отмена';
@@ -1173,7 +1172,6 @@ function renderPaySide() {
   let rest = remainSum();
   if (P.step === 'amount' && !sending) rest = Math.max(0, round2(rest - Math.min(payGot(), rest)));
   if (sending) rest = 0;
-  $('#psTotal').textContent = money(sum);
   $('#psRestLabel').textContent = ret ? 'К возврату' : rest > 0 ? 'Доплатить' : 'Оплачено полностью';
   $('#psRest').textContent = ret ? money(sum) : rest > 0 ? money(rest) : '';
   $('#psRestBox').classList.toggle('done', !ret && rest <= 0);
