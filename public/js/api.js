@@ -171,7 +171,16 @@ const API = (() => {
       const sh = sc && d.shifts.find(s => s.id === sc.shift_id);
       if (sc && sh) ref = `чек № ${pad4(sc.number)}, смена №${sh.number}`;
     }
+    const sh = d.shifts.find(x => x.id === c.shift_id);
+    const when = new Date(c.created_at);
+    const fd = String(100000 + c.id);                                   // номер фискального документа
+    const fp = String(1000000000 + (c.id * 7919) % 899999999);          // фискальный признак
+    const returned = c.kind === 'sale' && d.checks.some(x => x.kind === 'return' && x.status !== 'void' &&
+      (x.source_check_id === c.id || (x.source_check_id == null && x.shift_id === c.shift_id && x.source_number === c.number)));
     return {
+      fd, fp, returned, shiftNo: sh ? sh.number : null,
+      qr: `t=${when.getFullYear()}${pad(when.getMonth() + 1)}${pad(when.getDate())}T${pad(when.getHours())}${pad(when.getMinutes())}` +
+          `&s=${Number(c.total).toFixed(2)}&fn=9960440300123456&i=${fd}&fp=${fp}&n=1`,
       id: c.id, number: c.number, kind: c.kind, total: c.total, change: c.change_sum || 0,
       status: c.status || 'paid', discountId: c.discount_id || null,
       source_number: c.source_number ?? null,
@@ -330,20 +339,24 @@ const API = (() => {
     return shiftState();
   }
 
-  /* Возврат по чеку: позиции и оплаты берутся из самого чека продажи */
-  function returnCheck(sourceNumber) {
+  /* Возврат по чеку: позиции и оплаты берутся из самого чека продажи.
+     Чек можно найти в любой смене; сам возврат пишется в текущую — деньги выдаются сегодня. */
+  function returnCheck(ref) {
     tx(d => {
       const shift = currentShift(d);
-      const src = d.checks.find(c => c.shift_id === shift.id && c.number === sourceNumber && c.kind === 'sale');
-      if (!src) throw new Error(`Чек продажи № ${sourceNumber} в текущей смене не найден`);
-      if (src.status && src.status !== 'paid') throw new Error(`Чек № ${sourceNumber} не оплачен — возврат невозможен`);
-      if (d.checks.some(c => c.shift_id === shift.id && c.kind === 'return' && c.source_number === sourceNumber)) {
-        throw new Error(`По чеку № ${sourceNumber} возврат уже оформлен`);
+      const src = ref && typeof ref === 'object'
+        ? d.checks.find(c => c.id === Number(ref.id) && c.kind === 'sale')
+        : d.checks.find(c => c.shift_id === shift.id && c.number === ref && c.kind === 'sale');
+      if (!src) throw new Error('Чек продажи не найден');
+      if (src.status && src.status !== 'paid') throw new Error(`Чек № ${src.number} не оплачен — возврат невозможен`);
+      if (d.checks.some(c => c.kind === 'return' && c.status !== 'void' &&
+          (c.source_check_id === src.id || (c.source_check_id == null && c.shift_id === src.shift_id && c.source_number === src.number)))) {
+        throw new Error(`По чеку № ${src.number} возврат уже оформлен`);
       }
       const c = blankCheck(d, shift, 'return');
       Object.assign(c, {
         subtotal: src.subtotal, discount_percent: src.discount_percent, discount_sum: src.discount_sum,
-        total: src.total, source_number: sourceNumber, items: clone(src.items), payments: clone(src.payments),
+        total: src.total, source_number: src.number, source_check_id: src.id, items: clone(src.items), payments: clone(src.payments),
         pass: src.pass ? clone(src.pass) : null,
       });
       /* что было списано с пропуска, возвращается на него же */
@@ -354,6 +367,20 @@ const API = (() => {
       d.checks.push(c);
     });
     return shiftState();
+  }
+
+  /* Поиск чека по всем сменам: по дате и/или номеру ФД. Номер ФД однозначен, поэтому
+     при поиске по нему дата не учитывается. Неоплаченные и аннулированные пары не прячем:
+     экран сам решает, что показывать. */
+  function findChecks({ date, fd } = {}) {
+    const d = load();
+    currentShift(d);
+    const f = String(fd || '').replace(/\D/g, '');
+    const list = d.checks.filter(c => c.status !== 'void')
+      .filter(c => f ? String(100000 + c.id).includes(f) : (!date || localDay(c.created_at) === date))
+      .sort((a, b) => (b.created_at.localeCompare(a.created_at)) || (b.id - a.id))
+      .slice(0, 200);
+    return { checks: list.map(c => checkView(d, c)) };
   }
 
   /* Чек коррекции не содержит позиций: по 54-ФЗ он правит расчёты и несёт тип
@@ -612,6 +639,8 @@ const API = (() => {
 
     pass:        n    => run(() => passInfo(n)),
     settings:    ()   => run(() => ({ receiptFirst: false, ...clone(load().settings) })),
+    findChecks:  p    => run(() => findChecks(p)),
+    refundCheck: id   => run(() => returnCheck({ id })),
     printCheck:  p    => run(() => printCheck(p)),
     payCheck:    (no, change) => run(() => payCheck(no, change)),
     cancelCheck: no   => run(() => cancelCheck(no)),

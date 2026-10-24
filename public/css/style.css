@@ -47,6 +47,12 @@
   --bad-soft:  rgba(247,127,115,.12);
   --bad-line:  rgba(247,127,115,.32);
   --bad-ink:   #2A0D0A;   /* текст на коралловой заливке */
+  --info:      #6FA8E8;   /* срок ФН: меньше 50 дней */
+  --info-soft: rgba(111,168,232,.14);
+  --info-line: rgba(111,168,232,.38);
+  --orange:      #F2994A; /* срок ФН: меньше 15 дней */
+  --orange-soft: rgba(242,153,74,.16);
+  --orange-line: rgba(242,153,74,.42);
 
   /* ---------- Способы оплаты ----------
      Каждый способ узнаётся по цвету, а не только по надписи:
@@ -118,6 +124,12 @@
   --bad-soft:  rgba(158,45,43,.12);
   --bad-line:  rgba(158,45,43,.38);
   --bad-ink:   #FFFFFF;
+  --info:      #1F5FA8;
+  --info-soft: rgba(31,95,168,.14);
+  --info-line: rgba(31,95,168,.40);
+  --orange:      #A8530A;
+  --orange-soft: rgba(168,83,10,.14);
+  --orange-line: rgba(168,83,10,.42);
 
   --m-card:    #2152B0;
   --m-card-hi: #2A5EC4;
@@ -297,6 +309,13 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .clock span{ font-size:11.5px; color:var(--tx-3); }
 
 .topbar .chip + .chip{ margin-left:6px; }
+/* срок действия ФН: зелёный → синий (<50 дн.) → оранжевый (≤15 дн.) → красный (не активен) */
+.chip-fn{ cursor:pointer; }
+.chip-fn .dot{ background:currentColor; }
+.chip-fn.ok{ color:var(--acc-hi); }
+.chip-fn.info{ color:var(--info); background:var(--info-soft); border-color:var(--info-line); }
+.chip-fn.orange{ color:var(--orange); background:var(--orange-soft); border-color:var(--orange-line); }
+.chip-fn.bad{ color:var(--bad); background:var(--bad-soft); border-color:var(--bad-line); }
 /* «Касса №13» и под ней мелко — кассир смены */
 .chip.chip-reg{ flex-direction:column; align-items:flex-start; justify-content:center; gap:1px; height:40px; line-height:1.15; }
 .chip-reg b{ font-size:12.5px; font-weight:600; color:var(--tx-2); }
@@ -358,9 +377,11 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 #menuOps{ min-width:268px; }
 
 .op-badge > span{ overflow:hidden; text-overflow:ellipsis; }
-.check-tools{ display:flex; gap:12px; flex:none; }
+.check-tools{ display:flex; gap:4px; flex:none; }
 /* значок режима — по центру между левым краем и кнопками справа, которые стоят у края */
-#dropOps{ min-width:0; margin:0 auto; }
+/* режим операции и, при возврате, второй список рядом — оба по центру между левым краем и кнопками */
+.op-group{ display:flex; align-items:center; gap:8px; min-width:0; margin:0 auto; }
+#dropOps, #dropRet{ min-width:0; margin:0; }
 .check-tools .ibtn{ width:36px; height:36px; color:var(--tx); }
 .check-tools .ibtn:disabled{ color:var(--tx-2); }
 
@@ -1657,3 +1678,26 @@ body.vk-fixed .veil:not(.right) .modal.tall{ height:100%; }
 .th > span:last-child{ font-size:12px; color:var(--tx-3); line-height:1.35; }
 /* мини-экран кассы — картинка со своим размером 160×92 */
 .th-prev{ display:block; width:100%; height:auto; max-width:100%; flex:none; }
+
+/* ----------------------------- ВЫБОР ЧЕКА -------------------------------- */
+.modal.tall.chk{ max-width:940px; }
+.modal.tall .chk-body{ flex-direction:row; gap:16px; }
+.chk-list{ flex:1; min-width:0; overflow-y:auto; padding-right:4px; }
+.chk-list .lc{ margin-bottom:8px; }
+.chk-list .fdn{ font-weight:500; color:var(--tx-3); }
+.chk-filters{
+  flex:none; width:270px; display:flex; flex-direction:column; gap:8px; overflow-y:auto;
+  padding-left:16px; border-left:1px solid var(--line);
+}
+.cf-cap{ font-size:11.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-3); margin-top:6px; }
+.cf-cap:first-child{ margin-top:0; }
+.chk-filters .pdate{ width:100%; }
+.chk-filters .pdate:disabled{ opacity:.45; }
+.chk-filters input{
+  width:100%; height:46px; padding:0 14px; user-select:text; cursor:text;
+  background:var(--card); border:1px solid var(--line-hi); border-radius:var(--r-md);
+  color:var(--tx); font-size:15px;
+}
+.chk-filters input::placeholder{ color:var(--tx-3); }
+.chk-filters input:focus{ border-color:var(--acc); }
+.chk-filters .btn{ height:42px; font-size:13.5px; font-weight:600; }

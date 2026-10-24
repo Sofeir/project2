@@ -204,6 +204,7 @@ function applyState(st) {
     pass: c.pass || null,
     status: c.status || 'paid',
     discountId: c.discountId || null,
+    id: c.id, fd: c.fd, fp: c.fp, qr: c.qr, date: c.date, shiftNo: c.shiftNo, returned: !!c.returned,
   }));
 
   S.cashOps = st.cashOps.map(o => ({ type: o.type, amount: Number(o.amount), time: o.time }));
@@ -243,7 +244,7 @@ document.addEventListener('click', () => {
 });
 bindDrop('btnShift', 'menuShift');
 bindDrop('opBadge', 'menuOps');
-bindDrop('btnCheckMore', 'menuCheck');
+bindDrop('retBadge', 'menuRet');
 bindDrop('btnBrand', 'menuBrand');
 
 /* ------------------------------- тема ----------------------------------- */
@@ -343,7 +344,7 @@ $('#menuBrand').addEventListener('click', e => {
    пробивает, режим живёт в одном месте и подписан прямо над чеком. */
 const OPS = {
   sale:          { badge: 'Продажа',            cls: '' },
-  'ret-items':   { badge: 'Возврат блюд',       cls: 'bad' },
+  'ret-items':   { badge: 'Возврат',            cls: 'bad' },
   'corr-sale':   { badge: 'Коррекция продажи',  cls: 'warn' },
   'corr-return': { badge: 'Коррекция возврата', cls: 'warn' },
 };
@@ -353,6 +354,7 @@ function setOp(op) {
   S.op = op;
   $('#opBadgeText').textContent = o.badge;
   $('#opBadge').className = 'op-badge' + (o.cls ? ' ' + o.cls : '');
+  $('#dropRet').classList.toggle('hidden', op !== 'ret-items');
   renderAll();
 }
 
@@ -360,14 +362,19 @@ const isRefund = () => S.op === 'ret-items';
 
 $('#menuOps').addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
-  const a = b.dataset.act;
-  if (a === 'ret-check') { renderReturnList(); return open('modalReturn'); }
+  const a = b.dataset.act === 'ret' ? 'ret-items' : b.dataset.act;
   if (a === S.op) return;
-  if (S.cart.length) return toast('Сначала завершите или очистите текущий чек', 'warn');
-  /* возврат блюд кассир набирает на витрине как обычную продажу;
+  /* продажа и возврат переключаются прямо с набранным чеком — ничего не пропадает;
      коррекция позиций не имеет — она правит итог смены, и ей нужно основание */
+  const swap = (a === 'sale' || a === 'ret-items') && (S.op === 'sale' || S.op === 'ret-items');
+  if (S.cart.length && !swap) return toast('Сначала завершите или очистите текущий чек', 'warn');
   setOp(a);
   if (a === 'corr-sale' || a === 'corr-return') openCorrPick(a);
+});
+/* при возврате: блюда без чека (по умолчанию) или выбор чека */
+$('#menuRet').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  if (b.dataset.act === 'ret-check') openChecks('return');
 });
 
 /* ---------------------- доступ в режим настройки ------------------------ */
@@ -419,6 +426,20 @@ function tick() {
   $('#clockTime').textContent = t;
 }
 setInterval(tick, 1000); tick();
+
+/* ============================== СРОК ФН ================================== */
+/* Срок действия фискального накопителя. Данных с ККТ в прототипе нет, поэтому срок
+   случайный, а нажатие на плашку по кругу показывает все четыре состояния. */
+const FN_STATES = [{ days: 120 + Math.floor(Math.random() * 300) }, { days: 40 }, { days: 12 }, { days: 0 }];
+let fnIdx = 0;
+function renderFn() {
+  const days = FN_STATES[fnIdx].days;
+  const cls = days <= 0 ? 'bad' : days <= 15 ? 'orange' : days < 50 ? 'info' : 'ok';
+  $('#chipFn').className = 'chip chip-fn ' + cls;
+  $('#chipFnText').textContent = days <= 0 ? 'ФН не активен' : `ФН активен · ${days} ${plural(days, 'день', 'дня', 'дней')}`;
+}
+$('#chipFn').addEventListener('click', () => { fnIdx = (fnIdx + 1) % FN_STATES.length; renderFn(); });
+renderFn();
 
 /* ================================ ВХОД =================================== */
 /* На экране входа — только рабочее место; кассир виден в шапке после входа */
@@ -714,7 +735,6 @@ function renderTotals() {
   const empty = !S.cart.length;
   $('#btnPay').disabled = empty;
   $('#btnPark').disabled = empty;
-  $('#btnUndo').style.opacity = empty ? .4 : 1;
   const amt = $('#payAmt');
   amt.classList.toggle('hidden', empty);
   amt.textContent = empty ? '' : '· ' + money(total());
@@ -729,31 +749,18 @@ function renderAll(scroll) {
   if (scroll) { const l = $('#checkList'); l.scrollTop = l.scrollHeight; }
 }
 
-/* отмена последней позиции */
-$('#btnUndo').addEventListener('click', () => {
-  if (!S.cart.length) return;
-  const r = S.cart[S.cart.length - 1];
-  if (r.qty > 1 && !r.weight) r.qty = Math.round((r.qty - 1) * 1000) / 1000; else S.cart.pop();
-  S.sel = null; renderAll();
-  toast('Последняя позиция отменена');
+/* инструменты чека: скидка, отправка на кухню, очистка */
+$('#btnDisc').addEventListener('click', openDiscount);
+$('#btnKitchen').addEventListener('click', () => {
+  if (!S.cart.length) return toast('Чек пуст', 'warn');
+  toast('Заказ отправлен на раздачу');
 });
-
-/* меню чека */
-$('#menuCheck').addEventListener('click', e => {
-  const b = e.target.closest('[data-act]'); if (!b) return;
-  const a = b.dataset.act;
-  if (a === 'disc') openDiscount();
-  if (a === 'kitchen') {
-    if (!S.cart.length) return toast('Чек пуст', 'warn');
-    toast('Заказ отправлен на раздачу');
-  }
-  if (a === 'void') {
-    if (!S.cart.length) return toast('Чек пуст', 'warn');
-    ask('Очистить чек?', `Из чека будет удалено <b>${posCount()}</b> поз. на сумму <b>${money(total())}</b>. Действие необратимо.`, 'Очистить', () => {
-      S.cart = []; S.sel = null; S.discount = null; renderAll();
-      toast('Чек очищен', 'warn');
-    });
-  }
+$('#btnVoid').addEventListener('click', () => {
+  if (!S.cart.length) return toast('Чек пуст', 'warn');
+  ask('Очистить чек?', `Из чека будет удалено <b>${posCount()}</b> поз. на сумму <b>${money(total())}</b>. Действие необратимо.`, 'Очистить', () => {
+    S.cart = []; S.sel = null; S.discount = null; renderAll();
+    toast('Чек очищен', 'warn');
+  });
 });
 
 /* ============================ КОЛИЧЕСТВО / ВЕС =========================== */
@@ -970,6 +977,8 @@ const paidSum   = () => S.pay.splits.reduce((s, x) => s + x.amount, 0);
 const remainSum = () => (S.pay.collect ? S.pay.collect.cash : Math.max(0, round2(total() - passSum() - paidSum())));
 /* «Чек до оплаты» действует на продажи; возврат блюд идёт как раньше */
 const receiptFirst = () => S.receiptFirst && !isRefund();
+/* сумма окна оплаты: у возврата по чеку — сумма того чека, а не набранной корзины */
+const sheetTotal = () => (S.pay && S.pay.refundOf ? S.pay.refundOf.total : total());
 
 /* Начисления пропуска списываются штуками — столько, сколько кассир выбрал
    в окне начислений. Сумма — номинал × штуки, но не больше остатка чека:
@@ -995,11 +1004,11 @@ const entered   = () => Number(S.pay.buf || '0');
 /* пустой набор означает «ровно остаток» — так платят чаще всего */
 const payGot    = () => (S.pay.buf === '' ? remainSum() : entered());
 
-$('#btnPay').addEventListener('click', openPay);
-function openPay() {
-  if (!S.cart.length) return;
+$('#btnPay').addEventListener('click', () => openPay());
+function openPay(force) {
+  if (!S.cart.length && !force) return;
   S.pay = { step: 'choose', parts: false, method: null, buf: '', splits: [], pass: null, other: false, sending: null,
-    stage: null, plan: [], check: null, collect: null };
+    stage: null, plan: [], check: null, collect: null, refundOf: null, prevOp: null };
   setLocked(false);
   const ret = isRefund();
   $('#payTitle').textContent = ret ? 'Возврат блюд' : 'Оплата чека';
@@ -1032,6 +1041,7 @@ $('#methods').addEventListener('click', e => {
 
 $('#btnPayBack').addEventListener('click', () => {
   if (paying || printing) return;
+  if (S.pay.stage === 'refund') return endCheckRefund();
   if (S.pay.stage === 'printed') {
     if (S.pay.collect) { S.pay.collect = null; S.pay.method = null; return payStep('choose'); }
     return cancelPrinted();
@@ -1168,7 +1178,7 @@ function renderPaySide() {
     </div>`).join('')
     : `<div class="ps-empty">${pass ? '' : ret ? 'Способ возврата ещё не выбран' : 'Способ оплаты ещё не выбран'}</div>`;
 
-  const sum = total();
+  const sum = sheetTotal();
   let rest = remainSum();
   if (P.step === 'amount' && !sending) rest = Math.max(0, round2(rest - Math.min(payGot(), rest)));
   if (sending) rest = 0;
@@ -1176,7 +1186,7 @@ function renderPaySide() {
   $('#psRest').textContent = ret ? money(sum) : rest > 0 ? money(rest) : '';
   $('#psRestBox').classList.toggle('done', !ret && rest <= 0);
   if (P.stage) {
-    $('#psRestLabel').textContent = P.stage === 'printed' ? 'Ожидает оплаты' : 'К печати';
+    $('#psRestLabel').textContent = P.stage === 'refund' ? 'К возврату' : P.stage === 'printed' ? 'Ожидает оплаты' : 'К печати';
     $('#psRest').textContent = money(sum);
     $('#psRestBox').classList.remove('done');
   }
@@ -1338,6 +1348,7 @@ function dismissChange() {
 
 $('#btnPayConfirm').addEventListener('click', () => {
   const P = S.pay;
+  if (P.stage === 'refund') return confirmCheckRefund();
   if (P.stage === 'ready') return printReceipt();
   if (P.collect) return collectPay(Math.max(0, round2(payGot() - remainSum())));
   if (P.stage === 'printed') return acceptPayment();
@@ -1444,28 +1455,30 @@ function goReady(parts) {
 }
 
 function renderStage() {
-  const P = S.pay, printed = P.stage === 'printed';
+  const P = S.pay, printed = P.stage === 'printed', refund = P.stage === 'refund';
   $('.pay').dataset.step = 'ready';
   $('#stepChoose').classList.add('hidden');
   $('#stepAmount').classList.add('hidden');
   $('#stepReady').classList.remove('hidden');
-  $('#payBoxLabel').textContent = printed ? 'Ожидает оплаты' : 'Итого к оплате';
-  $('#payTotal').textContent = money(total());
+  $('#payBoxLabel').textContent = refund ? 'К возврату' : printed ? 'Ожидает оплаты' : 'Итого к оплате';
+  $('#payTotal').textContent = money(sheetTotal());
 
   const back = $('#btnPayBack'), btn = $('#btnPayConfirm');
-  back.textContent = printed ? 'Аннулировать чек' : 'Отменить';
+  back.textContent = printed ? 'Аннулировать чек' : refund ? 'Отмена' : 'Отменить';
   back.classList.toggle('btn-danger', printed);
   btn.classList.remove('ghost');
   btn.disabled = paying || printing;
-  if (!paying) btn.textContent = printed ? 'Принять оплату' : 'Распечатать чек';
+  if (!paying) btn.textContent = refund ? 'Оформить возврат' : printed ? 'Принять оплату' : 'Распечатать чек';
   $('#btnDrawer').classList.add('hidden');
   $('.pay-foot').classList.remove('drawer');
 
-  $('#rdyIconUse').setAttribute('href', printed ? '#i-card' : '#i-print');
-  $('#rdyTitle').textContent = printed ? `Чек № ${pad4(P.check)} распечатан` : 'Способы оплаты выбраны';
-  $('#rdyText').textContent = printed
-    ? 'Чек ждёт оплаты. Примите деньги от покупателя или аннулируйте чек.'
-    : 'Сначала распечатайте чек, затем примите оплату.';
+  $('#rdyIconUse').setAttribute('href', refund ? '#i-return' : printed ? '#i-card' : '#i-print');
+  $('#rdyTitle').textContent = refund ? `Возврат по чеку № ${pad4(P.refundOf.no)}` : printed ? `Чек № ${pad4(P.check)} распечатан` : 'Способы оплаты выбраны';
+  $('#rdyText').textContent = refund
+    ? 'Деньги вернутся теми же способами, какими платил покупатель.'
+    : printed
+      ? 'Чек ждёт оплаты. Примите деньги от покупателя или аннулируйте чек.'
+      : 'Сначала распечатайте чек, затем примите оплату.';
   renderPaySide();
 }
 
@@ -1649,28 +1662,112 @@ $('#historyList').addEventListener('click', e => {
   if (o) openCheckCard(+o.dataset.open);
 });
 
-/* ============================ ВОЗВРАТ ПО ЧЕКУ ============================ */
-/* Кассир не выбирает, как вернуть деньги: возврат идёт теми же способами
-   и теми же суммами, какими платил покупатель. Поэтому сначала он видит
-   сам чек — позиции и оплаты, — и только потом подтверждает возврат. */
-function renderReturnList() {
-  const sales = S.history.filter(h => h.type === 'sale' && h.status === 'paid');
-  $('#returnList').innerHTML = sales.length ? sales.map(h => {
-    const done = isReturned(h.no);
-    return `
-    <div class="lc tap ${done ? 'done' : ''}" data-open="${h.no}">
-      <div>
-        <div class="t1 num">Чек № ${pad4(h.no)}</div>
-        <div class="t2">${h.time} · ${h.items.length} поз. · ${payNames(h)}</div>
-      </div>
-      <div class="sum num">${money(h.total)}</div>
-      ${done ? '<span class="tag-done">Возвращён</span>' : '<svg class="go"><use href="#i-chev"/></svg>'}
-    </div>`;
-  }).join('') : `<div class="none">Возврат возможен только по чеку текущей смены.<br>Чеков пока нет.</div>`;
+/* ============================== ВЫБОР ЧЕКА =============================== */
+/* Одно окно на возврат по чеку и на просмотр чеков. Фильтры: дата, номер ФД, QR-код.
+   Номер ФД и QR однозначны, поэтому при них дата не нужна. Из «Просмотра» вернуть нельзя. */
+const CHK = { mode: 'view', date: null, fd: '', all: [], list: [], seq: 0 };
+
+function openChecks(mode) {
+  CHK.mode = mode; CHK.date = dayStart(new Date()); CHK.fd = '';
+  $('#chkFd').value = ''; $('#chkQr').value = '';
+  $('#chkTitle').textContent = mode === 'return' ? 'Выбор чека' : 'Просмотр чеков';
+  renderChkFilters();
+  open('modalChecks');
+  loadChecks();
+  /* сканер набирает код как клавиатура — поле QR должно быть готово принять его сразу */
+  setTimeout(() => $('#chkQr').focus(), 80);
 }
-$('#returnList').addEventListener('click', e => {
-  const r = e.target.closest('[data-open]'); if (!r) return;
-  openCheckCard(+r.dataset.open);
+function renderChkFilters() {
+  $('#chkDate span').textContent = ruDate(CHK.date);
+  $('#chkDate').disabled = !!CHK.fd;
+}
+async function loadChecks() {
+  const key = ++CHK.seq;
+  try {
+    const { checks } = await API.findChecks({ date: isoOf(CHK.date), fd: CHK.fd });
+    if (key !== CHK.seq) return;
+    CHK.all = checks;
+    renderChecks();
+  } catch (err) {
+    toast(err.message, 'bad');
+  }
+}
+function renderChecks() {
+  /* для возврата — только оплаченные продажи, которые ещё не возвращены */
+  CHK.list = CHK.mode === 'return'
+    ? CHK.all.filter(h => h.kind === 'sale' && h.status === 'paid' && !h.returned)
+    : CHK.all;
+  const where = CHK.fd ? `по ФД ${CHK.fd}` : `за ${ruDate(CHK.date)}`;
+  $('#chkSub').textContent = CHK.mode === 'return'
+    ? `Нажмите на чек, чтобы открыть его · ${where}`
+    : `Нажмите на чек, чтобы посмотреть · ${where}`;
+  $('#chkList').innerHTML = CHK.list.length ? CHK.list.map((c, i) => {
+    const h = checkRow(c);
+    return `
+    <div class="lc tap" data-i="${i}">
+      <div>
+        <div class="t1 num">${docName(h)} № ${pad4(h.no)}<span class="fdn"> · ФД ${h.fd}</span>${STATUS_NAME[h.status] ? ` · <span style="color:var(--warn)">${STATUS_NAME[h.status]}</span>` : ''}${h.returned ? ' · <span style="color:var(--tx-3)">возвращён</span>' : ''}</div>
+        <div class="t2">${h.time} · смена №${h.shiftNo} · ${h.items.length} поз. · ${payNames(h)}</div>
+      </div>
+      <div class="sum num" ${minus(h.type) && h.status !== 'void' ? 'style="color:var(--bad)"' : ''}>${minus(h.type) && h.status !== 'void' ? '−' : ''}${money(h.total)}</div>
+      <svg class="go"><use href="#i-chev"/></svg>
+    </div>`;
+  }).join('') : `<div class="none">${CHK.mode === 'return' ? 'Чеков для возврата не найдено.<br>Измените дату или найдите чек по ФД и QR-коду.' : 'Чеков не найдено.<br>Измените дату или найдите чек по ФД и QR-коду.'}</div>`;
+}
+/* документ из хранилища — в виде, который понимает карточка чека (как элемент S.history) */
+function checkRow(c) {
+  return {
+    no: c.number, type: c.kind, total: Number(c.total), change: Number(c.change || 0), time: c.time, date: c.date,
+    src: c.source_number, disc: Number(c.discount_sum || 0), discPct: c.discount_percent, items: c.items || [],
+    doc: c.doc_number ? { type: c.correction_type, date: c.doc_date, no: c.doc_number, opDate: c.op_date, tax: c.tax_system, fp: c.fiscal_sign, ref: c.source_ref } : null,
+    payments: (c.payments || []).map(p => ({ m: p.m, kind: p.kind || null, qty: p.qty || null, amount: Number(p.amount), vat: p.vat })),
+    pass: c.pass || null, status: c.status || 'paid', discountId: c.discountId || null,
+    id: c.id, fd: c.fd, fp: c.fp, qr: c.qr, shiftNo: c.shiftNo, returned: !!c.returned,
+  };
+}
+$('#chkList').addEventListener('click', e => {
+  const r = e.target.closest('[data-i]'); if (!r) return;
+  const c = CHK.list[+r.dataset.i]; if (!c) return;
+  openCheckObj(checkRow(c), CHK.mode === 'return');
+});
+$('#chkFd').addEventListener('input', e => {
+  e.target.value = e.target.value.replace(/\D/g, '');
+  CHK.fd = e.target.value;
+  renderChkFilters();
+  loadChecks();
+});
+/* QR с бумажного чека: из строки берём номер ФД (параметр i=) */
+$('#chkQr').addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  e.preventDefault();
+  const raw = e.target.value.trim();
+  e.target.value = '';
+  const m = /(?:^|[&?])i=(\d+)/.exec(raw);
+  const fd = m ? m[1] : raw.replace(/\D/g, '');
+  if (!fd) return toast('Не удалось прочитать QR-код', 'warn');
+  CHK.fd = fd; $('#chkFd').value = fd;
+  renderChkFilters();
+  loadChecks();
+});
+/* сканера в прототипе нет: «тестовый QR» подставляет код самого свежего чека */
+$('#chkQrTest').addEventListener('click', async () => {
+  try {
+    const { checks } = await API.findChecks({});
+    const c = checks.find(x => x.kind === 'sale' && x.status === 'paid' && (CHK.mode !== 'return' || !x.returned));
+    if (!c) return toast('Нет чека для проверки QR-кода', 'warn');
+    $('#chkQr').value = c.qr;
+    $('#chkQr').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+  } catch (err) { toast(err.message, 'bad'); }
+});
+$('#chkReset').addEventListener('click', () => {
+  CHK.date = dayStart(new Date()); CHK.fd = ''; $('#chkFd').value = ''; $('#chkQr').value = '';
+  renderChkFilters();
+  loadChecks();
+});
+$('#chkDate').addEventListener('click', e => {
+  e.stopPropagation();
+  if (CAL.end === 'chk' && !$('#cal').classList.contains('hidden')) return closeCal();
+  openCal($('#chkDate'));
 });
 
 const VAT_NAME = { '22': 'НДС 22%', '20': 'НДС 20%', '10': 'НДС 10%', '0': 'НДС 0%', none: 'без НДС' };
@@ -1679,12 +1776,16 @@ const TAX_NAME = { osn: 'ОСН', usn: 'УСН «Доходы»', usn_dr: 'УС�
 let _card = null;
 function openCheckCard(no) {
   const h = S.history.find(x => x.no === no); if (!h) return;
+  openCheckObj(h, true);
+}
+function openCheckObj(h, canReturn) {
+  const no = h.no;
   _card = h;
-  const done = h.type === 'sale' && isReturned(no);
+  const done = h.type === 'sale' && (h.returned || isReturned(no));
   $('#ckTitle').textContent = `${docName(h)} № ${pad4(no)}`;
   $('#ckSub').textContent = h.doc
     ? `${h.time} · ${h.doc.ref ? 'по ' + h.doc.ref : 'за ' + (h.doc.opDate || h.doc.date)} · ${TAX_NAME[h.doc.tax] || ''} · основание № ${h.doc.no} от ${h.doc.date}`
-    : `${h.time} · смена №${S.shiftNo}${done ? ' · возврат уже оформлен' : ''}${h.src ? ` · по чеку № ${pad4(h.src)}` : ''}`;
+    : `${h.date ? h.date + ' ' : ''}${h.time} · смена №${h.shiftNo ?? S.shiftNo}${h.fd ? ` · ФД ${h.fd}` : ''}${done ? ' · возврат уже оформлен' : ''}${h.src ? ` · по чеку № ${pad4(h.src)}` : ''}`;
 
   $('#ckItems').innerHTML = h.items.length ? h.items.map(i => `
     <div class="ck-row">
@@ -1702,13 +1803,38 @@ function openCheckCard(no) {
     <div class="ck-pay"><svg><use href="#${METHOD_ICON[p.m] || 'i-card'}"/></svg><span>${payLabel(p)}${p.vat ? ` · ${VAT_NAME[p.vat]}` : ''}</span><b class="num">${money(p.amount)}</b></div>`).join('') +
     (h.change ? `<div class="ck-pay mute"><span>Сдача</span><b class="num">${money(h.change)}</b></div>` : '');
 
-  $('#btnCkReturn').classList.toggle('hidden', h.type !== 'sale' || done || h.status !== 'paid');
+  $('#btnCkReturn').classList.toggle('hidden', h.type !== 'sale' || done || h.status !== 'paid' || !canReturn);
   open('modalCheck');
 }
 
-$('#btnCkReturn').addEventListener('click', async () => {
-  const h = _card; if (!h) return;
-  const btn = $('#btnCkReturn');
+/* «Оформить возврат» в карточке чека: открывается окно оплаты с теми способами,
+   какими платил покупатель; возврат проводится кнопкой в этом окне */
+$('#btnCkReturn').addEventListener('click', () => { if (_card) startCheckRefund(_card); });
+
+function startCheckRefund(h) {
+  close('modalCheck'); close('modalChecks'); close('modalHistory');
+  const prevOp = S.op;
+  if (S.op !== 'ret-items') setOp('ret-items');
+  openPay(true);
+  const P = S.pay;
+  P.stage = 'refund'; P.refundOf = h; P.prevOp = prevOp;
+  P.plan = h.payments.map(p => ({ m: p.m, kind: p.kind, qty: p.qty, price: p.m === 'pass' ? benefitPrice(p.kind) : undefined, amount: p.amount }));
+  P.splits = P.plan.filter(p => p.m !== 'pass');
+  P.pass = h.pass ? { owner: h.pass.owner, number: h.pass.number, benefits: [], sel: {} } : null;
+  $('#payTitle').textContent = 'Возврат по чеку';
+  $('#payCheckNo').textContent = '№ ' + pad4(h.no);
+  renderPay();
+}
+function endCheckRefund() {
+  const prev = S.pay.prevOp;
+  close('sheetPay');
+  if (prev && prev !== S.op) setOp(prev);
+}
+async function confirmCheckRefund() {
+  if (paying) return;
+  const P = S.pay, h = P.refundOf;
+  const btn = $('#btnPayConfirm'), label = btn.textContent;
+  paying = true;
   btn.disabled = true;
   try {
     for (const p of h.payments) {
@@ -1717,11 +1843,11 @@ $('#btnCkReturn').addEventListener('click', async () => {
         return;
       }
     }
-    applyState(await API.refund(h.no));
-    close('modalCheck');
-    close('modalReturn');
+    btn.textContent = 'Оформляю возврат…';
+    applyState(await API.refundCheck(h.id));
+    close('sheetPay');
+    setOp(P.prevOp || 'sale');
     if (!$('#modalHistory').classList.contains('hidden')) renderHistory();
-    renderAll();
     const cash = round2(h.payments.filter(p => p.m === 'cash').reduce((s, p) => s + p.amount, 0));
     const pass = h.payments.some(p => p.m === 'pass');
     showPaid(cash ? `Возврат оформлен · выдайте ${money(cash)}`
@@ -1729,9 +1855,11 @@ $('#btnCkReturn').addEventListener('click', async () => {
   } catch (err) {
     toast('Возврат не проведён: ' + err.message, 'bad');
   } finally {
-    btn.disabled = false;
+    paying = false;
+    btn.textContent = label;
+    if (!$('#sheetPay').classList.contains('hidden')) renderPay();
   }
-});
+}
 
 /* ============================== КОРРЕКЦИЯ =============================== */
 /* Чек коррекции не содержит блюд: он исправляет расчёт, который не был пробит
@@ -2116,8 +2244,9 @@ const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', '�
 const CAL = { end: null, month: null, from: null, to: null, picking: false };
 function openCal(btn) {
   CAL.end = btn.dataset.end;
-  CAL.from = PER.from; CAL.to = PER.to; CAL.picking = false;
-  const d = PER[CAL.end];
+  const one = CAL.end === 'chk';   /* выбор чека: одна дата, без периода */
+  CAL.from = one ? CHK.date : PER.from; CAL.to = one ? CHK.date : PER.to; CAL.picking = false;
+  const d = one ? CHK.date : PER[CAL.end];
   CAL.month = new Date(d.getFullYear(), d.getMonth(), 1);
   $$('#usagePeriod .pdate').forEach(b => b.classList.add('on'));
   renderCal();
@@ -2133,6 +2262,7 @@ function closeCal() {
   CAL.end = null;
 }
 function applyCal() {
+  if (CAL.end === 'chk') { CHK.date = CAL.from; closeCal(); renderChkFilters(); return loadChecks(); }
   PER.from = CAL.from; PER.to = CAL.to;
   $$('#usagePeriod .pq').forEach(x => x.classList.remove('on'));
   closeCal();
@@ -2164,6 +2294,7 @@ $('#cal').addEventListener('click', e => {
   if (mv && !mv.disabled) { CAL.month.setMonth(CAL.month.getMonth() + Number(mv.dataset.m)); return renderCal(); }
   const b = e.target.closest('[data-d]'); if (!b || b.disabled) return;
   const d = new Date(Number(b.dataset.d));
+  if (CAL.end === 'chk') { CHK.date = d; closeCal(); renderChkFilters(); return loadChecks(); }
   if (!CAL.picking) {
     /* первое нажатие — начало нового периода */
     CAL.from = d; CAL.to = d; CAL.picking = true;
@@ -2260,6 +2391,7 @@ $('#menuShift').addEventListener('click', e => {
   const a = b.dataset.act;
   if (a === 'drawer') return toast('Денежный ящик открыт');
   if (a === 'reports') return open('modalReports');
+  if (a === 'view') return openChecks('view');
   if (a === 'hk') { b.blur(); return open('modalHk'); }
   if (a === 'bank') return reconcile();
   if (a === 'in' || a === 'out') return openCash(a);
