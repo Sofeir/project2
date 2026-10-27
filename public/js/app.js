@@ -354,6 +354,7 @@ function setOp(op) {
   $('#opBadgeText').textContent = o.badge;
   $('#opBadge').className = 'op-badge' + (o.cls ? ' ' + o.cls : '');
   $('#dropRet').classList.toggle('hidden', op !== 'ret-items');
+  $('.op-group').classList.toggle('ret', op === 'ret-items');
   renderAll();
 }
 
@@ -1676,7 +1677,19 @@ function openChecks(mode) {
 function renderChkFilters() {
   $('#chkDate span').textContent = ruDate(CHK.date);
   $('#chkDate').disabled = !!CHK.fd;
+  syncChkFd();
 }
+/* пока набирают номер ФД (поле в фокусе или что-то введено), остальные фильтры прячутся:
+   вместе с экранной клавиатурой они не помещаются, а ФД и так находит чек однозначно */
+function syncChkFd() {
+  const on = document.activeElement === $('#chkFd') || !!CHK.fd;
+  $('#chkFilters').classList.toggle('fd-only', on);
+}
+document.addEventListener('vk:close', () => { if (!$('#modalChecks').classList.contains('hidden')) syncChkFd(); });
+$('#chkFd').addEventListener('focus', syncChkFd);
+/* касание по полю открывает клавиатуру сразу — не ждём фокуса */
+$('#chkFd').addEventListener('click', () => $('#chkFilters').classList.add('fd-only'));
+$('#chkFd').addEventListener('blur', () => setTimeout(syncChkFd, 0));
 async function loadChecks() {
   const key = ++CHK.seq;
   try {
@@ -2393,6 +2406,7 @@ $('#menuShift').addEventListener('click', e => {
   if (a === 'in' || a === 'out') return openCash(a);
   if (a === 'x') return openReport('x');
   if (a === 'z') return closeShift();
+  if (a === 'day') return closeShift(true);
   if (a === 'open') return openShiftFlow();
 });
 
@@ -2468,13 +2482,18 @@ $('#repRecount').addEventListener('input', e => {
 });
 /* «Банк»: сверка итогов за день — смена остаётся открытой */
 function reconcile() {
-  ask('Сверка итогов', `Итоги смены будут сведены в сводный отчёт, выручка <b>${money(revenue())}</b>. Смена останется открытой.`, 'Сверить итоги', () => toast('Сверка итогов выполнена'));
+  ask('Закрыть смену банка?', `Банк сверит итоги смены, выручка <b>${money(revenue())}</b>. Кассовая смена останется открытой.`, 'Закрыть смену банка', () => toast('Смена банка закрыта · итоги сверены'));
 }
-function closeShift() {
+/* «Закрыть смену ККТ» — только Z-отчёт; «Закрытие дня» — Z-отчёт и сверка итогов банка одной кнопкой */
+function closeShift(day) {
+  day = day === true;
   if (S.history.some(h => h.status === 'awaiting')) return toast('Есть неоплаченный чек: примите оплату или аннулируйте его', 'warn');
   const counted = parseInt(($('#repRecount').value || '').replace(/\D/g, ''), 10);
   close('modalReport');
-  ask('Закрыть смену?', `Будет напечатан Z-отчёт, выручка <b>${money(revenue())}</b> зафиксирована. Открыть новую смену можно сразу после закрытия.`, 'Закрыть смену', async () => {
+  const text = day
+    ? `Будет напечатан Z-отчёт, выручка <b>${money(revenue())}</b> зафиксирована, затем банк сверит итоги. Открыть новую смену можно сразу после закрытия.`
+    : `Будет напечатан Z-отчёт, выручка <b>${money(revenue())}</b> зафиксирована. Открыть новую смену можно сразу после закрытия.`;
+  ask(day ? 'Закрыть день?' : 'Закрыть смену?', text, day ? 'Закрыть день' : 'Закрыть смену', async () => {
     try {
       const res = await API.closeShift(Number.isFinite(counted) ? counted : null);
       applyState(res);
@@ -2482,7 +2501,7 @@ function closeShift() {
       $('#screen-main').classList.add('hidden');
       $('#screen-login').classList.remove('hidden');
       $('#loginTitle').textContent = 'Смена закрыта';
-      $('#loginSub').textContent = `Z-отчёт напечатан. Смена №${res.closed.number} закрыта, выручка ${money(res.closed.totals.revenue)}. Введите PIN-код кассира, чтобы войти`;
+      $('#loginSub').textContent = `Z-отчёт напечатан${day ? ', итоги банка сверены' : ''}. Смена №${res.closed.number} закрыта, выручка ${money(res.closed.totals.revenue)}. Введите PIN-код кассира, чтобы войти`;
       renderAll();
     } catch (err) {
       toast('Смена не закрыта: ' + err.message, 'bad');

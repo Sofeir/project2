@@ -360,7 +360,7 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 }
 .check-head{
   flex:none; display:flex; align-items:center;
-  padding:16px 18px 14px;
+  padding:16px 14px 14px;
 }
 /* какую операцию кассир пробивает прямо сейчас: продажа, возврат, коррекция */
 .op-badge{
@@ -377,14 +377,21 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 #menuOps{ min-width:268px; }
 
 .op-badge > span{ overflow:hidden; text-overflow:ellipsis; }
-.check-tools{ display:flex; gap:4px; flex:none; }
+.check-tools{ display:flex; gap:8px; flex:none; }
 /* значок режима — по центру между левым краем и кнопками справа, которые стоят у края */
 /* режим операции и, при возврате, второй список рядом — оба по центру между левым краем и кнопками */
-.op-group{ display:flex; align-items:center; gap:8px; min-width:0; margin:0 auto; }
+.op-group{ display:flex; align-items:center; gap:6px; min-width:0; margin:0 auto; }
+/* при возврате значков два — прижимаем их влево, чтобы свободное место осталось перед кнопками справа */
+.op-group.ret{ margin:0 auto 0 0; }
 #dropOps, #dropRet{ min-width:0; margin:0; }
 #dropRet{ flex:none; padding:0 11px; cursor:pointer; letter-spacing:.04em; }
 #dropRet > span{ overflow:visible; text-overflow:clip; }
-.check-tools .ibtn{ width:34px; height:34px; color:var(--tx); }
+.check-tools .ibtn{
+  width:36px; height:36px; color:var(--tx);
+  background:var(--card); border:1px solid var(--line-hi); border-radius:var(--r-sm);
+}
+@media (hover:hover){ .check-tools .ibtn:hover{ background:var(--card-hi); } }
+.check-tools .ibtn:active{ background:var(--card-act); }
 .check-tools .ibtn:disabled{ color:var(--tx-2); }
 
 /* строки чека */
@@ -1062,6 +1069,8 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 }
 .picker .chev{ width:16px; height:16px; opacity:.7; }
 #menuUsage{ max-height:340px; overflow-y:auto; }
+/* в «Операциях» много пунктов — на низком экране меню прокручивается, а не уходит за край */
+#menuShift{ max-height:calc(100vh - 84px); overflow-y:auto; }
 .usage-head, .usage-row{ display:grid; grid-template-columns:1fr 130px 110px; gap:12px; align-items:center; }
 .usage-head > :nth-child(n+2), .usage-row > :nth-child(n+2){ text-align:right; }
 .usage-head{
@@ -1249,7 +1258,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   .tile.dish{ min-height:96px; }
   .btn-primary{ font-size:16px; }
   /* шапка чека ниже: больше места строкам */
-  .check-head{ padding:10px 18px 8px; }
+  .check-head{ padding:10px 14px 8px; }
   /* на узкой панели сумма на кнопке дублирует итог прямо над ней — убираем */
   .btn-primary .amt{ display:none; }
   .paybox .v{ font-size:38px; }
@@ -1703,3 +1712,5 @@ body.vk-fixed .veil:not(.right) .modal.tall{ height:100%; }
 .chk-filters input::placeholder{ color:var(--tx-3); }
 .chk-filters input:focus{ border-color:var(--acc); }
 .chk-filters .btn{ height:42px; font-size:13.5px; font-weight:600; }
+.chk-filters > *{ flex:none; }
+.chk-filters.fd-only .cf-x{ display:none; }

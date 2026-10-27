@@ -133,9 +133,10 @@
         <button data-act="drawer"><svg><use href="#i-box"/></svg><span class="mt">Открыть денежный ящик</span></button>
         <button data-act="reports"><svg><use href="#i-shift"/></svg><span><span class="mt">Отчёты</span><span class="mh">Чеки смены, расход блюд</span></span></button>
         <button data-act="view"><svg><use href="#i-search"/></svg><span><span class="mt">Просмотр чеков</span><span class="mh">Найти и посмотреть, без возврата</span></span></button>
-        <button data-act="bank"><svg><use href="#i-cash"/></svg><span><span class="mt">Банк</span><span class="mh">Сводный отчёт · закрытие дня</span></span></button>
+        <button data-act="bank"><svg><use href="#i-cash"/></svg><span><span class="mt">Закрыть смену банк</span><span class="mh">Сверка итогов</span></span></button>
         <div class="menu-sep"></div>
-        <button data-act="z" class="danger"><svg><use href="#i-lock"/></svg><span><span class="mt">Закрыть смену</span><span class="mh">Z-отчёт с гашением</span></span></button>
+        <button data-act="z" class="danger"><svg><use href="#i-lock"/></svg><span><span class="mt">Закрыть смену ККТ</span><span class="mh">Z-отчёт с гашением</span></span></button>
+        <button data-act="day" class="danger"><svg><use href="#i-lock"/></svg><span><span class="mt">Закрытие дня</span><span class="mh">ККТ + банк: Z-отчёт и сверка итогов</span></span></button>
       </div>
     </div>
 
@@ -440,15 +441,15 @@
     </div>
     <div class="m-body chk-body">
       <div class="chk-list" id="chkList"></div>
-      <aside class="chk-filters">
-        <div class="cf-cap">Дата</div>
-        <button class="pdate num" id="chkDate" data-end="chk"><svg><use href="#i-cal"/></svg><span>—</span></button>
+      <aside class="chk-filters" id="chkFilters">
+        <div class="cf-cap cf-x">Дата</div>
+        <button class="pdate num cf-x" id="chkDate" data-end="chk"><svg><use href="#i-cal"/></svg><span>—</span></button>
         <div class="cf-cap">Номер ФД</div>
         <input type="text" id="chkFd" data-vk="num" inputmode="numeric" maxlength="10" placeholder="Только цифры" autocomplete="off">
-        <div class="cf-cap">QR-код чека</div>
-        <input type="text" id="chkQr" data-vk="off" placeholder="Наведите сканер на QR-код" autocomplete="off" spellcheck="false">
-        <button class="btn" id="chkQrTest">Тестовый QR-код</button>
-        <button class="btn" id="chkReset">Сбросить фильтры</button>
+        <div class="cf-cap cf-x">QR-код чека</div>
+        <input type="text" class="cf-x" id="chkQr" data-vk="off" placeholder="Наведите сканер на QR-код" autocomplete="off" spellcheck="false">
+        <button class="btn cf-x" id="chkQrTest">Тестовый QR-код</button>
+        <button class="btn cf-x" id="chkReset">Сбросить фильтры</button>
       </aside>
     </div>
     <div class="m-foot">
