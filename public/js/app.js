@@ -1697,6 +1697,7 @@ async function loadChecks() {
     if (key !== CHK.seq) return;
     CHK.all = checks;
     renderChecks();
+    return checks;
   } catch (err) {
     toast(err.message, 'bad');
   }
@@ -1746,7 +1747,7 @@ $('#chkFd').addEventListener('input', e => {
   loadChecks();
 });
 /* QR с бумажного чека: из строки берём номер ФД (параметр i=) */
-$('#chkQr').addEventListener('keydown', e => {
+$('#chkQr').addEventListener('keydown', async e => {
   if (e.key !== 'Enter') return;
   e.preventDefault();
   const raw = e.target.value.trim();
@@ -1756,17 +1757,36 @@ $('#chkQr').addEventListener('keydown', e => {
   if (!fd) return toast('Не удалось прочитать QR-код', 'warn');
   CHK.fd = fd; $('#chkFd').value = fd;
   renderChkFilters();
-  loadChecks();
+  await loadChecks();
+  explainScan();
 });
+/* QR прочитан, а в списке пусто: говорим, почему */
+function explainScan() {
+  if (CHK.list.length) return;
+  const c = CHK.all[0];
+  if (!c) return toast(`Чек с ФД ${CHK.fd} не найден`, 'warn');
+  toast(c.returned ? `Чек № ${pad4(c.number)} уже возвращён` : `По чеку № ${pad4(c.number)} возврат невозможен`, 'warn');
+}
 /* сканера в прототипе нет: «тестовый QR» подставляет код самого свежего чека */
 $('#chkQrTest').addEventListener('click', async () => {
   try {
     const { checks } = await API.findChecks({});
-    const c = checks.find(x => x.kind === 'sale' && x.status === 'paid' && (CHK.mode !== 'return' || !x.returned));
-    if (!c) return toast('Нет чека для проверки QR-кода', 'warn');
+    const sales = checks.filter(x => x.kind === 'sale' && x.status === 'paid');
+    const c = sales.find(x => CHK.mode !== 'return' || !x.returned) || sales[0];
+    if (!c) return toast('В кассе пока нет чеков продажи для проверки QR-кода', 'warn');
     $('#chkQr').value = c.qr;
     $('#chkQr').dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
   } catch (err) { toast(err.message, 'bad'); }
+});
+$('#chkCancel').addEventListener('click', () => {
+  const touched = CHK.fd || $('#chkFilters').classList.contains('fd-only');
+  if (!touched) return close('modalChecks');
+  /* ввели или просто нажали на ФД — «Отмена» возвращает к дате и QR-коду, окно остаётся */
+  CHK.fd = ''; $('#chkFd').value = '';
+  $('#chkFd').blur();
+  VK.close();
+  renderChkFilters();
+  loadChecks();
 });
 $('#chkReset').addEventListener('click', () => {
   CHK.date = dayStart(new Date()); CHK.fd = ''; $('#chkFd').value = ''; $('#chkQr').value = '';
