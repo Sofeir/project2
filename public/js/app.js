@@ -244,7 +244,6 @@ document.addEventListener('click', () => {
 });
 bindDrop('btnShift', 'menuShift');
 bindDrop('opBadge', 'menuOps');
-bindDrop('retBadge', 'menuRet');
 bindDrop('btnBrand', 'menuBrand');
 
 /* ------------------------------- тема ----------------------------------- */
@@ -371,11 +370,8 @@ $('#menuOps').addEventListener('click', e => {
   setOp(a);
   if (a === 'corr-sale' || a === 'corr-return') openCorrPick(a);
 });
-/* при возврате: блюда без чека (по умолчанию) или выбор чека */
-$('#menuRet').addEventListener('click', e => {
-  const b = e.target.closest('[data-act]'); if (!b) return;
-  if (b.dataset.act === 'ret-check') openChecks('return');
-});
+/* при возврате блюда выбирают на витрине как обычно; «Выбор чека» открывает поиск чека */
+$('#dropRet').addEventListener('click', () => openChecks('return'));
 
 /* ---------------------- доступ в режим настройки ------------------------ */
 /* Кассир и администратор работают на одном терминале, поэтому вход в правку
@@ -436,7 +432,7 @@ function renderFn() {
   const days = FN_STATES[fnIdx].days;
   const cls = days <= 0 ? 'bad' : days <= 15 ? 'orange' : days < 50 ? 'info' : 'ok';
   $('#chipFn').className = 'chip chip-fn ' + cls;
-  $('#chipFnText').textContent = days <= 0 ? 'ФН не активен' : `ФН активен · ${days} ${plural(days, 'день', 'дня', 'дней')}`;
+  $('#chipFnText').textContent = days <= 0 ? 'ФН не активен' : `ФН (${days} ${plural(days, 'день', 'дня', 'дней')})`;
 }
 $('#chipFn').addEventListener('click', () => { fnIdx = (fnIdx + 1) % FN_STATES.length; renderFn(); });
 renderFn();

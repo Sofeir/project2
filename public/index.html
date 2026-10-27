@@ -168,16 +168,8 @@
             <button data-act="corr-return"><svg><use href="#i-pencil"/></svg><span><span class="mt">Коррекция возврата</span><span class="mh">Чек коррекции возврата прихода</span></span></button>
           </div>
         </div>
-        <!-- как вернуть: по умолчанию блюда, «Выбор чека» открывает поиск чека -->
-        <div class="drop hidden" id="dropRet">
-          <button class="op-badge bad" id="retBadge">
-            <span>Блюда</span><svg class="chev"><use href="#i-chev"/></svg>
-          </button>
-          <div class="menu hidden" id="menuRet">
-            <button data-act="ret-dish"><svg><use href="#i-cart"/></svg><span><span class="mt">Возврат блюд</span><span class="mh">Отдельные позиции, без чека продажи</span></span></button>
-            <button data-act="ret-check"><svg><use href="#i-return"/></svg><span><span class="mt">Выбор чека</span><span class="mh">Найти чек и вернуть его целиком</span></span></button>
-          </div>
-        </div>
+        <!-- при возврате блюда выбирают на витрине как обычно; «Выбор чека» — возврат целого чека -->
+        <button class="op-badge bad hidden" id="dropRet" type="button"><span>Выбор чека</span></button>
         </div>
         <div class="check-tools">
           <button class="ibtn" id="btnDisc" title="Скидка на чек"><svg><use href="#i-percent"/></svg></button>
