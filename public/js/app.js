@@ -1662,10 +1662,10 @@ $('#historyList').addEventListener('click', e => {
 /* ============================== ВЫБОР ЧЕКА =============================== */
 /* Одно окно на возврат по чеку и на просмотр чеков. Фильтры: дата, номер ФД, QR-код.
    Номер ФД и QR однозначны, поэтому при них дата не нужна. Из «Просмотра» вернуть нельзя. */
-const CHK = { mode: 'view', date: null, fd: '', all: [], list: [], seq: 0, sel: null };
+const CHK = { mode: 'view', date: null, fd: '', all: [], list: [], seq: 0 };
 
 function openChecks(mode) {
-  CHK.mode = mode; CHK.date = dayStart(new Date()); CHK.fd = ''; CHK.sel = null;
+  CHK.mode = mode; CHK.date = dayStart(new Date()); CHK.fd = '';
   $('#chkFd').value = ''; $('#chkQr').value = '';
   $('#chkTitle').textContent = mode === 'return' ? 'Выбор чека' : 'Просмотр чеков';
   renderChkFilters();
@@ -1714,7 +1714,7 @@ function renderChecks() {
   $('#chkList').innerHTML = CHK.list.length ? CHK.list.map((c, i) => {
     const h = checkRow(c);
     return `
-    <div class="lc tap${CHK.sel === c.id ? ' sel' : ''}" data-i="${i}">
+    <div class="lc tap" data-i="${i}">
       <div>
         <div class="t1 num">${docName(h)} № ${pad4(h.no)}<span class="fdn"> · ФД ${h.fd}</span>${STATUS_NAME[h.status] ? ` · <span style="color:var(--warn)">${STATUS_NAME[h.status]}</span>` : ''}${h.returned ? ' · <span style="color:var(--tx-3)">возвращён</span>' : ''}</div>
         <div class="t2">${h.time} · смена №${h.shiftNo} · ${h.items.length} поз. · ${payNames(h)}</div>
@@ -1738,15 +1738,11 @@ function checkRow(c) {
 $('#chkList').addEventListener('click', e => {
   const r = e.target.closest('[data-i]'); if (!r) return;
   const c = CHK.list[+r.dataset.i]; if (!c) return;
-  CHK.sel = c.id;   /* открытый чек остаётся отмеченным в списке — его и печатает «Печать копии» */
-  $$('#chkList .lc').forEach(x => x.classList.toggle('sel', x === r));
   openCheckObj(checkRow(c), CHK.mode === 'return');
 });
-/* копия печатается для отмеченного чека; если в списке он один — для него */
-$('#chkPrint').addEventListener('click', () => {
-  const c = CHK.list.find(x => x.id === CHK.sel) || (CHK.list.length === 1 ? CHK.list[0] : null);
-  if (!c) return toast('Нажмите на чек в списке, чтобы напечатать его копию', 'warn');
-  toast(`Копия чека № ${pad4(c.number)} отправлена на печать`);
+/* копия печатается из карточки открытого чека */
+$('#btnCkPrint').addEventListener('click', () => {
+  if (_card) toast(`Копия чека № ${pad4(_card.no)} отправлена на печать`);
 });
 $('#chkFd').addEventListener('input', e => {
   e.target.value = e.target.value.replace(/\D/g, '');
