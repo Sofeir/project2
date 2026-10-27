@@ -1837,6 +1837,8 @@ function openCheckObj(h, canReturn) {
     (h.change ? `<div class="ck-pay mute"><span>Сдача</span><b class="num">${money(h.change)}</b></div>` : '');
 
   $('#btnCkReturn').classList.toggle('hidden', h.type !== 'sale' || done || h.status !== 'paid' || !canReturn);
+  /* копию печатают при просмотре; в возврате этой кнопки нет */
+  $('#btnCkPrint').classList.toggle('hidden', !!canReturn);
   open('modalCheck');
 }
 
