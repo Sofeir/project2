@@ -1714,3 +1714,7 @@ body.vk-fixed .veil:not(.right) .modal.tall{ height:100%; }
 .chk-filters .btn{ height:42px; font-size:13.5px; font-weight:600; }
 .chk-filters > *{ flex:none; }
 .chk-filters.fd-only .cf-x{ display:none; }
+/* печать копии — внизу колонки фильтров; печатает выбранный в списке чек */
+.chk-filters .chk-print{ margin-top:auto; display:flex; align-items:center; justify-content:center; gap:10px; }
+.chk-filters .chk-print svg{ width:18px; height:18px; }
+.chk-list .lc.sel{ border-color:var(--acc-line); background:var(--acc-soft); }
