@@ -1370,7 +1370,7 @@ $('#btnPayConfirm').addEventListener('click', () => {
 /* Чек считается пробитым только после записи в хранилище: пока запись не прошла,
    кассир не должен увидеть «оплачено» и отдать товар. */
 let paying = false;
-async function finishPay(parts, change) {
+async function finishPay(parts, change, print) {
   if (paying) return;
   const ret = isRefund();
   const btn = $('#btnPayConfirm');
@@ -1391,7 +1391,7 @@ async function finishPay(parts, change) {
     btn.textContent = ret ? 'Оформляю возврат…' : 'Провожу оплату…';
     const body = cartBody(parts, change);
     const st = ret ? await API.refundItems(body) : await API.sale(body);
-    completeSale(st, change, ret);
+    completeSale(st, change, ret, print === false ? 'Оплата проведена · чек не печатался' : null);
   } catch (err) {
     toast((ret ? 'Возврат не проведён: ' : 'Чек не проведён: ') + err.message, 'bad');
   } finally {
@@ -1413,7 +1413,7 @@ function cartBody(parts, change) {
   };
 }
 /* Чек пробит и оплачен: окно оплаты уходит, чек обнуляется для следующего покупателя */
-function completeSale(st, change, ret) {
+function completeSale(st, change, ret, note) {
   applyState(st);
   S.lastSale = st.checks.find(c => c.kind === (ret ? 'return' : 'sale') && c.status !== 'void') || st.checks[0];
   setLocked(false);
@@ -1425,7 +1425,7 @@ function completeSale(st, change, ret) {
   renderAll();
   /* плашку — после очистки чека: пока в чеке позиции, сдача сразу бы убиралась */
   if (change > 0) showChange(change);
-  else showPaid(ret ? 'Возврат оформлен' : 'Оплата проведена', ret);
+  else showPaid(ret ? 'Возврат оформлен' : note || 'Оплата проведена', ret);
 }
 
 /* ============================ ЧЕК ДО ОПЛАТЫ ============================== */
@@ -1439,9 +1439,22 @@ function setLocked(on) {
   if (on) $('#sheetPay').dataset.lock = ''; else delete $('#sheetPay').dataset.lock;
 }
 
+/* «Чек до оплаты» печатает чек отдельным шагом, поэтому там вопрос не нужен;
+   в обычном порядке перед проведением спрашиваем, печатать ли бумажный чек */
+let _printAsk = null;
 function submitPay(parts, change) {
-  return receiptFirst() ? goReady(parts) : finishPay(parts, change);
+  if (receiptFirst()) return goReady(parts);
+  _printAsk = { parts, change };
+  open('modalPrintAsk');
 }
+function pickPrint(print) {
+  const a = _printAsk; if (!a) return;
+  _printAsk = null;
+  close('modalPrintAsk');
+  finishPay(a.parts, a.change, print);
+}
+$('#btnPrintYes').addEventListener('click', () => pickPrint(true));
+$('#btnPrintNo').addEventListener('click', () => pickPrint(false));
 function goReady(parts) {
   const P = S.pay;
   P.plan = parts.filter(p => p.amount > 0);
