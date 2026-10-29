@@ -148,6 +148,7 @@ const close = id => {
   /* поле исчезло вместе с окном — виртуальная клавиатура не должна остаться */
   if (typeof VK !== 'undefined') VK.closeIfInside(v);
 };
+const closeAllVeils = () => $$('.veil').filter(v => !v.classList.contains('hidden')).forEach(v => close(v.id));
 const topVeil = () => $$('.veil').filter(v => !v.classList.contains('hidden')).pop();
 
 $$('.veil').forEach(v => {
@@ -469,6 +470,7 @@ function pinKey(k) {
 }
 async function enter() {
   S.pin = ''; renderPin();
+  document.body.classList.remove('session-off');
   $('#screen-login').classList.add('hidden');
   $('#screen-main').classList.remove('hidden');
   renderAll();
@@ -480,7 +482,8 @@ async function enter() {
 /* Кнопка выключения — меню из трёх пунктов. «Завершить сеанс» — сразу, без вопросов:
    смена и чек не теряются. Выход из программы и выключение компьютера спрашивают подтверждение. */
 function endSession() {
-  if (S.cart.length) parkCurrent(true);
+  /* чек, открытые окна и введённое остаются как есть: кассир вернётся и продолжит с того же места */
+  document.body.classList.add('session-off');
   $('#screen-main').classList.add('hidden');
   $('#screen-login').classList.remove('hidden');
   $('#loginTitle').textContent = 'Сеанс завершён';
@@ -489,6 +492,9 @@ function endSession() {
 /* В браузере программу не закрыть и компьютер не выключить: показываем чёрный экран,
    клик по нему «запускает» программу заново — с экрана входа */
 function powerDown(icon, title) {
+  /* программа закрыта — в памяти ничего не останется, поэтому чек откладываем */
+  closeAllVeils();
+  if (S.cart.length) parkCurrent(true);
   endSession();
   $('#loginTitle').textContent = 'Вход в кассу';
   $('#loginSub').textContent = 'Введите PIN-код кассира, чтобы войти';

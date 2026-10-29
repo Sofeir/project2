@@ -350,6 +350,8 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .menu button.danger, .menu button.danger svg{ color:var(--bad); }
 .menu-sep{ height:1px; background:var(--line); margin:6px 4px; }
 #menuPower{ min-width:250px; }
+/* «Завершить сеанс»: окна и клавиатура остаются открытыми, но скрыты за экраном входа */
+body.session-off .veil, body.session-off #vk{ visibility:hidden; }
 
 /* «программа закрыта» / «компьютер выключен» — имитация в браузере */
 .off-screen{
