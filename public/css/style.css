@@ -349,6 +349,17 @@ svg{ width:20px; height:20px; display:block; flex:none; }
 .menu button .mh{ display:block; font-size:12px; font-weight:500; color:var(--tx-3); margin-top:1px; }
 .menu button.danger, .menu button.danger svg{ color:var(--bad); }
 .menu-sep{ height:1px; background:var(--line); margin:6px 4px; }
+#menuPower{ min-width:250px; }
+
+/* «программа закрыта» / «компьютер выключен» — имитация в браузере */
+.off-screen{
+  position:fixed; inset:0; z-index:400; background:#000; color:#8b9794;
+  display:flex; align-items:center; justify-content:center; text-align:center; cursor:pointer;
+}
+.off-screen.hidden{ display:none; }
+.off-box svg{ display:block; width:44px; height:44px; margin:0 auto 14px; }
+.off-t{ font-size:20px; font-weight:700; color:#c7d0cd; }
+.off-h{ font-size:13px; margin-top:6px; }
 
 /* ============================ РАБОЧАЯ ОБЛАСТЬ =========================== */
 .work{ flex:1; display:flex; min-height:0; }

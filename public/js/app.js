@@ -234,17 +234,18 @@ function bindDrop(btnId, menuId) {
     const m = $('#' + menuId);
     const wasOpen = !m.classList.contains('hidden');
     $$('.menu').forEach(x => x.classList.add('hidden'));
-    $$('.tbtn, .brand-btn').forEach(x => x.classList.remove('on'));
+    $$('.tbtn, .brand-btn, #btnLogout').forEach(x => x.classList.remove('on'));
     if (!wasOpen) { m.classList.remove('hidden'); $('#' + btnId).classList.add('on'); }
   });
 }
 document.addEventListener('click', () => {
   $$('.menu').forEach(x => x.classList.add('hidden'));
-  $$('.tbtn, .brand-btn').forEach(x => x.classList.remove('on'));
+  $$('.tbtn, .brand-btn, #btnLogout').forEach(x => x.classList.remove('on'));
 });
 bindDrop('btnShift', 'menuShift');
 bindDrop('opBadge', 'menuOps');
 bindDrop('btnBrand', 'menuBrand');
+bindDrop('btnLogout', 'menuPower');
 
 /* ------------------------------- тема ----------------------------------- */
 /* Тёмная — по умолчанию. Тема — свойство терминала (в светлом зале удобнее
@@ -269,7 +270,7 @@ function setTheme(id) {
 }
 function renderTheme() {
   const t = THEMES.find(x => x.id === themeId()) || THEMES[0];
-  $('#themeText').textContent = `${t.name} · PIN администратора`;
+  $('#themeText').textContent = t.name;
   $('#themeIcon').setAttribute('href', t.id === 'dark' ? '#i-moon' : '#i-sun');
   $('#themesGrid').innerHTML = THEMES.map(x => `
     <button class="th ${x.id === t.id ? 'on' : ''}" data-t="${x.id}">
@@ -312,12 +313,13 @@ $('#themesGrid').addEventListener('click', e => {
   const b = e.target.closest('[data-t]'); if (!b) return;
   setTheme(b.dataset.t);
 });
-/* Настройки кассы — в меню логотипа. Тема и СБП меняют работу кассы для всех
-   смен, поэтому обе закрыты PIN администратора, как и правка витрины */
+/* Настройки кассы — в меню логотипа. Тема — только внешний вид терминала, PIN не нужен;
+   СБП и «Чек до оплаты» меняют работу кассы для всех смен, поэтому закрыты PIN администратора,
+   как и правка витрины */
 $('#menuBrand').addEventListener('click', e => {
   const b = e.target.closest('[data-act]'); if (!b) return;
   b.blur();
-  if (b.dataset.act === 'theme') return requireAdmin(() => open('modalThemes'));
+  if (b.dataset.act === 'theme') return open('modalThemes');
   if (b.dataset.act === 'rcpt') return requireAdmin(async () => {
     try {
       S.receiptFirst = (await API.setSettings({ receiptFirst: !S.receiptFirst })).receiptFirst;
@@ -475,14 +477,33 @@ async function enter() {
   if (!S.shiftOpened) toast('Смена не открыта. Откройте её: Операции → Открыть смену', 'warn', { ms: 3600 });
   resumeAwaiting();
 }
-$('#btnLogout').addEventListener('click', () => {
-  ask('Завершить сеанс?', 'Смена останется открытой. Незавершённый чек будет отложен автоматически.', 'Завершить', () => {
-    if (S.cart.length) parkCurrent(true);
-    $('#screen-main').classList.add('hidden');
-    $('#screen-login').classList.remove('hidden');
-    $('#loginTitle').textContent = 'Сеанс завершён';
-    $('#loginSub').textContent = (S.shiftOpened ? `Смена №${S.shiftNo} открыта в ${S.openedAt}. ` : '') + 'Введите PIN-код кассира, чтобы продолжить';
-  });
+/* Кнопка выключения — меню из трёх пунктов. «Завершить сеанс» — сразу, без вопросов:
+   смена и чек не теряются. Выход из программы и выключение компьютера спрашивают подтверждение. */
+function endSession() {
+  if (S.cart.length) parkCurrent(true);
+  $('#screen-main').classList.add('hidden');
+  $('#screen-login').classList.remove('hidden');
+  $('#loginTitle').textContent = 'Сеанс завершён';
+  $('#loginSub').textContent = (S.shiftOpened ? `Смена №${S.shiftNo} открыта в ${S.openedAt}. ` : '') + 'Введите PIN-код кассира, чтобы продолжить';
+}
+/* В браузере программу не закрыть и компьютер не выключить: показываем чёрный экран,
+   клик по нему «запускает» программу заново — с экрана входа */
+function powerDown(icon, title) {
+  endSession();
+  $('#loginTitle').textContent = 'Вход в кассу';
+  $('#loginSub').textContent = 'Введите PIN-код кассира, чтобы войти';
+  $('#offIcon').setAttribute('href', icon);
+  $('#offTitle').textContent = title;
+  $('#offScreen').classList.remove('hidden');
+}
+$('#offScreen').addEventListener('click', () => $('#offScreen').classList.add('hidden'));
+$('#menuPower').addEventListener('click', e => {
+  const b = e.target.closest('[data-act]'); if (!b) return;
+  b.blur();
+  const act = b.dataset.act;
+  if (act === 'session') return endSession();
+  if (act === 'quit') return ask('Выйти из программы?', 'Смена останется незавершённой. Незавершённый чек будет отложен автоматически.', 'Выйти из программы', () => powerDown('#i-close', 'Программа закрыта'));
+  if (act === 'off') return ask('Выключить компьютер?', 'Смена останется незавершённой. Незавершённый чек будет отложен автоматически, компьютер выключится.', 'Выключить компьютер', () => powerDown('#i-power', 'Компьютер выключен'));
 });
 
 /* ============================== КАТАЛОГ ================================== */
