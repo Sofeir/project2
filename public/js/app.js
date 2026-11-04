@@ -473,6 +473,7 @@ async function enter() {
   document.body.classList.remove('session-off');
   $('#screen-login').classList.add('hidden');
   $('#screen-main').classList.remove('hidden');
+  HK.resetMode();   /* каждый вход начинается с основного режима горячих клавиш */
   renderAll();
   /* За время простоя смену мог изменить другой терминал — берём свежий снимок */
   try { applyState(await API.state()); renderAll(); } catch (_) { /* покажем то, что есть */ }
@@ -546,6 +547,7 @@ function catCrumbs() {
     <button class="cr" data-i="-1">Все группы</button><span class="sl">›</span><button class="cr last">${name}</button>`;
 }
 function renderGrid() {
+  HK.renderModeChip();
   if (S.view === 'hk') return HK.renderCashier();
   catCrumbs();
   if (!S.cat) {

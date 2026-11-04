@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700;800;900&display=swap">
-<link rel="stylesheet" href="css/style.css?v=20261009h">
+<link rel="stylesheet" href="css/style.css?v=20261104a">
 <!-- тему ставим до первой отрисовки, иначе светлая касса на миг мигнёт тёмной -->
 <script>try { const t = localStorage.getItem('asoft-pos-theme'); if (t && t !== 'dark') { document.documentElement.dataset.theme = 'light'; if (t === 'warm') document.documentElement.dataset.light = 'warm'; } } catch (_) {}</script>
 </head>
@@ -218,6 +218,8 @@
             <button class="on" data-view="hk"><svg><use href="#i-grip"/></svg>Горячие клавиши</button>
             <button data-view="cat"><svg><use href="#i-folder"/></svg>Весь каталог</button>
           </div>
+          <!-- режим горячих клавиш (завтрак, обед…): виден на вкладке «Горячие клавиши», когда режимов больше одного -->
+          <button class="mode-btn hidden" id="btnMode" type="button" title="Режим горячих клавиш"><span class="mn"></span><svg><use href="#i-chev"/></svg></button>
           <!-- поиск живёт кнопкой в строке переключателя; поле открывается поверх этой строки -->
           <button class="search-btn" id="btnSearch" type="button"><svg><use href="#i-search"/></svg>Поиск</button>
         </div>
@@ -594,9 +596,10 @@
     <div class="ti"><svg><use href="#i-grip"/></svg></div>
     <div>
       <h2>Горячие клавиши</h2>
-      <div class="sub">Витрина, которую видит кассир. Изменения применятся после сохранения</div>
+      <div class="sub" id="hkSub">Витрина, которую видит кассир. Изменения применятся после сохранения</div>
     </div>
     <div class="mode-badge"><svg style="width:14px;height:14px"><use href="#i-pencil"/></svg>Режим настройки</div>
+    <button class="btn hk-mode" id="hkMode" title="Какой режим витрины правим"><span class="ml">Режим</span><span class="mn"></span><svg><use href="#i-chev"/></svg></button>
     <div class="spacer"></div>
     <button class="btn btn-ghost" id="hkUndo" disabled><svg><use href="#i-undo"/></svg>Отменить</button>
     <button class="btn btn-ghost" id="hkExit">Выйти</button>
@@ -629,6 +632,37 @@
 </section>
 
 <div class="menu hidden" id="menuTile" style="position:fixed; z-index:220"></div>
+<div class="menu hidden" id="menuMode" style="position:fixed; z-index:220; min-width:200px"></div>
+
+<!-- ============================ РЕЖИМЫ ГОРЯЧИХ КЛАВИШ ============================ -->
+<div class="veil hidden" id="modalModes">
+  <div class="modal">
+    <div class="m-head">
+      <div><h3>Режимы горячих клавиш</h3><div class="hsub">У каждого режима своя витрина: завтрак, обед, ужин</div></div>
+      <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="m-body"><div class="mode-list" id="modeList"></div></div>
+    <div class="m-foot">
+      <button class="btn btn-primary" id="modeNew" style="flex:1"><svg><use href="#i-plus"/></svg>Новый режим</button>
+    </div>
+  </div>
+</div>
+
+<div class="veil hidden" id="modalModeName">
+  <div class="modal slim">
+    <div class="m-head"><h3 id="modeNameTitle">Новый режим</h3><button class="ibtn" data-close><svg><use href="#i-close"/></svg></button></div>
+    <div class="m-body">
+      <div class="field">
+        <label>Название режима</label>
+        <input type="text" id="modeNameInput" placeholder="Например, «Обед»" maxlength="20" autocomplete="off" data-vk-enter="submit">
+      </div>
+    </div>
+    <div class="m-foot">
+      <button class="btn" data-close style="flex:1">Отмена</button>
+      <button class="btn btn-primary" id="modeNameOk" style="flex:1.4">Сохранить</button>
+    </div>
+  </div>
+</div>
 
 <!-- ============================ ПОДБОР ТОВАРОВ ============================ -->
 <div class="veil hidden" id="modalPick">
@@ -922,11 +956,11 @@
 
 <div id="toasts"></div>
 
-<script src="js/seed.js?v=20261009h"></script>
-<script src="js/api.js?v=20261009h"></script>
-<script src="js/data.js?v=20261009h"></script>
-<script src="js/hotkeys.js?v=20261009h"></script>
-<script src="js/app.js?v=20261009h"></script>
-<script src="js/keyboard.js?v=20261009h"></script>
+<script src="js/seed.js?v=20261104a"></script>
+<script src="js/api.js?v=20261104a"></script>
+<script src="js/data.js?v=20261104a"></script>
+<script src="js/hotkeys.js?v=20261104a"></script>
+<script src="js/app.js?v=20261104a"></script>
+<script src="js/keyboard.js?v=20261104a"></script>
 </body>
 </html>

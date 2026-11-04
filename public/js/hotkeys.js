@@ -26,8 +26,17 @@ const HK = (() => {
   const item = pid => ({ id: nid(), kind: 'item', pid });
 
   /* ------------------------------- данные -------------------------------- */
-  let data = { items: [] };        // рабочая (сохранённая) структура
-  let draft = null;                // копия на время правки
+  /* Витрина хранится по режимам (завтрак, обед, ужин…): у каждого своя структура.
+     Кассир видит активный режим, администратор правит выбранный — это разные вещи.
+     Первый режим в списке — «Основной»: с него касса начинает при каждом входе. */
+  let modes = [];                  // [{ id, name, items }]
+  let activeId = null;             // режим на витрине кассира
+  let editId = null;               // режим в редакторе
+  const modeOf = id => modes.find(m => m.id === id) || modes[0];
+  const treeOf = id => ({ items: modeOf(id).items });
+
+  let data = { items: [] };        // рабочая (сохранённая) структура активного режима
+  let draft = null;                // копия правимого режима на время правки
   let undoStack = [];
   let dirty = false;
 
@@ -39,7 +48,23 @@ const HK = (() => {
   /* --------------------------- загрузка и сохранение ---------------------- */
   async function load() {
     const res = await API.hotkeys();
-    data = { items: res.items || [] };
+    applyModes(res.modes || []);
+    useMode(modes[0].id);
+  }
+  /* список режимов пришёл из хранилища: витрина кассира остаётся на своём режиме, если он жив */
+  function applyModes(list) {
+    modes = list.length ? list : [{ id: 'm1', name: 'Основной', items: [] }];
+    const m = modeOf(activeId);
+    activeId = m.id;
+    data = { items: m.items };
+    path = path.filter(id => findNode(data, id));
+  }
+  function useMode(id) {
+    const m = modeOf(id);
+    activeId = m.id;
+    data = { items: m.items };
+    path = [];
+    renderModeChip();
   }
 
   /* ------------------------------ обход дерева ---------------------------- */
@@ -172,6 +197,38 @@ const HK = (() => {
   function up() { if (path.length) { path.pop(); renderCashier(); } }
   function goRoot() { path = []; }
 
+  /* ---------------------------- режим на витрине -------------------------- */
+  const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+
+  /* кнопка режима видна только на вкладке «Горячие клавиши» и только если режимов больше одного */
+  function renderModeChip() {
+    const b = document.getElementById('btnMode');
+    if (!b) return;
+    const m = modes.length ? modeOf(activeId) : null;
+    b.classList.toggle('hidden', !m || modes.length < 2 || S.view !== 'hk');
+    if (m) b.querySelector('.mn').textContent = m.name;
+  }
+  function hideModeMenu() { document.getElementById('menuMode').classList.add('hidden'); }
+  function toggleModeMenu() {
+    const el = document.getElementById('menuMode');
+    if (!el.classList.contains('hidden')) return hideModeMenu();
+    el.innerHTML = modes.map(m => `<button data-m="${m.id}" class="${m.id === activeId ? 'on' : ''}">
+      <svg ${m.id === activeId ? '' : 'style="opacity:0"'}><use href="#i-check"/></svg><span class="mt">${esc(m.name)}</span></button>`).join('');
+    el.classList.remove('hidden');
+    const r = document.getElementById('btnMode').getBoundingClientRect(), w = el.getBoundingClientRect();
+    el.style.left = Math.max(12, Math.min(r.left, innerWidth - w.width - 12)) + 'px';
+    el.style.top = (r.bottom + 6) + 'px';
+  }
+  function setMode(id) {
+    hideModeMenu();
+    if (id === activeId) return;
+    useMode(id);
+    renderCashier();
+    document.getElementById('grid').scrollTop = 0;
+  }
+  /* новый вход в смену: витрина начинается с основного режима */
+  function resetMode() { if (modes.length) { useMode(modes[0].id); if (S.view === 'hk') renderCashier(); } }
+
   /* обработчики витрины навешивает app.js через делегирование */
   function onGridClick(e) {
     const g = e.target.closest('[data-gid]');
@@ -197,13 +254,14 @@ const HK = (() => {
     if (undoStack.length > 40) undoStack.shift();
   }
   function syncTopButtons() {
-    dirty = JSON.stringify(draft) !== JSON.stringify(data);
+    dirty = JSON.stringify(draft) !== JSON.stringify(treeOf(editId));
     document.getElementById('hkUndo').disabled = !undoStack.length;
     document.getElementById('hkSave').disabled = !dirty;
   }
 
   function openEditor() {
-    draft = clone(data);
+    editId = activeId;
+    draft = clone(treeOf(editId));
     undoStack = []; dirty = false;
     editPath = path.slice().filter(id => findNode(draft, id));
     document.getElementById('hkEditor').classList.remove('hidden');
@@ -224,15 +282,16 @@ const HK = (() => {
     try {
       /* Хранилище возвращает витрину уже со своими идентификаторами —
          принимаем её как есть, иначе следующая правка уйдёт в никуда. */
-      const res = await API.saveHotkeys(draft.items);
-      data = { items: res.items || [] };
-      draft = clone(data);
+      const res = await API.saveHotkeyModes(modes.map(m => m.id === editId ? { ...m, items: draft.items } : m));
+      applyModes(res.modes);
+      draft = clone(treeOf(editId));
       undoStack = [];
       editPath = editPath.filter(id => findNode(draft, id));
       path = path.filter(id => findNode(data, id));
       renderEditor();
       renderGrid();
-      toast('Горячие клавиши сохранены');
+      renderModeChip();
+      toast(`Горячие клавиши сохранены · режим «${modeOf(editId).name}»`);
     } catch (err) {
       toast('Не сохранено: ' + err.message, 'bad');
     } finally {
@@ -248,7 +307,93 @@ const HK = (() => {
     toast('Последнее изменение отменено');
   }
 
-  function renderEditor() { syncTopButtons(); renderTree(); renderEditGrid(); renderEditCrumbs(); }
+  function renderEditor() { syncTopButtons(); renderEditMode(); renderTree(); renderEditGrid(); renderEditCrumbs(); }
+
+  /* ---------------------------- режимы в редакторе ------------------------- */
+  function renderEditMode() {
+    document.getElementById('hkMode').querySelector('.mn').textContent = modeOf(editId).name;
+    document.getElementById('hkSub').textContent = `Витрина режима «${modeOf(editId).name}». Изменения применятся после сохранения`;
+  }
+  function switchEdit(id) {
+    editId = id;
+    draft = clone(treeOf(editId));
+    undoStack = []; dirty = false; editPath = [];
+    renderEditor();
+  }
+  function renderModes() {
+    const total = m => countAll({ kind: 'group', items: m.items });
+    document.getElementById('modeList').innerHTML = modes.map((m, i) => {
+      const n = total(m);
+      return `<div class="mrow ${m.id === editId ? 'on' : ''}" data-id="${m.id}">
+        <button class="mpick" data-a="pick">
+          <span class="mr"><svg><use href="#i-check"/></svg></span>
+          <span class="mt"><b>${esc(m.name)}</b><span>${n ? `${n} ${plural(n, 'позиция', 'позиции', 'позиций')}` : 'пока пусто'}${i === 0 ? ' · при входе в смену' : ''}</span></span>
+        </button>
+        <button class="ibtn" data-a="rename" title="Переименовать"><svg><use href="#i-pencil"/></svg></button>
+        <button class="ibtn" data-a="copy" title="Сделать копию"><svg><use href="#i-copy"/></svg></button>
+        <button class="ibtn danger" data-a="del" title="Удалить режим" ${modes.length < 2 ? 'disabled' : ''}><svg><use href="#i-trash"/></svg></button>
+      </div>`;
+    }).join('');
+  }
+  function openModes() { renderModes(); open('modalModes'); }
+
+  const needSaved = () => { if (dirty) { toast('Сначала сохраните или отмените изменения витрины', 'warn'); return true; } return false; };
+  const newModeId = () => 'm' + (modes.reduce((mx, m) => Math.max(mx, parseInt(String(m.id).replace(/\D/g, ''), 10) || 0), 0) + 1);
+
+  async function saveModes(next, after) {
+    try {
+      const res = await API.saveHotkeyModes(next);
+      applyModes(res.modes);
+      if (after) after();
+      if (!modes.some(m => m.id === editId)) switchEdit(modes[0].id);
+      renderModes(); renderEditMode(); renderModeChip();
+      if (S.view === 'hk') renderCashier();
+      return true;
+    } catch (err) { toast('Не сохранено: ' + err.message, 'bad'); return false; }
+  }
+
+  let naming = null;   // { id } — переименование; { copyOf } — копия; {} — новый режим
+  function openModeName(ctx) {
+    naming = ctx;
+    const base = ctx.id ? modeOf(ctx.id).name : ctx.copyOf ? modeOf(ctx.copyOf).name + ' (копия)' : '';
+    document.getElementById('modeNameTitle').textContent = ctx.id ? 'Переименовать режим' : ctx.copyOf ? 'Копия режима' : 'Новый режим';
+    document.getElementById('modeNameInput').value = base;
+    open('modalModeName');
+    setTimeout(() => document.getElementById('modeNameInput').focus(), 60);
+  }
+  async function modeNameOk() {
+    const name = document.getElementById('modeNameInput').value.trim();
+    if (!name) return toast('Введите название режима', 'warn');
+    if (modes.some(m => m.name.toLowerCase() === name.toLowerCase() && m.id !== (naming.id || ''))) return toast(`Режим «${name}» уже есть`, 'warn');
+    let next, pick = null;
+    if (naming.id) next = modes.map(m => m.id === naming.id ? { ...m, name } : m);
+    else {
+      const id = newModeId(); pick = id;
+      next = modes.concat({ id, name, items: naming.copyOf ? clone(modeOf(naming.copyOf).items) : [] });
+    }
+    close('modalModeName');
+    const ok = await saveModes(next);
+    if (ok && pick) { switchEdit(pick); toast(`Режим «${name}» создан`); }
+    if (ok && naming && naming.id) toast('Режим переименован');
+  }
+  function modeAction(a, id) {
+    if (a === 'pick') {
+      if (id === editId) return close('modalModes');
+      const go = () => { switchEdit(id); close('modalModes'); };
+      if (dirty) ask('Перейти без сохранения?', `Изменения в режиме «${esc(modeOf(editId).name)}» будут потеряны.`, 'Перейти', go);
+      else go();
+      return;
+    }
+    if (needSaved()) return;
+    if (a === 'rename') return openModeName({ id });
+    if (a === 'copy') return openModeName({ copyOf: id });
+    if (a === 'del') {
+      const m = modeOf(id);
+      ask('Удалить режим «' + esc(m.name) + '»?', 'Его витрина пропадёт. Блюда останутся в каталоге.', 'Удалить', async () => {
+        if (await saveModes(modes.filter(x => x.id !== id))) toast('Режим удалён', 'warn');
+      });
+    }
+  }
 
   /* ------------------------------- дерево --------------------------------- */
   const treeOpen = new Set();   // раскрытые группы дерева
@@ -627,6 +772,23 @@ const HK = (() => {
     /* витрина кассира */
     document.getElementById('crumbs').addEventListener('click', onCrumbClick);
 
+    /* режим на витрине кассира */
+    document.getElementById('btnMode').addEventListener('click', e => { e.stopPropagation(); toggleModeMenu(); });
+    document.getElementById('menuMode').addEventListener('click', e => {
+      const b = e.target.closest('[data-m]'); if (b) setMode(b.dataset.m);
+    });
+    document.addEventListener('click', e => { if (!e.target.closest('#menuMode')) hideModeMenu(); });
+
+    /* режимы в редакторе */
+    document.getElementById('hkMode').addEventListener('click', openModes);
+    document.getElementById('modeList').addEventListener('click', e => {
+      const b = e.target.closest('[data-a]'); if (!b || b.disabled) return;
+      modeAction(b.dataset.a, b.closest('[data-id]').dataset.id);
+    });
+    document.getElementById('modeNew').addEventListener('click', () => { if (!needSaved()) openModeName({}); });
+    document.getElementById('modeNameOk').addEventListener('click', modeNameOk);
+    document.getElementById('modeNameInput').addEventListener('keydown', e => { if (e.key === 'Enter') modeNameOk(); });
+
     /* редактор: верхняя панель */
     document.getElementById('hkSave').addEventListener('click', save);
     document.getElementById('hkUndo').addEventListener('click', undo);
@@ -781,6 +943,7 @@ const HK = (() => {
   return {
     async init() { bind(); await load(); },
     renderCashier, onGridClick, up, goRoot,
+    renderModeChip, resetMode,
     openEditor,
     exit: () => closeEditor(),
     isEditing: () => !document.getElementById('hkEditor').classList.contains('hidden'),

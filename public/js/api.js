@@ -47,7 +47,22 @@ const API = (() => {
      старые остатки в рублях не переводятся, пропуска берутся заново */
   const PASSES_VER = 2;
   const MENU_VER = 2;
+  const HK_MODES_VER = 1;
   function normalize(d) {
+    /* Режимы горячих клавиш (завтрак, обед, ужин…) появились позже одной общей витрины:
+       прежняя витрина становится режимом «Основной», рядом — тестовые режимы из её групп */
+    if (d.hkModesVer !== HK_MODES_VER) {
+      const main = renumber(d.hotkeys || []);
+      const pick = names => renumber(main.filter(n => n.kind === 'group' && names.includes(n.name)));
+      d.hkModes = [
+        { id: 'm1', name: 'Основной', items: main },
+        { id: 'm2', name: 'Завтрак', items: pick(['Завтраки', 'Напитки', 'Выпечка']) },
+        { id: 'm3', name: 'Обед', items: pick(['Обеды', 'Салаты и закуски', 'Напитки']) },
+        { id: 'm4', name: 'Ужин', items: pick(['Обеды', 'Напитки']) },
+        { id: 'm5', name: 'Буфет', items: pick(['Буфет и хлеб', 'Напитки', 'Выпечка']) },
+      ];
+      d.hkModesVer = HK_MODES_VER;
+    }
     if (!Array.isArray(d.passes) || d.passesVer !== PASSES_VER) { d.passes = clone(SEED.PASSES); d.passesVer = PASSES_VER; }
     /* Меню дополняется новыми группами и блюдами из seed.js; существующие не трогаем */
     if (d.menuVer !== MENU_VER) {
@@ -73,7 +88,7 @@ const API = (() => {
       try { db = JSON.parse(raw); } catch (_) { db = null; }
     }
     if (!db || !Array.isArray(db.shifts)) { db = seeded(); save(); }
-    else if (!Array.isArray(db.passes) || !db.settings || db.passesVer !== PASSES_VER || db.menuVer !== MENU_VER) { normalize(db); save(); }
+    else if (!Array.isArray(db.passes) || !db.settings || db.passesVer !== PASSES_VER || db.menuVer !== MENU_VER || db.hkModesVer !== HK_MODES_VER) { normalize(db); save(); }
     return db;
   }
 
@@ -137,6 +152,30 @@ const API = (() => {
     });
     check(items, 1);
     return tx(d => { d.hotkeys = renumber(items); return { items: clone(d.hotkeys) }; });
+  }
+
+  /* Витрина хранится по режимам: у каждого своё название и своя структура групп и товаров */
+  function saveHotkeyModes(modes) {
+    if (!Array.isArray(modes) || !modes.length) throw new Error('Нужен хотя бы один режим');
+    const MAX_DEPTH = 3, names = new Set(), ids = new Set();
+    const check = (list, depth) => list.forEach(x => {
+      if (x.kind !== 'group') return;
+      if (depth > MAX_DEPTH) throw new Error(`Превышена глубина витрины: максимум ${MAX_DEPTH} уровня групп`);
+      check(x.items || [], depth + 1);
+    });
+    const out = modes.map((m, i) => {
+      const name = String(m.name || '').trim();
+      if (!name) throw new Error('У режима должно быть название');
+      if (names.has(name.toLowerCase())) throw new Error(`Режим «${name}» уже есть`);
+      names.add(name.toLowerCase());
+      if (!Array.isArray(m.items)) throw new Error('Ожидался список групп и товаров');
+      check(m.items, 1);
+      let id = String(m.id || 'm' + (i + 1));
+      while (ids.has(id)) id += '_';
+      ids.add(id);
+      return { id, name, items: renumber(m.items) };
+    });
+    return tx(d => { d.hkModes = out; return { modes: clone(out) }; });
   }
 
   /* ============================ СОСТОЯНИЕ СМЕНЫ =========================== */
@@ -646,8 +685,9 @@ const API = (() => {
     cancelCheck: no   => run(() => cancelCheck(no)),
     setSettings: p    => run(() => setSettings(p)),
 
-    hotkeys:     ()    => run(() => ({ items: clone(load().hotkeys) })),
+    hotkeys:     ()    => run(() => ({ modes: clone(load().hkModes) })),
     saveHotkeys: items => run(() => saveHotkeys(items)),
+    saveHotkeyModes: modes => run(() => saveHotkeyModes(modes)),
 
     exportData:  ()   => ok(exportData()),
     importData:  f    => run(() => importData(f)),

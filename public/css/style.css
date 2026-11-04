@@ -1326,6 +1326,38 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 @media (hover:hover){ .search-btn:hover{ background:var(--card); color:var(--tx); } }
 .search-btn:active{ background:var(--card-act); }
 
+/* режим горячих клавиш: завтрак, обед, ужин… — рядом с переключателем, зелёным выделен как «активное» */
+.mode-btn{
+  flex:none; height:44px; padding:0 12px 0 16px; max-width:190px; display:flex; align-items:center; gap:8px;
+  background:var(--acc-soft); border:1px solid var(--acc-line); border-radius:var(--r-pill);
+  color:var(--tx); font-size:13.5px; font-weight:700;
+}
+.mode-btn .mn{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mode-btn svg{ width:16px; height:16px; flex:none; color:var(--tx-3); }
+@media (hover:hover){ .mode-btn:hover{ background:var(--acc-dim, var(--acc-soft)); } }
+.mode-btn:active{ background:var(--card-act); }
+.menu button.on{ color:var(--acc); font-weight:700; }
+.menu button.on svg{ color:var(--acc); }
+
+/* редактор: какой режим правим */
+.hk-top .hk-mode{ gap:8px; }
+.hk-mode .ml{ color:var(--tx-3); font-weight:500; }
+.hk-mode .mn{ font-weight:800; max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hk-mode svg{ width:16px; height:16px; }
+
+/* окно «Режимы горячих клавиш» */
+.mode-list{ display:flex; flex-direction:column; gap:8px; }
+.mrow{ display:flex; align-items:center; gap:4px; background:var(--card); border:1px solid var(--line); border-radius:var(--r-md); padding:4px 6px 4px 4px; }
+.mrow.on{ border-color:var(--acc); background:var(--acc-soft); }
+.mpick{ flex:1; min-width:0; display:flex; align-items:center; gap:12px; padding:8px 10px; text-align:left; border-radius:10px; }
+.mpick .mr{ width:24px; height:24px; border-radius:50%; border:2px solid var(--line-strong); display:grid; place-items:center; flex:none; color:transparent; }
+.mpick .mr svg{ width:14px; height:14px; }
+.mrow.on .mr{ background:var(--acc); border-color:var(--acc); color:var(--acc-ink); }
+.mpick .mt b{ display:block; font-size:15px; }
+.mpick .mt span{ display:block; font-size:12px; color:var(--tx-3); margin-top:1px; }
+.mrow .ibtn.danger{ color:var(--bad); }
+.mrow .ibtn:disabled{ opacity:.3; }
+
 .seg{ display:flex; gap:3px; padding:3px; background:var(--panel); border:1px solid var(--line); border-radius:var(--r-pill); flex:none; }
 .seg button{
   height:36px; padding:0 16px; border-radius:var(--r-pill);
