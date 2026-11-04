@@ -809,7 +809,6 @@ const HK = (() => {
     document.getElementById('hkSave').addEventListener('click', save);
     document.getElementById('hkUndo').addEventListener('click', undo);
     document.getElementById('hkExit').addEventListener('click', () => closeEditor());
-    document.getElementById('hkAddRootGroup').addEventListener('click', () => { editPath = []; renderEditor(); openGroupModal(null); });
     document.getElementById('hkAddGroup').addEventListener('click', () => openGroupModal(null));
     document.getElementById('hkAddItems').addEventListener('click', openPicker);
     document.getElementById('hkFromCat').addEventListener('click', openFromCat);
