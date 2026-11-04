@@ -553,9 +553,12 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 }
 .catalog.searching .search-field, body.vk-open:not(.vk-fixed) .search-field{ z-index:60; }
 .catalog.searching > .vk, body.vk-open:not(.vk-fixed) .catalog > .vk{ position:relative; z-index:60; }
-.catalog-head{ flex:none; padding:10px 20px 0; }
+.catalog-head{ flex:none; padding:10px 20px 0; position:relative; }
 
-.search{ position:relative; display:flex; gap:10px; }
+/* поле поиска скрыто, пока не нажата кнопка «Поиск»: открывается поверх строки переключателя
+   и не занимает места на витрине */
+.search{ position:absolute; top:10px; left:20px; right:20px; z-index:60; display:none; gap:10px; }
+.search.open{ display:flex; }
 .search-field{ position:relative; flex:1; }
 .search-field input{
   width:100%; height:44px; padding:0 44px 0 46px;
@@ -1311,7 +1314,17 @@ body.vk-open:not(.vk-fixed) .catalog::before{
    ============================================================================= */
 
 /* ---------- переключатель витрины + хлебные крошки ---------- */
-.view-bar{ display:flex; align-items:center; gap:14px; margin-top:12px; min-height:44px; }
+.view-bar{ display:flex; align-items:center; gap:14px; min-height:44px; }
+
+/* кнопка поиска занимает свободное место справа от переключателя */
+.search-btn{
+  flex:1; min-width:0; height:44px; padding:0 18px; display:flex; align-items:center; gap:10px;
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--r-pill);
+  color:var(--tx-3); font-size:13.5px; font-weight:600; text-align:left;
+}
+.search-btn svg{ width:18px; height:18px; flex:none; }
+@media (hover:hover){ .search-btn:hover{ background:var(--card); color:var(--tx); } }
+.search-btn:active{ background:var(--card-act); }
 
 .seg{ display:flex; gap:3px; padding:3px; background:var(--panel); border:1px solid var(--line); border-radius:var(--r-pill); flex:none; }
 .seg button{

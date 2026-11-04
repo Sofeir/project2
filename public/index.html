@@ -213,19 +213,21 @@
     <!-- ---------- КАТАЛОГ ---------- -->
     <main class="catalog" data-vk-host>
       <div class="catalog-head">
-        <div class="search">
-          <div class="search-field">
-            <svg class="si"><use href="#i-search"/></svg>
-            <input type="text" id="searchInput" placeholder="Поиск блюда или сканирование штрих-кода" autocomplete="off" spellcheck="false">
-            <button class="ibtn sx hidden" id="btnSearchClear"><svg><use href="#i-close"/></svg></button>
-            <div class="search-res hidden" id="searchRes"></div>
-          </div>
-        </div>
-
         <div class="view-bar">
           <div class="seg" id="viewSeg">
             <button class="on" data-view="hk"><svg><use href="#i-grip"/></svg>Горячие клавиши</button>
             <button data-view="cat"><svg><use href="#i-folder"/></svg>Весь каталог</button>
+          </div>
+          <!-- поиск живёт кнопкой в строке переключателя; поле открывается поверх этой строки -->
+          <button class="search-btn" id="btnSearch" type="button"><svg><use href="#i-search"/></svg>Поиск</button>
+        </div>
+
+        <div class="search" id="searchBox">
+          <div class="search-field">
+            <svg class="si"><use href="#i-search"/></svg>
+            <input type="text" id="searchInput" placeholder="Поиск блюда или штрих-кода" autocomplete="off" spellcheck="false">
+            <button class="ibtn sx hidden" id="btnSearchClear"><svg><use href="#i-close"/></svg></button>
+            <div class="search-res hidden" id="searchRes"></div>
           </div>
         </div>
         <div class="crumbs crumbs-row hidden" id="crumbs"></div>

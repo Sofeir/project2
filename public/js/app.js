@@ -627,18 +627,23 @@ sInput.addEventListener('keydown', e => {
     rows[sHi].scrollIntoView({ block: 'nearest' });
   } else if (e.key === 'Enter') {
     const r = rows[Math.max(sHi, 0)]; if (r) { addProduct(r.dataset.id); pickDone(); }
-  } else if (e.key === 'Escape') { clearSearch(); sInput.blur(); }
+  } else if (e.key === 'Escape') closeSearch();
 });
 sRes.addEventListener('click', e => {
   const r = e.target.closest('[data-id]'); if (!r) return;
   addProduct(r.dataset.id); pickDone();
 });
 /* блюдо выбрано — поиск свободен, а клавиатура больше не нужна */
-function pickDone() { clearSearch(); sInput.blur(); VK.close(); }
-/* клавиатура скрылась любым способом — поиск пустой, без остатков ввода */
+function pickDone() { closeSearch(); }
+/* клавиатура скрылась любым способом — поиск пустой и закрыт, без остатков ввода */
 document.addEventListener('vk:close', e => {
-  if (e.detail.target === sInput) { clearSearch(); sInput.blur(); }
+  if (e.detail.target === sInput) closeSearch();
 });
+/* поле поиска открывается кнопкой в строке переключателя и закрывается вместе с клавиатурой */
+const sBox = $('#searchBox');
+function openSearch() { sBox.classList.add('open'); sInput.focus(); }
+function closeSearch() { clearSearch(); sBox.classList.remove('open'); sInput.blur(); VK.close(); }
+$('#btnSearch').addEventListener('click', openSearch);
 function clearSearch() { sInput.value = ''; sRes.classList.add('hidden'); $('#btnSearchClear').classList.add('hidden'); }
 $('#btnSearchClear').addEventListener('click', () => { clearSearch(); sInput.focus(); });
 document.addEventListener('click', e => {
