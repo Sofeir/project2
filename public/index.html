@@ -218,8 +218,6 @@
             <button class="on" data-view="hk"><svg><use href="#i-grip"/></svg>Горячие клавиши</button>
             <button data-view="cat"><svg><use href="#i-folder"/></svg>Весь каталог</button>
           </div>
-          <!-- режим горячих клавиш (завтрак, обед…): виден на вкладке «Горячие клавиши», когда режимов больше одного -->
-          <button class="mode-btn hidden" id="btnMode" type="button" title="Режим горячих клавиш"><span class="mn"></span><svg><use href="#i-chev"/></svg></button>
           <!-- поиск живёт кнопкой в строке переключателя; поле открывается поверх этой строки -->
           <button class="search-btn" id="btnSearch" type="button"><svg><use href="#i-search"/></svg>Поиск</button>
         </div>
@@ -231,6 +229,11 @@
             <button class="ibtn sx hidden" id="btnSearchClear"><svg><use href="#i-close"/></svg></button>
             <div class="search-res hidden" id="searchRes"></div>
           </div>
+        </div>
+        <!-- режим горячих клавиш (завтрак, обед…): на первом экране вкладки «Горячие клавиши», когда режимов больше одного;
+             внутри группы на этом месте лента групп -->
+        <div class="mode-row hidden" id="modeRow">
+          <button class="mode-btn" id="btnMode" type="button" title="Режим горячих клавиш"><span class="mn"></span><svg><use href="#i-chev"/></svg></button>
         </div>
         <!-- лента групп первого уровня: видна внутри открытой группы, чтобы перейти в соседнюю -->
         <div class="ribbon hidden" id="ribbon"></div>
@@ -598,7 +601,7 @@
     <div class="ti"><svg><use href="#i-grip"/></svg></div>
     <div>
       <h2>Горячие клавиши</h2>
-      <div class="sub" id="hkSub">Витрина, которую видит кассир. Изменения применятся после сохранения</div>
+      <div class="sub" id="hkSub">Настройка. Изменения применятся после сохранения</div>
     </div>
     <div class="mode-badge"><svg style="width:14px;height:14px"><use href="#i-pencil"/></svg>Режим настройки</div>
     <button class="btn hk-mode" id="hkMode" title="Какой режим витрины правим"><span class="ml">Режим</span><span class="mn"></span><svg><use href="#i-chev"/></svg></button>
@@ -610,7 +613,6 @@
 
   <div class="hk-body">
     <aside class="hk-tree">
-      <div class="th">Структура витрины</div>
       <div class="tl" id="hkTree"></div>
       <div class="tf">
         <button class="btn" id="hkAddRootGroup" style="width:100%"><svg><use href="#i-folder-plus"/></svg>Новая группа</button>
@@ -621,14 +623,10 @@
       <div class="hk-bar">
         <div class="crumbs" id="hkCrumbs"></div>
         <button class="btn" id="hkFromCat"><svg><use href="#i-magic"/></svg>Собрать из групп</button>
-        <button class="btn" id="hkAddGroup"><svg><use href="#i-folder-plus"/></svg>Подгруппа</button>
+        <button class="btn" id="hkAddGroup"><svg><use href="#i-folder-plus"/></svg><span id="hkAddGroupL">Добавить группу</span></button>
         <button class="btn btn-primary" id="hkAddItems" style="font-size:14px"><svg><use href="#i-plus"/></svg>Добавить товары</button>
       </div>
       <div class="hk-grid" id="hkGrid"></div>
-      <div class="hk-hint">
-        <svg><use href="#i-info"/></svg>
-        <span id="hkHintText">Порядок меняется перетаскиванием плитки — или через «···» → «Сдвинуть», если работаете пальцем. Бросьте плитку на группу, чтобы перенести её внутрь.</span>
-      </div>
     </main>
   </div>
 </section>

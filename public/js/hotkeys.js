@@ -162,6 +162,7 @@ const HK = (() => {
   function renderCrumbs() {
     const el = document.getElementById('crumbs');
     const ribbon = renderRibbon(data.items.filter(n => n.kind === 'group').sort(byName));
+    renderModeChip();
     if (!path.length || (ribbon && path.length === 1)) { el.innerHTML = ''; return; }
     let html = ribbon ? '' : `<button class="up" id="crumbUp" title="На уровень выше"><svg><use href="#i-back"/></svg></button>`;
     html += `<button class="cr" data-i="-1">Все группы</button>`;
@@ -198,9 +199,7 @@ const HK = (() => {
       return;
     }
 
-    /* На первом экране витрина подписана; внутри группы её называют крошки */
-    let html = path.length ? '' : `<div class="hk-section">Витрина</div>`;
-    html += rest.map(n => {
+    let html = rest.map(n => {
       if (n.kind === 'group') return tileGroup(n);
       const p = prod(n.pid);
       return p ? tileProduct(p) : '';
@@ -219,7 +218,7 @@ const HK = (() => {
     const b = document.getElementById('btnMode');
     if (!b) return;
     const m = modes.length ? modeOf(activeId) : null;
-    b.classList.toggle('hidden', !m || modes.length < 2 || S.view !== 'hk');
+    document.getElementById('modeRow').classList.toggle('hidden', !m || modes.length < 2 || S.view !== 'hk' || path.length > 0);
     if (m) b.querySelector('.mn').textContent = m.name;
   }
   function hideModeMenu() { document.getElementById('menuMode').classList.add('hidden'); }
@@ -326,7 +325,6 @@ const HK = (() => {
   /* ---------------------------- режимы в редакторе ------------------------- */
   function renderEditMode() {
     document.getElementById('hkMode').querySelector('.mn').textContent = modeOf(editId).name;
-    document.getElementById('hkSub').textContent = `Витрина режима «${modeOf(editId).name}». Изменения применятся после сохранения`;
   }
   function switchEdit(id) {
     editId = id;
@@ -453,9 +451,8 @@ const HK = (() => {
     const b = document.getElementById('hkAddGroup');
     b.disabled = deep;
     b.title = deep ? `Глубже ${MAX_DEPTH} уровней кассиру неудобно — добавьте сюда товары` : '';
-    document.getElementById('hkHintText').textContent = deep
-      ? `Это третий, самый глубокий уровень. Дальше вкладывать группы нельзя — так кассир не потеряется. Добавляйте сюда блюда.`
-      : `Порядок меняется перетаскиванием плитки — или через «···» → «Сдвинуть», если работаете пальцем. Бросьте плитку на группу, чтобы перенести её внутрь.`;
+    /* на первом уровне создаётся группа, внутри группы — подгруппа */
+    document.getElementById('hkAddGroupL').textContent = editPath.length ? 'Добавить подгруппу' : 'Добавить группу';
   }
 
   function renderEditGrid() {
@@ -466,10 +463,6 @@ const HK = (() => {
       const p = prod(n.pid); if (!p) return '';
       return tileProduct(p, { edit: true, nid: n.id, extra: menu });
     }).join('');
-
-    html += `<button class="tile add" id="hkAddTile">
-      <svg><use href="#i-plus"/></svg><span class="l">Добавить товары</span>
-    </button>`;
 
     if (!cur.items.length) {
       html = `<div class="hk-empty">
@@ -867,7 +860,6 @@ const HK = (() => {
     /* сетка редактора */
     const grid = document.getElementById('hkGrid');
     grid.addEventListener('click', e => {
-      if (e.target.closest('#hkAddTile')) return openPicker();
       const m = e.target.closest('[data-menu]');
       if (m) {
         e.stopPropagation();
