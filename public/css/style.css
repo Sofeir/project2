@@ -597,9 +597,10 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 
 /* сетка товаров */
 .grid{
-  flex:1; overflow-y:auto; padding:14px 20px 20px;
+  flex:1; overflow-y:auto; padding:8px 20px 20px;
   display:grid; grid-template-columns:repeat(auto-fill, minmax(184px,1fr));
-  grid-auto-rows:min-content; gap:10px; align-content:start;
+  /* между рядами совсем узко: на 1024×768 шесть рядов блюд помещаются без прокрутки */
+  grid-auto-rows:min-content; gap:5px 8px; align-content:start;
 }
 .tile{
   position:relative; height:120px; padding:13px 14px 12px; text-align:left; overflow:hidden;
@@ -1345,7 +1346,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 /* редактор: какой режим правим */
 .hk-top .hk-mode{ gap:8px; flex:none; }
 .hk-mode .ml{ color:var(--tx-3); font-weight:500; }
-.hk-mode .mn{ font-weight:800; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.hk-mode .mn{ font-weight:600; color:var(--tx-2); max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .hk-mode svg{ width:16px; height:16px; }
 
 /* окно «Режимы горячих клавиш» */
@@ -1451,11 +1452,6 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .hk-editor{
   position:fixed; inset:0; z-index:180; display:flex; flex-direction:column;
   background:var(--bg); animation:fade .16s ease-out;
-}
-/* янтарная рамка по периметру — постоянное напоминание «это не касса» */
-.hk-editor::after{
-  content:""; position:absolute; inset:0; pointer-events:none; z-index:5;
-  box-shadow:inset 0 0 0 2px var(--warn-line);
 }
 
 .hk-top{
