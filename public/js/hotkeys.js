@@ -156,8 +156,6 @@ const HK = (() => {
     if (!on) { rb.innerHTML = ''; return false; }
     rb.innerHTML = `<button class="rb-up" title="На уровень выше"><svg><use href="#i-back"/></svg></button><div class="rb-list">` +
       roots.map(g => `<button class="rb ${g.id === p[0] ? 'on' : ''}" data-gid="${g.id}" style="--c:${g.color}"><i></i><span>${esc(g.name)}</span></button>`).join('') + `</div>`;
-    const list = rb.querySelector('.rb-list'), cur = rb.querySelector('.rb.on');
-    if (cur) list.scrollLeft = Math.max(0, cur.offsetLeft - list.offsetLeft - list.clientWidth / 2 + cur.offsetWidth / 2);
     return true;
   }
   function renderCrumbs() {

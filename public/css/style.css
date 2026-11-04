@@ -1393,9 +1393,9 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .crumbs-row .cr{ max-width:none; white-space:normal; height:auto; min-height:34px; padding:6px 10px; text-align:left; }
 
 /* лента групп первого уровня внутри открытой группы: листается пальцем, если не помещается */
-.ribbon{ display:flex; align-items:center; gap:10px; margin-top:10px; }
-.ribbon .rb-list{ flex:1; min-width:0; display:flex; gap:8px; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; touch-action:pan-x; position:relative; }
-.ribbon .rb-list::-webkit-scrollbar{ display:none; }
+.ribbon{ display:flex; align-items:flex-start; gap:10px; margin-top:10px; }
+/* чипы переносятся на вторую строку, а не уходят за край: обрезанных кнопок не бывает */
+.ribbon .rb-list{ flex:1; min-width:0; display:flex; flex-wrap:wrap; gap:8px; }
 .ribbon .rb-up{
   width:36px; height:36px; border-radius:var(--r-sm); color:var(--tx-2); flex:none;
   display:flex; align-items:center; justify-content:center; border:1px solid var(--line);
@@ -1509,8 +1509,9 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 
 /* рабочая зона редактора */
 .hk-main{ flex:1; display:flex; flex-direction:column; min-width:0; }
-.hk-bar{ display:flex; align-items:center; justify-content:flex-end; gap:8px; min-height:44px; }
-.hk-bar .btn{ height:44px; padding:0 15px; font-size:13.5px; font-weight:600; }
+.hk-bar{ display:flex; align-items:center; gap:8px; min-height:44px; }
+/* три кнопки делят всю строку поровну — пустого места слева нет */
+.hk-bar .btn{ flex:1 1 0; min-width:0; height:44px; padding:0 12px; font-size:13.5px; font-weight:600; white-space:nowrap; }
 .hk-bar .btn svg{ width:17px; height:17px; }
 
 /* плитка в режиме правки */
