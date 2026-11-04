@@ -118,6 +118,8 @@ const HK = (() => {
     return n.items.reduce((s, x) => s + countAll(x), 0);
   }
   const prod = pid => PRODUCTS.find(p => p.id === pid);
+  const label = n => n.kind === 'group' ? n.name : ((prod(n.pid) || {}).name || '');
+  const byName = (x, y) => label(x).localeCompare(label(y), 'ru', { numeric: true, sensitivity: 'base' });
 
   /* ========================== ВИТРИНА КАССИРА ============================= */
   /* o = { extra, edit, nid } */
@@ -144,10 +146,24 @@ const HK = (() => {
       <span class="nm">${g.name}</span>
     </button>`;
   }
+  /* Лента групп: внутри открытой группы показывает группы первого уровня,
+     чтобы перейти в соседнюю, не выходя на главный экран. Нужна, когда групп больше одной. */
+  function renderRibbon(roots) {
+    const rb = document.getElementById('ribbon');
+    const on = path.length > 0 && roots.length > 1;
+    rb.classList.toggle('hidden', !on);
+    if (!on) { rb.innerHTML = ''; return false; }
+    rb.innerHTML = `<button class="rb-up" title="На уровень выше"><svg><use href="#i-back"/></svg></button><div class="rb-list">` +
+      roots.map(g => `<button class="rb ${g.id === path[0] ? 'on' : ''}" data-gid="${g.id}" style="--c:${g.color}"><i></i><span>${esc(g.name)}</span></button>`).join('') + `</div>`;
+    const list = rb.querySelector('.rb-list'), cur = rb.querySelector('.rb.on');
+    if (cur) list.scrollLeft = Math.max(0, cur.offsetLeft - list.offsetLeft - list.clientWidth / 2 + cur.offsetWidth / 2);
+    return true;
+  }
   function renderCrumbs() {
     const el = document.getElementById('crumbs');
-    if (!path.length) { el.innerHTML = ''; return; }
-    let html = `<button class="up" id="crumbUp" title="На уровень выше"><svg><use href="#i-back"/></svg></button>`;
+    const ribbon = renderRibbon(data.items.filter(n => n.kind === 'group').sort(byName));
+    if (!path.length || (ribbon && path.length === 1)) { el.innerHTML = ''; return; }
+    let html = ribbon ? '' : `<button class="up" id="crumbUp" title="На уровень выше"><svg><use href="#i-back"/></svg></button>`;
     html += `<button class="cr" data-i="-1">Все группы</button>`;
     path.forEach((id, i) => {
       const g = findNode(data, id);
@@ -165,8 +181,6 @@ const HK = (() => {
     /* У кассира внутри уровня сначала идут группы, потом блюда, и те и другие
        по алфавиту (числа в названиях — по значению: «№ 2» раньше «№ 10»).
        Редактор администратора показывает порядок, в котором плитки заведены. */
-    const label = n => n.kind === 'group' ? n.name : ((prod(n.pid) || {}).name || '');
-    const byName = (x, y) => label(x).localeCompare(label(y), 'ru', { numeric: true, sensitivity: 'base' });
     const rest = [
       ...cur.items.filter(n => n.kind === 'group').sort(byName),
       ...cur.items.filter(n => n.kind !== 'group').sort(byName),
@@ -772,6 +786,14 @@ const HK = (() => {
   function bind() {
     /* витрина кассира */
     document.getElementById('crumbs').addEventListener('click', onCrumbClick);
+    document.getElementById('ribbon').addEventListener('click', e => {
+      if (S.view !== 'hk') return;
+      if (e.target.closest('.rb-up')) { up(); return; }
+      const b = e.target.closest('.rb'); if (!b) return;
+      path = [b.dataset.gid];
+      renderCashier();
+      document.getElementById('grid').scrollTop = 0;
+    });
 
     /* режим на витрине кассира */
     document.getElementById('btnMode').addEventListener('click', e => { e.stopPropagation(); toggleModeMenu(); });

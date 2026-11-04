@@ -1388,6 +1388,25 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .crumbs-row:empty{ display:none; }
 .crumbs-row .cr{ max-width:none; white-space:normal; height:auto; min-height:34px; padding:6px 10px; text-align:left; }
 
+/* лента групп первого уровня внутри открытой группы: листается пальцем, если не помещается */
+.ribbon{ display:flex; align-items:center; gap:10px; margin-top:10px; }
+.ribbon .rb-list{ flex:1; min-width:0; display:flex; gap:8px; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; touch-action:pan-x; position:relative; }
+.ribbon .rb-list::-webkit-scrollbar{ display:none; }
+.ribbon .rb-up{
+  width:36px; height:36px; border-radius:var(--r-sm); color:var(--tx-2); flex:none;
+  display:flex; align-items:center; justify-content:center; border:1px solid var(--line);
+}
+@media (hover:hover){ .ribbon .rb-up:hover{ background:var(--card); color:var(--tx); } }
+.ribbon .rb{
+  flex:none; height:36px; max-width:210px; padding:0 14px 0 12px; display:flex; align-items:center; gap:8px;
+  background:var(--panel); border:1px solid color-mix(in srgb, var(--c) 30%, var(--line)); border-radius:var(--r-pill);
+  color:var(--tx-2); font-size:13.5px; font-weight:600;
+}
+.ribbon .rb i{ width:8px; height:8px; border-radius:50%; background:var(--c); flex:none; }
+.ribbon .rb span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+@media (hover:hover){ .ribbon .rb:hover{ color:var(--tx); border-color:color-mix(in srgb, var(--c) 55%, var(--line)); } }
+.ribbon .rb.on{ background:color-mix(in srgb, var(--c) 22%, var(--panel)); border-color:var(--c); color:var(--tx); font-weight:700; }
+
 /* ---------- плитка-группа ---------- */
 .tile.group{
   background:linear-gradient(158deg, color-mix(in srgb, var(--c) 17%, var(--panel)), var(--panel) 78%);

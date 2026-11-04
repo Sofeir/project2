@@ -541,6 +541,7 @@ function setView(v) {
 const byRu = (a, b) => a.name.localeCompare(b.name, 'ru', { numeric: true, sensitivity: 'base' });
 function catCrumbs() {
   const el = $('#crumbs');
+  $('#ribbon').classList.add('hidden');
   if (!S.cat) { el.innerHTML = ''; return; }
   const name = S.cat === 'hits' ? 'Ходовые' : catOf(S.cat).name;
   el.innerHTML = `<button class="up" id="crumbUp" title="К списку групп"><svg><use href="#i-back"/></svg></button>
