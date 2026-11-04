@@ -148,13 +148,14 @@ const HK = (() => {
   }
   /* Лента групп: внутри открытой группы показывает группы первого уровня,
      чтобы перейти в соседнюю, не выходя на главный экран. Нужна, когда групп больше одной. */
-  function renderRibbon(roots) {
-    const rb = document.getElementById('ribbon');
-    const on = path.length > 0 && roots.length > 1;
+  function renderRibbon(roots, rb, p) {
+    rb = rb || document.getElementById('ribbon');
+    p = p || path;
+    const on = p.length > 0 && roots.length > 1;
     rb.classList.toggle('hidden', !on);
     if (!on) { rb.innerHTML = ''; return false; }
     rb.innerHTML = `<button class="rb-up" title="На уровень выше"><svg><use href="#i-back"/></svg></button><div class="rb-list">` +
-      roots.map(g => `<button class="rb ${g.id === path[0] ? 'on' : ''}" data-gid="${g.id}" style="--c:${g.color}"><i></i><span>${esc(g.name)}</span></button>`).join('') + `</div>`;
+      roots.map(g => `<button class="rb ${g.id === p[0] ? 'on' : ''}" data-gid="${g.id}" style="--c:${g.color}"><i></i><span>${esc(g.name)}</span></button>`).join('') + `</div>`;
     const list = rb.querySelector('.rb-list'), cur = rb.querySelector('.rb.on');
     if (cur) list.scrollLeft = Math.max(0, cur.offsetLeft - list.offsetLeft - list.clientWidth / 2 + cur.offsetWidth / 2);
     return true;
@@ -438,14 +439,21 @@ const HK = (() => {
     document.getElementById('hkTree').innerHTML = html;
   }
 
+  /* путь и лента групп — те же, что у кассира: внутри группы чипы групп первого уровня,
+     глубже — строка пути под ними */
   function renderEditCrumbs() {
     const el = document.getElementById('hkCrumbs');
-    let html = `<button class="cr ${editPath.length ? '' : 'last'}" data-i="-1">Все группы</button>`;
-    editPath.forEach((id, i) => {
-      const g = findNode(draft, id); if (!g) return;
-      html += `<span class="sl">›</span><button class="cr ${i === editPath.length - 1 ? 'last' : ''}" data-i="${i}">${g.name}</button>`;
-    });
-    el.innerHTML = html;
+    const ribbon = renderRibbon(draft.items.filter(n => n.kind === 'group').sort(byName), document.getElementById('hkRibbon'), editPath);
+    if (!editPath.length || (ribbon && editPath.length === 1)) el.innerHTML = '';
+    else {
+      let html = ribbon ? '' : `<button class="up" id="hkCrumbUp" title="На уровень выше"><svg><use href="#i-back"/></svg></button>`;
+      html += `<button class="cr" data-i="-1">Все группы</button>`;
+      editPath.forEach((id, i) => {
+        const g = findNode(draft, id); if (!g) return;
+        html += `<span class="sl">›</span><button class="cr ${i === editPath.length - 1 ? 'last' : ''}" data-i="${i}">${g.name}</button>`;
+      });
+      el.innerHTML = html;
+    }
 
     const deep = editPath.length >= MAX_DEPTH;
     const b = document.getElementById('hkAddGroup');
@@ -892,7 +900,14 @@ const HK = (() => {
     });
 
     /* крошки редактора */
+    document.getElementById('hkRibbon').addEventListener('click', e => {
+      if (e.target.closest('.rb-up')) { editPath = editPath.slice(0, -1); renderEditor(); return; }
+      const b = e.target.closest('.rb'); if (!b) return;
+      editPath = [b.dataset.gid];
+      renderEditor();
+    });
     document.getElementById('hkCrumbs').addEventListener('click', e => {
+      if (e.target.closest('#hkCrumbUp')) { editPath = editPath.slice(0, -1); renderEditor(); return; }
       const c = e.target.closest('.cr'); if (!c) return;
       const i = +c.dataset.i;
       editPath = i < 0 ? [] : editPath.slice(0, i + 1);

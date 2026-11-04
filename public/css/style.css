@@ -1465,18 +1465,13 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 }
 .hk-top h2{ font-size:17px; }
 .hk-top .sub{ font-size:12.5px; color:var(--tx-3); margin-top:1px; }
-.mode-badge{
-  display:flex; align-items:center; gap:8px; min-height:42px; max-width:136px; padding:6px 18px 6px 16px; border-radius:var(--r-pill); flex:none; line-height:1.2;
-  background:var(--warn-soft); border:1px solid var(--warn-line); color:var(--warn);
-  font-size:12px; font-weight:700;
-}
 .hk-top .btn{ height:44px; padding:0 18px; font-size:14px; }
 
 .hk-body{ flex:1; display:flex; min-height:0; }
 
 /* дерево структуры */
 .hk-tree{
-  width:312px; flex:none; display:flex; flex-direction:column;
+  width:var(--check-w); flex:none; display:flex; flex-direction:column;
   background:var(--panel); border-right:1px solid var(--line);
 }
 .hk-tree .th{
@@ -1514,23 +1509,9 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 
 /* рабочая зона редактора */
 .hk-main{ flex:1; display:flex; flex-direction:column; min-width:0; }
-.hk-bar{
-  flex:none; display:flex; align-items:center; gap:8px; padding:14px 20px;
-  border-bottom:1px solid var(--line);
-}
+.hk-bar{ display:flex; align-items:center; justify-content:flex-end; gap:8px; min-height:44px; }
 .hk-bar .btn{ height:44px; padding:0 15px; font-size:13.5px; font-weight:600; }
 .hk-bar .btn svg{ width:17px; height:17px; }
-.hk-bar .crumbs{ flex:1; }
-.hk-grid{
-  flex:1; overflow-y:auto; padding:16px 20px 24px;
-  display:grid; grid-template-columns:repeat(auto-fill, minmax(184px,1fr));
-  grid-auto-rows:min-content; gap:10px; align-content:start;
-}
-.hk-hint{
-  flex:none; padding:11px 20px; border-top:1px solid var(--line); background:var(--panel);
-  font-size:12.5px; color:var(--tx-3); display:flex; align-items:center; gap:8px;
-}
-.hk-hint svg{ width:15px; height:15px; }
 
 /* плитка в режиме правки */
 .tile.edit{ cursor:grab; }
@@ -1659,8 +1640,6 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 
 @media (max-height: 830px){
   .hk-top{ height:60px; }
-  .hk-grid{ grid-template-columns:repeat(auto-fill,minmax(168px,1fr)); }
-  .hk-tree{ width:284px; }
   .tr{ height:42px; }
 }
 
