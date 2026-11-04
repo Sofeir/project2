@@ -319,6 +319,7 @@ const HK = (() => {
     draft = clone(treeOf(editId));
     undoStack = []; dirty = false; editPath = [];
     renderEditor();
+    renderModes();
   }
   function renderModes() {
     const total = m => countAll({ kind: 'group', items: m.items });
