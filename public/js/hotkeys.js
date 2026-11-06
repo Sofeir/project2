@@ -154,9 +154,39 @@ const HK = (() => {
     const on = p.length > 0 && roots.length > 1;
     rb.classList.toggle('hidden', !on);
     if (!on) { rb.innerHTML = ''; return false; }
+    const prev = rb.querySelector('.rb-list');
+    const keep = prev ? prev.scrollLeft : 0;   /* лента перерисовывается при каждом переходе — положение не должно сбрасываться */
     rb.innerHTML = `<button class="rb-up" title="На уровень выше"><svg><use href="#i-back"/></svg></button><div class="rb-list">` +
       roots.map(g => `<button class="rb ${g.id === p[0] ? 'on' : ''}" data-gid="${g.id}" style="--c:${g.color}"><i></i><span>${esc(g.name)}</span></button>`).join('') + `</div>`;
+    /* активная группа не должна прятаться за краем: прокручиваем ровно настолько, чтобы она была видна целиком */
+    const list = rb.querySelector('.rb-list'), cur = rb.querySelector('.rb.on');
+    list.scrollLeft = keep;
+    if (cur) {
+      const l = cur.offsetLeft - list.offsetLeft, r = l + cur.offsetWidth;
+      if (l < list.scrollLeft) list.scrollLeft = l;
+      else if (r > list.scrollLeft + list.clientWidth) list.scrollLeft = r - list.clientWidth;
+    }
     return true;
+  }
+  /* Лента листается: пальцем — само (touch-action:pan-x), мышью — зажатой кнопкой (левой или правой) и влево-вправо.
+     Протащили — нажатие на чип не засчитывается. Навешено на сами ленты, потому что внутри они перерисовываются. */
+  function dragScroll(rb) {
+    let list = null, x0 = 0, s0 = 0, moved = false;
+    rb.addEventListener('pointerdown', e => {
+      list = e.target.closest('.rb-list');
+      if (!list || e.pointerType !== 'mouse' || (e.button !== 0 && e.button !== 2)) { list = null; return; }
+      x0 = e.clientX; s0 = list.scrollLeft; moved = false;
+    });
+    window.addEventListener('pointermove', e => {
+      if (!list) return;
+      const dx = e.clientX - x0;
+      if (!moved && Math.abs(dx) < 6) return;
+      moved = true;
+      list.scrollLeft = s0 - dx;
+    });
+    window.addEventListener('pointerup', () => { list = null; });
+    rb.addEventListener('click', e => { if (moved) { e.stopImmediatePropagation(); e.preventDefault(); moved = false; } }, true);
+    rb.addEventListener('contextmenu', e => e.preventDefault());   // правая кнопка тянет ленту, меню браузера не нужно
   }
   function renderCrumbs() {
     const el = document.getElementById('crumbs');
@@ -784,6 +814,8 @@ const HK = (() => {
   /* ------------------------------- события -------------------------------- */
   function bind() {
     /* витрина кассира */
+    dragScroll(document.getElementById('ribbon'));
+    dragScroll(document.getElementById('hkRibbon'));
     document.getElementById('crumbs').addEventListener('click', onCrumbClick);
     document.getElementById('ribbon').addEventListener('click', e => {
       if (S.view !== 'hk') return;
