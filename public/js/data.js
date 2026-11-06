@@ -25,6 +25,7 @@ function applyCatalog(data) {
     sub: p.sub || '',
     hit: !!p.hit,
     weight: !!p.weight,
+    parts: Array.isArray(p.parts) ? p.parts : null,   // состав комплекса: части и блюда на выбор
   }));
   /* «Без скидки» — это отсутствие записи в хранилище, в списке она нужна как способ снять скидку */
   DISCOUNTS = [{ id: 'none', name: 'Без скидки', percent: 0 }].concat(

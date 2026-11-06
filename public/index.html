@@ -420,6 +420,22 @@
   </div>
 </div>
 
+<!-- ============================ СОСТАВ КОМПЛЕКСА ============================ -->
+<!-- Комплекс добавляется в чек только после выбора блюд; выбранное видно под названием в чеке и пишется в базу, на ККТ не уходит -->
+<div class="veil hidden" id="modalCombo" data-lock>
+  <div class="modal combo">
+    <div class="m-head">
+      <div><h3 id="comboTitle">Комплекс</h3><div class="hsub" id="comboSub">Выберите блюдо в каждой части</div></div>
+      <button class="ibtn" data-close><svg><use href="#i-close"/></svg></button>
+    </div>
+    <div class="m-body" id="comboBody"></div>
+    <div class="m-foot">
+      <button class="btn" data-close style="flex:1">Отмена</button>
+      <button class="btn btn-primary" id="btnComboOk" style="flex:1.4">Добавить в чек</button>
+    </div>
+  </div>
+</div>
+
 <!-- ============================ СКИДКА ============================ -->
 <div class="veil hidden" id="modalDisc">
   <div class="modal slim">

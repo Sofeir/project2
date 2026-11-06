@@ -127,7 +127,9 @@ const API = (() => {
     return {
       categories: d.categories.map(c => ({ id: c.id, name: c.name, short: c.short, color: c.color })),
       products: d.products.filter(p => p.active !== false)
-        .map(p => ({ id: p.id, name: p.name, price: p.price, unit: p.unit, cat: p.cat, sub: p.sub || '', hit: !!p.hit, weight: !!p.weight })),
+        .map(p => ({ id: p.id, name: p.name, price: p.price, unit: p.unit, cat: p.cat, sub: p.sub || '', hit: !!p.hit, weight: !!p.weight,
+          /* состав комплекса — из стороннего сервиса (заглушка SEED.COMBOS); у обычных блюд его нет */
+          parts: p.cat === 'combo' && SEED.COMBOS[p.name] ? clone(SEED.COMBOS[p.name]) : null })),
       discounts: d.discounts.map(x => ({ id: x.id, name: x.name, percent: x.percent })),
     };
   }
@@ -228,7 +230,7 @@ const API = (() => {
       tax_system: c.tax_system ?? null, op_date: isoToRu(c.op_date), fiscal_sign: c.fiscal_sign ?? null,
       source_ref: ref,
       date: ddmmyyyy(c.created_at), time: hhmm(c.created_at),
-      items: c.items.map(i => ({ id: i.id, name: i.name, price: i.price, unit: i.unit, qty: i.qty })),
+      items: c.items.map(i => ({ id: i.id, name: i.name, price: i.price, unit: i.unit, qty: i.qty, ...(i.parts ? { parts: i.parts } : {}) })),
       payments: c.payments.map(p => ({ m: p.m, kind: p.kind ?? null, qty: p.qty ?? null, amount: p.amount, vat: p.vat ?? null, vatSum: p.vatSum ?? null })),
       pass: c.pass ? { number: c.pass.number, owner: c.pass.owner } : null,
     };
@@ -324,7 +326,10 @@ const API = (() => {
         const price = p ? Number(p.price) : Number(it.price);
         const qty = Number(it.qty);
         if (!(qty > 0)) throw new Error(`Некорректное количество для «${it.name}»`);
-        return { id: p ? p.id : null, name: p ? p.name : it.name, unit: p ? p.unit : it.unit, price, qty, sum: money(price * qty) };
+        /* что покупатель выбрал в комплексе — только в базу; в чек (ФД) уходит одно название комплекса */
+        const parts = Array.isArray(it.parts) && it.parts.length
+          ? it.parts.map(x => ({ part: String(x.part || ''), name: String(x.name || '') })) : null;
+        return { id: p ? p.id : null, name: p ? p.name : it.name, unit: p ? p.unit : it.unit, price, qty, sum: money(price * qty), ...(parts ? { parts } : {}) };
       });
       const subtotal = money(priced.reduce((s, i) => s + i.sum, 0));
 

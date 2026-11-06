@@ -657,6 +657,7 @@ document.addEventListener('click', e => {
 function addProduct(id) {
   const p = PRODUCTS.find(x => x.id === id); if (!p) return;
   if (p.weight) { openQtyForNew(p); return; }
+  if (p.parts) { openCombo(p, null); return; }
   const row = S.cart.find(r => r.id === id);
   if (row) row.qty += 1;
   else S.cart.push({ uid: ++_uid, id: p.id, name: p.name, price: p.price, unit: p.unit, weight: false, qty: 1, fresh: true });
@@ -699,13 +700,15 @@ function renderCheck() {
         ${sel ? '' : qtyTag}
         <div class="row-sum num">${money(lineSum(r))}</div>
       </div>
+      ${r.parts ? `<div class="row-set">${r.parts.map(x => shortDish(x.name)).join(' · ')}</div>` : ''}
       ${sel ? `<div class="row-bot">
         <div class="row-price">${r.weight ? `${money(r.price)} за кг` : `${money(r.price)} за ${r.unit || 'шт'}`}</div>
         ${stepper}
       </div>
       <div class="row-acts">
         <button data-act="qty" data-uid="${r.uid}"><svg><use href="#${r.weight ? 'i-scale' : 'i-plus'}"/></svg>${r.weight ? 'Указать вес' : 'Количество'}</button>
-        ${r.weight ? '' : `<button class="half" data-act="half" data-uid="${r.uid}" aria-label="Половина порции">½</button>`}
+        ${r.parts ? `<button data-act="set" data-uid="${r.uid}"><svg><use href="#i-check"/></svg>Состав</button>`
+          : r.weight ? '' : `<button class="half" data-act="half" data-uid="${r.uid}" aria-label="Половина порции">½</button>`}
         <button class="danger" data-act="del" data-uid="${r.uid}"><svg><use href="#i-trash"/></svg>Удалить</button>
       </div>` : ''}
     </div>`;
@@ -722,6 +725,7 @@ $('#checkList').addEventListener('click', e => {
     if (b.dataset.act === 'dec') { r.qty = Math.round((r.qty - 1) * 1000) / 1000; if (r.qty <= 0) S.cart = S.cart.filter(x => x.uid !== uid); renderAll(); }
     if (b.dataset.act === 'half') { r.qty = 0.5; renderAll(); }
     if (b.dataset.act === 'qty') openQtyForRow(r);
+    if (b.dataset.act === 'set') openCombo(PRODUCTS.find(x => x.id === r.id), r);
     if (b.dataset.act === 'del') { S.cart = S.cart.filter(x => x.uid !== uid); S.sel = null; renderAll(); }
     return;
   }
@@ -793,6 +797,64 @@ $('#btnVoid').addEventListener('click', () => {
     S.cart = []; S.sel = null; S.discount = null; renderAll();
     toast('Чек очищен', 'warn');
   });
+});
+
+/* ============================ СОСТАВ КОМПЛЕКСА =========================== */
+/* Нажали на комплекс — выбираем по одному блюду в каждой части (первое, второе, салат…).
+   Выбранное хранится в строке чека (parts), показывается под названием мелким шрифтом
+   и уходит в базу вместе с чеком. На печать идёт только название комплекса. */
+const shortDish = n => String(n).replace(/\s+\d[\d,./]*\s?(г|мл|л|кг)$/i, '');
+const comboSig = parts => (parts || []).map(x => x.name).join('|');
+const CB = { p: null, row: null, sel: [] };
+function openCombo(p, row) {
+  if (!p || !p.parts) return;
+  CB.p = p; CB.row = row;
+  CB.sel = p.parts.map((pt, i) => {
+    const had = row && row.parts && row.parts[i] ? pt.options.indexOf(row.parts[i].name) : -1;
+    return had >= 0 ? had : pt.options.length === 1 ? 0 : -1;   // единственное блюдо в части выбрано сразу
+  });
+  $('#comboTitle').textContent = p.name;
+  renderCombo();
+  open('modalCombo');
+}
+function renderCombo() {
+  const parts = CB.p.parts;
+  const left = parts.filter((_, i) => CB.sel[i] < 0).map(pt => pt.name);
+  $('#comboSub').textContent = left.length ? 'Осталось выбрать: ' + left.join(', ') : `${money(CB.p.price)} · состав выбран`;
+  $('#comboBody').innerHTML = parts.map((pt, i) => `
+    <div class="cb-part">
+      <div class="cb-h">${pt.name}</div>
+      <div class="cb-opts" style="--n:${Math.min(3, pt.options.length)}">
+        ${pt.options.length === 1
+          /* единственное блюдо в части уже выбрано по умолчанию — без галочки и без нажатия */
+          ? `<div class="cb-opt fixed"><span>${shortDish(pt.options[0])}</span></div>`
+          : pt.options.map((o, j) => `<button class="cb-opt ${CB.sel[i] === j ? 'on' : ''}" data-i="${i}" data-j="${j}"><svg><use href="#i-check"/></svg><span>${shortDish(o)}</span></button>`).join('')}
+      </div>
+    </div>`).join('');
+  const b = $('#btnComboOk');
+  b.disabled = left.length > 0;
+  b.textContent = CB.row ? 'Сохранить состав' : 'Добавить в чек';
+}
+$('#comboBody').addEventListener('click', e => {
+  const b = e.target.closest('[data-i]'); if (!b) return;
+  CB.sel[+b.dataset.i] = +b.dataset.j;
+  renderCombo();
+});
+$('#btnComboOk').addEventListener('click', () => {
+  if (!CB.p || CB.sel.some(j => j < 0)) return;
+  const editing = !!CB.row;
+  const parts = CB.p.parts.map((pt, i) => ({ part: pt.name, name: pt.options[CB.sel[i]] }));
+  if (CB.row) CB.row.parts = parts;
+  else {
+    /* одинаковый набор блюд — та же строка, другой набор — новая: состав у каждой строки свой */
+    const row = S.cart.find(r => r.id === CB.p.id && comboSig(r.parts) === comboSig(parts));
+    if (row) row.qty += 1;
+    else S.cart.push({ uid: ++_uid, id: CB.p.id, name: CB.p.name, price: CB.p.price, unit: CB.p.unit, weight: false, qty: 1, parts, fresh: true });
+    S.sel = null;
+  }
+  close('modalCombo');
+  CB.p = null; CB.row = null;
+  renderAll(!editing);
 });
 
 /* ============================ КОЛИЧЕСТВО / ВЕС =========================== */
@@ -1440,7 +1502,7 @@ async function finishPay(parts, change, print) {
 /* Тело чека для хранилища: позиции, скидка, оплаты */
 function cartBody(parts, change) {
   return {
-    items: S.cart.map(r => ({ id: r.id, name: r.name, price: r.price, unit: r.unit, qty: r.qty })),
+    items: S.cart.map(r => ({ id: r.id, name: r.name, price: r.price, unit: r.unit, qty: r.qty, ...(r.parts ? { parts: r.parts } : {}) })),
     discountId: S.discount ? S.discount.id : null,
     payments: parts,
     pass: parts.some(p => p.m === 'pass') ? S.pay.pass.number : null,
@@ -1607,7 +1669,7 @@ function resumeAwaiting() {
   if (!h || S.cart.length) return;
   S.cart = h.items.map(i => ({
     uid: ++_uid, id: i.id, name: i.name, price: i.price, unit: i.unit,
-    weight: !!(PRODUCTS.find(p => p.id === i.id) || {}).weight, qty: i.qty,
+    weight: !!(PRODUCTS.find(p => p.id === i.id) || {}).weight, qty: i.qty, ...(i.parts ? { parts: i.parts } : {}),
   }));
   S.discount = (h.discountId && DISCOUNTS.find(d => d.id === h.discountId)) || null;
   setOp('sale');
