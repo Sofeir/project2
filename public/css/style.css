@@ -634,7 +634,6 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .tile.dish{ height:auto; min-height:104px; }
 .tile.dish .nm{ margin-top:0; margin-bottom:6px; }
 /* в режиме настройки в правом верхнем углу стоит кнопка меню плитки */
-.tile.dish.edit .nm{ padding-right:30px; }
 .tile.combo{
   background:linear-gradient(155deg, rgba(216,166,75,.16), rgba(216,166,75,.05) 62%, var(--panel));
   border-color:rgba(216,166,75,.34);
@@ -1348,17 +1347,17 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .search-btn:active{ background:var(--card-act); }
 
 /* режим горячих клавиш: завтрак, обед, ужин… — отдельная строка под переключателем (на первом экране),
-   на месте ленты групп; зелёным выделен как «активное» */
+   на месте ленты групп; обычная серая кнопка, как чипы групп */
 .mode-row{ display:flex; margin-top:10px; }
 .mode-row.hidden{ display:none; }
 .mode-btn{
-  flex:none; height:44px; padding:0 12px 0 16px; max-width:320px; display:flex; align-items:center; gap:8px;
-  background:var(--acc-soft); border:1px solid var(--acc-line); border-radius:var(--r-pill);
-  color:var(--tx); font-size:13.5px; font-weight:700;
+  flex:none; height:36px; padding:0 10px 0 14px; max-width:320px; display:flex; align-items:center; gap:6px;
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--r-pill);
+  color:var(--tx-2); font-size:13.5px; font-weight:600;
 }
 .mode-btn .mn{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .mode-btn svg{ width:16px; height:16px; flex:none; color:var(--tx-3); }
-@media (hover:hover){ .mode-btn:hover{ background:var(--acc-dim, var(--acc-soft)); } }
+@media (hover:hover){ .mode-btn:hover{ background:var(--card); color:var(--tx); } }
 .mode-btn:active{ background:var(--card-act); }
 .menu button.on{ color:var(--acc); font-weight:700; }
 .menu button.on svg{ color:var(--acc); }
@@ -1447,7 +1446,6 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .tile.group .gi{ width:var(--gi); height:var(--gi); border-radius:calc(var(--gi) * .29); }
 .tile.group .gi svg{ width:calc(var(--gi) * .58); height:calc(var(--gi) * .58); }
 .tile.group .nm{ margin:0; font-size:16px; line-height:1.25; -webkit-line-clamp:4; align-self:center; }
-.tile.group.edit{ padding-right:46px; }
 .hk-section{
   grid-column:1/-1; display:flex; align-items:center; gap:10px; margin:4px 2px 0;
   font-size:11.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--tx-3);
@@ -1471,7 +1469,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 }
 
 .hk-top{
-  flex:none; height:68px; display:flex; align-items:center; gap:12px; padding:0 18px;
+  flex:none; height:var(--topbar-h); display:flex; align-items:center; gap:12px; padding:0 18px;
   background:var(--panel); border-bottom:1px solid var(--line); position:relative; z-index:6;
 }
 .hk-top .ti{
@@ -1480,7 +1478,7 @@ body.vk-open:not(.vk-fixed) .catalog::before{
   display:flex; align-items:center; justify-content:center;
 }
 .hk-top h2{ font-size:17px; }
-.hk-top .sub{ font-size:12.5px; color:var(--tx-3); margin-top:1px; }
+.hk-top .sub{ font-size:12px; line-height:1.25; color:var(--tx-3); margin-top:1px; }
 .hk-top .btn{ height:44px; padding:0 18px; font-size:14px; }
 
 .hk-body{ flex:1; display:flex; min-height:0; }
@@ -1536,11 +1534,13 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 /* меню плитки видно всегда: настройку часто делают на самом сенсорном
    терминале, где наведения курсора не существует */
 .tile.edit .em{
-  position:absolute; top:6px; right:6px; width:32px; height:32px; border-radius:9px;
+  position:absolute; top:6px; right:6px; width:30px; height:30px; border-radius:9px;
   display:flex; align-items:center; justify-content:center; color:var(--tx-2);
   background:color-mix(in srgb, var(--bg) 60%, transparent);
   border:1px solid var(--line); opacity:.8; transition:opacity .12s, background .12s;
 }
+/* у блюда кнопка стоит справа в строке цены (там пусто), у группы — в углу: названия остаются во всю ширину */
+.tile.dish.edit .em{ top:auto; bottom:6px; }
 .tile.edit:hover .em{ opacity:1; }
 .tile.edit .em:hover{ background:var(--card-act); color:var(--tx); }
 .tile.dragging{ opacity:.3; }
@@ -1656,7 +1656,6 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 .swatches button.on{ border-color:var(--c); }
 
 @media (max-height: 830px){
-  .hk-top{ height:60px; }
   .tr{ height:42px; }
 }
 
