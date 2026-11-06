@@ -156,7 +156,7 @@ const HK = (() => {
     if (!on) { rb.innerHTML = ''; return false; }
     const prev = rb.querySelector('.rb-list');
     const keep = prev ? prev.scrollLeft : 0;   /* лента перерисовывается при каждом переходе — положение не должно сбрасываться */
-    rb.innerHTML = `<button class="rb-up" title="На уровень выше"><svg><use href="#i-back"/></svg></button><div class="rb-list">` +
+    rb.innerHTML = `<div class="rb-list">` +
       roots.map(g => `<button class="rb ${g.id === p[0] ? 'on' : ''}" data-gid="${g.id}" style="--c:${g.color}"><i></i><span>${esc(g.name)}</span></button>`).join('') + `</div>`;
     /* активная группа не должна прятаться за краем: прокручиваем ровно настолько, чтобы она была видна целиком */
     const list = rb.querySelector('.rb-list'), cur = rb.querySelector('.rb.on');
@@ -819,9 +819,9 @@ const HK = (() => {
     document.getElementById('crumbs').addEventListener('click', onCrumbClick);
     document.getElementById('ribbon').addEventListener('click', e => {
       if (S.view !== 'hk') return;
-      if (e.target.closest('.rb-up')) { up(); return; }
       const b = e.target.closest('.rb'); if (!b) return;
-      path = [b.dataset.gid];
+      /* стрелки «выше» нет: нажатие на уже открытую группу возвращает на первый экран */
+      path = b.classList.contains('on') ? [] : [b.dataset.gid];
       renderCashier();
       document.getElementById('grid').scrollTop = 0;
     });
@@ -931,9 +931,8 @@ const HK = (() => {
 
     /* крошки редактора */
     document.getElementById('hkRibbon').addEventListener('click', e => {
-      if (e.target.closest('.rb-up')) { editPath = editPath.slice(0, -1); renderEditor(); return; }
       const b = e.target.closest('.rb'); if (!b) return;
-      editPath = [b.dataset.gid];
+      editPath = b.classList.contains('on') ? [] : [b.dataset.gid];
       renderEditor();
     });
     document.getElementById('hkCrumbs').addEventListener('click', e => {

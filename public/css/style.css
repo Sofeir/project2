@@ -1397,11 +1397,6 @@ body.vk-open:not(.vk-fixed) .catalog::before{
 /* одна строка: пальцем листается влево-вправо, мышью — зажатой кнопкой (hotkeys.js, dragScroll) */
 .ribbon .rb-list{ flex:1; min-width:0; display:flex; gap:4px; overflow-x:auto; overflow-y:hidden; scrollbar-width:none; touch-action:pan-x; }
 .ribbon .rb-list::-webkit-scrollbar{ display:none; }
-.ribbon .rb-up{
-  width:36px; height:36px; border-radius:var(--r-sm); color:var(--tx-2); flex:none;
-  display:flex; align-items:center; justify-content:center; border:1px solid var(--line);
-}
-@media (hover:hover){ .ribbon .rb-up:hover{ background:var(--card); color:var(--tx); } }
 .ribbon .rb{
   flex:none; height:36px; max-width:210px; padding:0 14px 0 12px; display:flex; align-items:center; gap:8px;
   background:var(--panel); border:1px solid color-mix(in srgb, var(--c) 30%, var(--line)); border-radius:var(--r-pill);
