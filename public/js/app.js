@@ -700,7 +700,7 @@ function renderCheck() {
         ${sel ? '' : qtyTag}
         <div class="row-sum num">${money(lineSum(r))}</div>
       </div>
-      ${r.parts ? `<div class="row-set">${r.parts.map(x => shortDish(x.name)).join(' · ')}</div>` : ''}
+      ${r.parts && sel ? `<div class="row-set">${r.parts.map(x => `<div>${shortDish(x.name)}</div>`).join('')}</div>` : ''}
       ${sel ? `<div class="row-bot">
         <div class="row-price">${r.weight ? `${money(r.price)} за кг` : `${money(r.price)} за ${r.unit || 'шт'}`}</div>
         ${stepper}
